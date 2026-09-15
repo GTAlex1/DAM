@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dam-notes — Visual Studio Code</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><rect width=%2224%22 height=%2224%22 rx=%224%22 fill=%22%23007acc%22/><text x=%2212%22 y=%2217%22 font-size=%2213%22 font-family=%22monospace%22 fill=%22white%22 text-anchor=%22middle%22>{}</text></svg>">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Title bar -->
+<div class="titlebar">
+  <div class="titlebar-left">
+    <svg class="vscode-logo" viewBox="0 0 24 24" width="16" height="16"><path fill="#0098FF" d="M17.5 2.4L9.4 9.7 4.8 6.1 2.7 7l4.1 5-4.1 5 2.1.9 4.6-3.6 8.1 7.3 4.8-2.3V4.7l-4.8-2.3zM17.5 16l-4.6-4 4.6-4v8z"/></svg>
+    <span>Code</span>
+  </div>
+  <div class="titlebar-center" id="titlebar-path">dam-notes</div>
+  <div class="titlebar-right"></div>
+</div>
+
+<div class="workbench">
+
+  <!-- Activity bar -->
+  <div class="activitybar">
+    <button class="activity-icon active" title="Explorador" aria-label="Explorador">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M14.5 3H9.5L8 4.5V6H4a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-4V4.5L14.5 3zM9 5h6v1H9V5zm11 15H4V8h16v12z"/></svg>
+    </button>
+    <button class="activity-icon" title="Buscar" aria-label="Buscar">
+      <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 5L20.49 19l-5-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
+    </button>
+    <button class="activity-icon" title="Control de código fuente" aria-label="Git">
+      <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M17.5 10.5a2.5 2.5 0 0 0-4.9-.8L9 8V6.83a2.5 2.5 0 1 0-2 0v6.34a2.5 2.5 0 1 0 2.13.07L12 12a2.5 2.5 0 0 0 4-2 2.5 2.5 0 0 0 1.5-2.5v-1a2.49 2.49 0 0 0 0-3.9V10.5z"/><circle cx="7" cy="4.5" r="1.3"/><circle cx="7" cy="16.5" r="1.3"/><circle cx="15" cy="10.5" r="1.3"/></svg>
+    </button>
+    <div class="activity-spacer"></div>
+    <button class="activity-icon" title="Ajustes" aria-label="Ajustes">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M19.4 13a7.8 7.8 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.9 7.9 0 0 0-1.7-1L15 3h-4l-.3 2.9a7.9 7.9 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.8 7.8 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.9 7.9 0 0 0 1.7 1L11 21h4l.3-2.9a7.9 7.9 0 0 0 1.7-1l2.5 1 2-3.5L19.4 13zM13 15.5A3.5 3.5 0 1 1 16.5 12 3.5 3.5 0 0 1 13 15.5z"/></svg>
+    </button>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span>Explorador</span>
+    </div>
+    <div class="sidebar-section-header">
+      <svg class="chevron" viewBox="0 0 16 16" width="16" height="16"><path fill="currentColor" d="M6 4l4 4-4 4V4z"/></svg>
+      <span>DAM-NOTES</span>
+    </div>
+    <div id="file-tree" class="file-tree"></div>
+  </div>
+
+  <!-- Editor area -->
+  <div class="editor-area">
+    <div class="tabbar" id="tabbar"></div>
+    <div class="breadcrumbs" id="breadcrumbs"></div>
+    <div class="editor-content" id="editor-content">
+      <div class="welcome">
+        <svg viewBox="0 0 24 24" width="64" height="64"><path fill="#3c3c3c" d="M17.5 2.4L9.4 9.7 4.8 6.1 2.7 7l4.1 5-4.1 5 2.1.9 4.6-3.6 8.1 7.3 4.8-2.3V4.7l-4.8-2.3zM17.5 16l-4.6-4 4.6-4v8z"/></svg>
+        <h1>Apuntes de DAM</h1>
+        <p>Selecciona un archivo del explorador para empezar a leer.</p>
+        <div class="welcome-shortcuts">
+          <div><span class="kbd">Ctrl</span> + <span class="kbd">P</span> — ir a un archivo</div>
+          <div><span class="kbd">Ctrl</span> + <span class="kbd">W</span> — cerrar pestaña</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Status bar -->
+<div class="statusbar">
+  <div class="statusbar-left">
+    <span class="status-item branch">
+      <svg viewBox="0 0 16 16" width="14" height="14"><path fill="currentColor" d="M11.5 3a1.5 1.5 0 1 0-2 1.4v.6A2.5 2.5 0 0 1 7 7.5h-1a4 4 0 0 0-2 .54V4.4a1.5 1.5 0 1 0-1 0v7.2a1.5 1.5 0 1 0 1.06 0A2.5 2.5 0 0 1 6 10h1a4 4 0 0 0 4-4v-.6A1.5 1.5 0 0 0 11.5 3z"/></svg>
+      main
+    </span>
+    <span class="status-item" id="status-sync">⟲ actualizado</span>
+  </div>
+  <div class="statusbar-right">
+    <span class="status-item" id="status-lang">Markdown</span>
+    <span class="status-item">UTF-8</span>
+    <span class="status-item" id="status-ln">Ln 1, Col 1</span>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

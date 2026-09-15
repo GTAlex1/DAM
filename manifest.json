@@ -1,0 +1,97 @@
+{
+  "name": "dam-notes",
+  "type": "folder",
+  "children": [
+    {
+      "name": "README.md",
+      "type": "file",
+      "path": "content/README.md",
+      "lang": "markdown"
+    },
+    {
+      "name": "1-DAM",
+      "type": "folder",
+      "children": [
+        {
+          "name": "Programacion",
+          "type": "folder",
+          "children": [
+            { "name": "01-introduccion.md", "type": "file", "path": "content/1-DAM/Programacion/01-introduccion.md", "lang": "markdown" },
+            { "name": "02-estructuras-control.md", "type": "file", "path": "content/1-DAM/Programacion/02-estructuras-control.md", "lang": "markdown" },
+            { "name": "03-poo.md", "type": "file", "path": "content/1-DAM/Programacion/03-poo.md", "lang": "markdown" }
+          ]
+        },
+        {
+          "name": "Bases-de-Datos",
+          "type": "folder",
+          "children": [
+            { "name": "01-modelo-relacional.md", "type": "file", "path": "content/1-DAM/Bases-de-Datos/01-modelo-relacional.md", "lang": "markdown" },
+            { "name": "02-sql-basico.md", "type": "file", "path": "content/1-DAM/Bases-de-Datos/02-sql-basico.md", "lang": "markdown" }
+          ]
+        },
+        {
+          "name": "Sistemas-Informaticos",
+          "type": "folder",
+          "children": [
+            { "name": "01-instalacion-so.md", "type": "file", "path": "content/1-DAM/Sistemas-Informaticos/01-instalacion-so.md", "lang": "markdown" }
+          ]
+        },
+        {
+          "name": "Lenguajes-de-Marcas",
+          "type": "folder",
+          "children": [
+            { "name": "01-html-css.md", "type": "file", "path": "content/1-DAM/Lenguajes-de-Marcas/01-html-css.md", "lang": "markdown" }
+          ]
+        },
+        {
+          "name": "Entornos-de-Desarrollo",
+          "type": "folder",
+          "children": [
+            { "name": "01-git-github.md", "type": "file", "path": "content/1-DAM/Entornos-de-Desarrollo/01-git-github.md", "lang": "markdown" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2-DAM",
+      "type": "folder",
+      "children": [
+        {
+          "name": "Acceso-a-Datos",
+          "type": "folder",
+          "children": [
+            { "name": "01-jdbc.md", "type": "file", "path": "content/2-DAM/Acceso-a-Datos/01-jdbc.md", "lang": "markdown" }
+          ]
+        },
+        {
+          "name": "Desarrollo-de-Interfaces",
+          "type": "folder",
+          "children": [
+            { "name": "01-swing.md", "type": "file", "path": "content/2-DAM/Desarrollo-de-Interfaces/01-swing.md", "lang": "markdown" }
+          ]
+        },
+        {
+          "name": "Programacion-Multimedia-y-Moviles",
+          "type": "folder",
+          "children": [
+            { "name": "01-android-intro.md", "type": "file", "path": "content/2-DAM/Programacion-Multimedia-y-Moviles/01-android-intro.md", "lang": "markdown" }
+          ]
+        },
+        {
+          "name": "Programacion-de-Servicios-y-Procesos",
+          "type": "folder",
+          "children": [
+            { "name": "01-hilos.md", "type": "file", "path": "content/2-DAM/Programacion-de-Servicios-y-Procesos/01-hilos.md", "lang": "markdown" }
+          ]
+        },
+        {
+          "name": "Sistemas-de-Gestion-Empresarial",
+          "type": "folder",
+          "children": [
+            { "name": "01-erp-crm.md", "type": "file", "path": "content/2-DAM/Sistemas-de-Gestion-Empresarial/01-erp-crm.md", "lang": "markdown" }
+          ]
+        }
+      ]
+    }
+  ]
+}
