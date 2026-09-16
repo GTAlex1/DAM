@@ -1,5 +1,5 @@
-import { auth, isAuthorized, watchAuth, login, logout, loadOrder, saveOrderForPath } from './firebase-init.js';
-import { fetchGithubTree } from './github-source.js';
+import { auth, isAuthorized, watchAuth, login, logout, loadOrder, saveOrderForPath } from './firebase-init.js?v=2';
+import { fetchGithubTree } from './github-source.js?v=2';
 
 // ---------- Config ----------
 marked.setOptions({
