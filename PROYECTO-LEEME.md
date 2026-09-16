@@ -8,7 +8,9 @@ Tus apuntes de DAM en forma de "editor VS Code" navegable, listo para GitHub Pag
 dam-notes/
 ├── index.html        ← la interfaz (no tocar salvo que quieras cambiar el layout)
 ├── styles.css         ← el tema visual
-├── app.js             ← construye el árbol, pestañas y render de markdown
+├── app.js             ← construye el árbol, pestañas, render de markdown y drag&drop
+├── firebase-init.js    ← conexión con Firebase Auth + Firestore (login y orden guardado)
+├── firestore.rules     ← reglas de seguridad: lectura pública, escritura solo tu UID
 ├── manifest.json       ← EL ÍNDICE: qué carpetas/archivos aparecen en el explorador
 └── content/
     ├── README.md
@@ -36,6 +38,22 @@ dam-notes/
 3. Commit + push. Ya está en la web.
 
 Si quieres una carpeta/asignatura nueva, añade un bloque `{ "name": "...", "type": "folder", "children": [...] }` al nivel que corresponda.
+
+## Configurar el login (Firebase) — necesario antes de publicar
+
+El modo edición (arrastrar carpetas/archivos para reordenarlos) usa Firebase Authentication + Firestore. Pasos:
+
+1. **Crea tu usuario**: Firebase Console → tu proyecto (`damm-29df1`) → *Authentication* → pestaña *Sign-in method* → activa el proveedor **Email/Password**. Luego en la pestaña *Users* → *Add user*, con el correo y contraseña que quieras usar para entrar.
+2. **Copia tu UID**: en esa misma tabla de *Users*, copia el valor de la columna **User UID** de tu usuario recién creado.
+3. **Pégalo en dos sitios**:
+   - `firebase-init.js` → constante `AUTHORIZED_UID`.
+   - `firestore.rules` → sustituye `REPLACE_WITH_YOUR_UID` por el mismo UID.
+4. **Crea la base de datos**: Firebase Console → *Firestore Database* → *Create database* → modo producción (cualquier región).
+5. **Sube las reglas**: pestaña *Rules* de Firestore → pega el contenido de `firestore.rules` → *Publish*.
+
+Con esto, cualquier visitante puede **leer** la web con normalidad, pero solo tú (con ese usuario y contraseña) puedes iniciar sesión desde el icono de la persona en la barra de actividad y arrastrar carpetas/archivos para reordenarlos. El orden se guarda en Firestore y se aplica a todos los visitantes automáticamente.
+
+> Nota: como `app.js` ahora usa `import`, el navegador necesita cargarlo por `http(s)://`, no con doble clic sobre el archivo. GitHub Pages ya sirve así por defecto, así que en producción no cambia nada.
 
 ## Probarlo en local
 
