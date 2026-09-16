@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ejemplo de apunte en HTML</title>
+<style>
+  :root{
+    --bg:#1e1e1e; --fg:#d4d4d4; --h:#4fc1ff; --h3:#9cdcfe;
+    --code-bg:#2d2d2d; --code-fg:#ce9178; --border:#333;
+  }
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    max-width:760px; margin:0 auto; padding:32px 48px; line-height:1.7; font-size:15px;
+  }
+  h1{ font-family:"Cascadia Code",Consolas,monospace; font-size:26px; border-bottom:1px solid var(--border); padding-bottom:10px; }
+  h2{ font-family:"Cascadia Code",Consolas,monospace; color:var(--h); margin-top:32px; }
+  h3{ color:var(--h3); }
+  code{ background:var(--code-bg); color:var(--code-fg); padding:1px 5px; border-radius:3px; font-size:0.9em; }
+  pre{ background:#1e1e1e; border:1px solid var(--border); border-radius:6px; padding:14px 16px; overflow-x:auto; }
+  pre code{ background:none; padding:0; }
+  table{ border-collapse:collapse; width:100%; margin:16px 0; }
+  th, td{ border:1px solid #3c3c3c; padding:6px 12px; text-align:left; }
+  th{ background:#2a2d2e; }
+  blockquote{ border-left:3px solid #007acc; background:#2a2d2e; margin:16px 0; padding:8px 16px; }
+</style>
+</head>
+<body>
+
+<h1>Ejemplo de apunte en HTML</h1>
+
+<p>Esta es una plantilla de referencia: usa este mismo esqueleto (el bloque
+<code>&lt;style&gt;</code> de arriba) para que tus apuntes en HTML encajen
+visualmente con el resto de la web.</p>
+
+<h2>Cómo se ve el código</h2>
+<pre><code>public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hola, DAM!");
+    }
+}</code></pre>
+
+<h2>Una tabla</h2>
+<table>
+  <tr><th>Concepto</th><th>Ejemplo</th></tr>
+  <tr><td>Variable</td><td><code>int edad = 20;</code></td></tr>
+  <tr><td>Constante</td><td><code>final double PI = 3.14;</code></td></tr>
+</table>
+
+<blockquote>Este archivo se guarda directamente dentro de <code>DAM/1-DAM/Programacion/</code> — la web lo detecta solo, sin tocar ningún índice.</blockquote>
+
+</body>
+</html>

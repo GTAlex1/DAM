@@ -1,4 +1,5 @@
 import { auth, isAuthorized, watchAuth, login, logout, loadOrder, saveOrderForPath } from './firebase-init.js';
+import { fetchGithubTree } from './github-source.js';
 
 // ---------- Config ----------
 marked.setOptions({
@@ -23,6 +24,7 @@ const editBadgeEl = document.getElementById('edit-badge');
 
 let root = null;            // raíz del árbol en memoria (con parent/id/pathKey)
 let savedOrder = {};        // orden guardado en Firestore { pathKey: [nombres] }
+let ghOwner = null, ghRepo = null, ghBranch = null; // repo de GitHub detectado
 const openTabs = [];        // { path, name, crumbs: [..] }
 let activePath = null;
 const contentCache = {};
@@ -35,23 +37,50 @@ const nodesById = {};
 const ICON_FOLDER = `<svg class="icon" viewBox="0 0 24 24" width="16" height="16"><path fill="#dcb67a" d="M20 6h-8l-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z"/></svg>`;
 const ICON_FOLDER_OPEN = `<svg class="icon" viewBox="0 0 24 24" width="16" height="16"><path fill="#dcb67a" d="M20 6h-8l-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zM4 6h5.17l2 2H20v10H4V6z"/></svg>`;
 const ICON_MD = `<svg class="icon" viewBox="0 0 24 24" width="16" height="16"><rect x="2" y="4" width="20" height="16" rx="2" fill="#519aba"/><text x="12" y="16" font-size="8.5" font-family="monospace" font-weight="700" fill="#1e1e1e" text-anchor="middle">MD</text></svg>`;
+const ICON_HTML = `<svg class="icon" viewBox="0 0 24 24" width="16" height="16"><rect x="2" y="4" width="20" height="16" rx="2" fill="#e37933"/><text x="12" y="16" font-size="7" font-family="monospace" font-weight="700" fill="#1e1e1e" text-anchor="middle">&lt;/&gt;</text></svg>`;
 const ICON_CHEVRON = `<svg class="chevron" viewBox="0 0 16 16" width="16" height="16"><path fill="currentColor" d="M6 4l4 4-4 4V4z"/></svg>`;
 const ICON_CLOSE = `<svg viewBox="0 0 16 16" width="16" height="16"><path fill="currentColor" d="M8 8.7l3.15 3.15.7-.7L8.7 8l3.15-3.15-.7-.7L8 7.3 4.85 4.15l-.7.7L7.3 8l-3.15 3.15.7.7z"/></svg>`;
 const ICON_GRIP = `<svg class="grip" viewBox="0 0 16 16" width="12" height="16"><circle cx="5" cy="3" r="1.3"/><circle cx="11" cy="3" r="1.3"/><circle cx="5" cy="8" r="1.3"/><circle cx="11" cy="8" r="1.3"/><circle cx="5" cy="13" r="1.3"/><circle cx="11" cy="13" r="1.3"/></svg>`;
 
-// ---------- Load manifest + saved order ----------
+function fileIcon(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  return (ext === 'html' || ext === 'htm') ? ICON_HTML : ICON_MD;
+}
+
+// ---------- Load file tree from GitHub + saved order ----------
 Promise.all([
-  fetch('manifest.json').then(r => r.json()),
+  fetchGithubTree(),
   loadOrder(),
-]).then(([manifestData, orderData]) => {
+]).then(([{ root: treeRoot, owner, repo, branch }, orderData]) => {
+  ghOwner = owner; ghRepo = repo; ghBranch = branch;
   savedOrder = orderData || {};
-  root = manifestData;
+  root = treeRoot;
   annotateTree(root, null, 'root');
   applySavedOrder(root);
+
+  if (!root.children.length) {
+    fileTreeEl.innerHTML = `<div style="padding:12px;color:#9a9a9a;font-size:12px;line-height:1.5;">
+      La carpeta <strong>DAM/</strong> está vacía (o todavía no existe) en
+      <code>${owner}/${repo}</code>. Sube tus apuntes ahí y recarga la página.
+    </div>`;
+    return;
+  }
   buildTree();
-}).catch(() => {
-  fileTreeEl.innerHTML = `<div style="padding:12px;color:#f48771;font-size:12px;">No se pudo cargar manifest.json (¿estás sirviendo el sitio por http:// y no por file://?)</div>`;
+}).catch(err => {
+  showTreeError(err);
 });
+
+function showTreeError(err) {
+  let msg = 'No se pudo leer el árbol de archivos desde GitHub.';
+  if (err && err.message === 'NO_REPO_INFO') {
+    msg = 'No se ha podido detectar el repositorio de GitHub automáticamente. Si estás probando en local o con un dominio propio, añade <code>?owner=TU-USUARIO&repo=TU-REPO</code> a la URL.';
+  } else if (err && err.message === 'REPO_NOT_FOUND') {
+    msg = 'No se encontró ese repositorio en GitHub. Comprueba que sea público y que el nombre coincida con la URL.';
+  } else if (err && err.message === 'TREE_NOT_FOUND') {
+    msg = 'No se pudo leer el contenido del repositorio (rama no encontrada).';
+  }
+  fileTreeEl.innerHTML = `<div style="padding:12px;color:#f48771;font-size:12px;line-height:1.5;">${msg}</div>`;
+}
 
 // Recorre el árbol asignando id único, referencia al padre y una "pathKey"
 // estable (basada en nombres, no en posición) que se usa como clave del orden.
@@ -122,7 +151,7 @@ function renderTree(node, container, crumbs) {
         if (nowCollapsed) collapsedIds.add(child.id); else collapsedIds.delete(child.id);
       });
     } else {
-      row.innerHTML = `${grip}<span style="width:16px;flex-shrink:0;"></span>${ICON_MD}<span class="label">${child.name}</span>`;
+      row.innerHTML = `${grip}<span style="width:16px;flex-shrink:0;"></span>${fileIcon(child.name)}<span class="label">${child.name}</span>`;
       row.addEventListener('click', (e) => {
         if (e.target.closest('.grip-handle')) return;
         openFile(child, [...crumbs]);
@@ -257,7 +286,7 @@ function renderTabbar() {
   openTabs.forEach(tab => {
     const el = document.createElement('div');
     el.className = 'tab' + (tab.path === activePath ? ' active' : '');
-    el.innerHTML = `${ICON_MD.replace('width="16" height="16"', 'width="15" height="15"')}<span class="label">${tab.name}</span><span class="tab-close">${ICON_CLOSE}</span>`;
+    el.innerHTML = `${fileIcon(tab.name).replace('width="16" height="16"', 'width="15" height="15"')}<span class="label">${tab.name}</span><span class="tab-close">${ICON_CLOSE}</span>`;
     el.addEventListener('click', () => activatePath(tab.path));
     el.querySelector('.tab-close').addEventListener('click', (e) => closeTab(tab.path, e));
     tabbarEl.appendChild(el);
@@ -281,18 +310,25 @@ function renderBreadcrumbs() {
 }
 
 // ---------- Render note content ----------
+function rawUrl(path) {
+  return `https://raw.githubusercontent.com/${ghOwner}/${ghRepo}/${ghBranch}/${path}`;
+}
+
 async function renderEditor(path) {
+  const isHtml = /\.(html?|HTML?)$/.test(path);
   editorContentEl.classList.add('loading');
-  statusLangEl.textContent = 'Markdown';
+  statusLangEl.textContent = isHtml ? 'HTML' : 'Markdown';
 
   let raw = contentCache[path];
   if (!raw) {
     try {
-      const res = await fetch(path);
+      const res = await fetch(rawUrl(path));
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       raw = await res.text();
       contentCache[path] = raw;
     } catch (e) {
-      editorContentEl.innerHTML = `<div class="note"><p style="color:#f48771;">No se pudo cargar ${path}</p></div>`;
+      editorContentEl.classList.remove('full-bleed');
+      editorContentEl.innerHTML = `<div class="note"><p style="color:#f48771;">No se pudo cargar <code>${path}</code> desde GitHub (${e.message}).</p></div>`;
       editorContentEl.classList.remove('loading');
       return;
     }
@@ -300,13 +336,25 @@ async function renderEditor(path) {
 
   if (activePath !== path) return; // el usuario cambió de pestaña mientras cargaba
 
-  const html = marked.parse(raw);
-  editorContentEl.innerHTML = `<div class="note">${html}</div>`;
-  editorContentEl.scrollTop = 0;
+  if (isHtml) {
+    editorContentEl.classList.add('full-bleed');
+    editorContentEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.className = 'html-frame';
+    iframe.sandbox = 'allow-same-origin allow-scripts allow-popups allow-forms';
+    iframe.srcdoc = raw;
+    editorContentEl.appendChild(iframe);
+  } else {
+    editorContentEl.classList.remove('full-bleed');
+    const html = marked.parse(raw);
+    editorContentEl.innerHTML = `<div class="note">${html}</div>`;
+    editorContentEl.scrollTop = 0;
+  }
   editorContentEl.classList.remove('loading');
 }
 
 function showWelcome() {
+  editorContentEl.classList.remove('full-bleed');
   editorContentEl.innerHTML = `
     <div class="welcome">
       <svg viewBox="0 0 24 24" width="64" height="64"><path fill="#3c3c3c" d="M17.5 2.4L9.4 9.7 4.8 6.1 2.7 7l4.1 5-4.1 5 2.1.9 4.6-3.6 8.1 7.3 4.8-2.3V4.7l-4.8-2.3zM17.5 16l-4.6-4 4.6-4v8z"/></svg>

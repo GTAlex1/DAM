@@ -35,7 +35,7 @@ const firebaseConfig = {
 };
 
 // 👇 CAMBIA ESTO por tu UID real (ver instrucciones arriba).
-export const AUTHORIZED_UID = "REPLACE_WITH_YOUR_UID";
+export const AUTHORIZED_UID = "KxbZfGljpRdTIQlnOPDqjUs61v73";
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);

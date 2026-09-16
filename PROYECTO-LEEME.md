@@ -6,38 +6,41 @@ Tus apuntes de DAM en forma de "editor VS Code" navegable, listo para GitHub Pag
 
 ```
 dam-notes/
-├── index.html        ← la interfaz (no tocar salvo que quieras cambiar el layout)
-├── styles.css         ← el tema visual
-├── app.js             ← construye el árbol, pestañas, render de markdown y drag&drop
-├── firebase-init.js    ← conexión con Firebase Auth + Firestore (login y orden guardado)
-├── firestore.rules     ← reglas de seguridad: lectura pública, escritura solo tu UID
-├── manifest.json       ← EL ÍNDICE: qué carpetas/archivos aparecen en el explorador
-└── content/
-    ├── README.md
+├── index.html          ← la interfaz (no tocar salvo que quieras cambiar el layout)
+├── styles.css           ← el tema visual
+├── app.js               ← construye el árbol, pestañas, render y drag&drop
+├── github-source.js      ← lee la carpeta DAM/ en vivo desde la API de GitHub
+├── firebase-init.js      ← conexión con Firebase Auth + Firestore (login y orden guardado)
+├── firestore.rules       ← reglas de seguridad: lectura pública, escritura solo tu UID
+└── DAM/                  ← AQUÍ van tus apuntes. Todo lo que metas aquí aparece solo.
     ├── 1-DAM/
-    │   ├── Programacion/*.md
-    │   ├── Bases-de-Datos/*.md
-    │   ├── Sistemas-Informaticos/*.md
-    │   ├── Lenguajes-de-Marcas/*.md
-    │   └── Entornos-de-Desarrollo/*.md
+    │   ├── Programacion/*.html o *.md
+    │   ├── Bases-de-Datos/*.html o *.md
+    │   └── ...
     └── 2-DAM/
-        ├── Acceso-a-Datos/*.md
-        ├── Desarrollo-de-Interfaces/*.md
-        ├── Programacion-Multimedia-y-Moviles/*.md
-        ├── Programacion-de-Servicios-y-Procesos/*.md
-        └── Sistemas-de-Gestion-Empresarial/*.md
+        └── ...
 ```
 
 ## Cómo añadir un apunte nuevo
 
-1. Escribe el `.md` dentro de la carpeta del módulo correspondiente (en `content/...`).
-2. Abre `manifest.json` y añade una entrada como esta, en el sitio del árbol que corresponda:
-   ```json
-   { "name": "04-excepciones.md", "type": "file", "path": "content/1-DAM/Programacion/04-excepciones.md", "lang": "markdown" }
-   ```
-3. Commit + push. Ya está en la web.
+**Ya no hay manifest que editar.** La web lee la carpeta `DAM/` del repositorio en tiempo real, usando la API de GitHub. Solo tienes que:
 
-Si quieres una carpeta/asignatura nueva, añade un bloque `{ "name": "...", "type": "folder", "children": [...] }` al nivel que corresponda.
+1. Crear la carpeta/subcarpeta que quieras dentro de `DAM/` (si no existe ya).
+2. Meter dentro tu archivo `.html` o `.md`.
+3. Commit + push.
+4. Recargar la web — el archivo aparece automáticamente en el explorador, en el sitio que le toque por orden alfabético (a menos que ya hayas reordenado esa carpeta a mano, ver más abajo).
+
+No hace falta tocar `index.html`, `app.js` ni ningún índice.
+
+### Formatos soportados
+- **`.html`**: se muestra tal cual, dentro de un iframe — el archivo controla su propio estilo. Tienes una plantilla de referencia en `DAM/1-DAM/Programacion/00-ejemplo-plantilla.html`, cópiala como punto de partida.
+- **`.md`**: se renderiza como Markdown con el mismo tema oscuro del resto de la web (código con resaltado de sintaxis, tablas, etc.).
+
+### Sobre la API de GitHub
+La lectura dinámica usa la API pública de GitHub (`api.github.com`), que tiene un límite de 60 peticicones/hora por IP sin autenticación (la web hace 2 peticiones por visita). Para un proyecto personal de apuntes es más que suficiente; si algún día tuvieras muchísimo tráfico, se podría añadir caché o un token, pero no hace falta ahora.
+
+### Detección del repositorio
+La web detecta automáticamente tu usuario y repositorio a partir de la URL de GitHub Pages (`https://tu-usuario.github.io/tu-repo/`). Si alguna vez pruebas con un dominio propio o en local sin ese patrón de URL, añade `?owner=TU-USUARIO&repo=TU-REPO` al final de la URL.
 
 ## Configurar el login (Firebase) — necesario antes de publicar
 
@@ -57,15 +60,16 @@ Con esto, cualquier visitante puede **leer** la web con normalidad, pero solo t�
 
 ## Probarlo en local
 
-Los archivos se cargan con `fetch()`, así que **no funciona abriendo `index.html` directamente con doble clic** (el navegador bloquea `fetch` sobre `file://`). Necesitas un servidor local, por ejemplo:
+Como ahora los apuntes se leen desde GitHub (no desde tu disco), para probarlo en local necesitas que el repositorio **ya esté subido a GitHub** (con al menos la carpeta `DAM/`), y servir estos archivos con un servidor local apuntando a ese repo:
 
 ```bash
-# Con Python (ya lo tienes si has instalado DAM en tu máquina)
 python3 -m http.server 8000
-# abre http://localhost:8000
+# abre: http://localhost:8000/?owner=TU-USUARIO&repo=TU-REPO
 ```
 
-O con la extensión **Live Server** de VS Code (clic derecho sobre `index.html` → "Open with Live Server") — queda temático usar VS Code para editar una web que imita VS Code.
+Si no tienes Python, la extensión **Live Server** de VS Code funciona igual (clic derecho sobre `index.html` → "Open with Live Server"), añadiendo el mismo `?owner=...&repo=...` a la URL que abra.
+
+Una vez publicado en GitHub Pages, esos parámetros ya no hacen falta — se detectan solos desde la URL.
 
 ## Publicarlo en GitHub Pages
 
