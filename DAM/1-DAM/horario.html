@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Horario — 2º DAM</title>
+<style>
+  :root{
+    --bg:#1e1e1e; --panel:#252526; --fg:#d4d4d4; --muted:#9a9a9a;
+    --border:#333; --header:#2d2d2d; --today-accent:#4ec9b0;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:-apple-system, "Segoe UI", Arial, sans-serif;
+    margin:0; padding:32px 40px 56px;
+  }
+  h1{
+    font-family:"Cascadia Code",Consolas,monospace;
+    font-size:24px; font-weight:600; color:#fff;
+    margin:0 0 4px;
+  }
+  .subtitle{ color:var(--muted); font-size:13.5px; margin:0 0 28px; }
+
+  /* ---------- Cuadrícula del horario ---------- */
+  .schedule-scroll{ overflow-x:auto; padding-bottom:4px; }
+  .schedule{
+    display:grid;
+    grid-template-columns: 78px repeat(5, minmax(150px, 1fr));
+    min-width:820px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .cell{
+    border-right:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    padding:8px;
+    min-height:64px;
+    display:flex; flex-direction:column; gap:6px; justify-content:center;
+  }
+  .schedule > .cell:nth-child(6n){ border-right:none; }
+
+  .head{
+    background:var(--header);
+    color:#fff;
+    font-weight:600;
+    font-size:13px;
+    letter-spacing:.3px;
+    text-align:center;
+    justify-content:center;
+    padding:12px 8px;
+  }
+  .head.today{ background:#0e3f3a; color:var(--today-accent); }
+
+  .time-cell{
+    background:var(--header);
+    color:var(--muted);
+    font-size:11.5px;
+    font-family:"Cascadia Code",Consolas,monospace;
+    text-align:center;
+    justify-content:center;
+    padding:6px 4px;
+  }
+
+  .day-cell.today{ background:#1a2b29; }
+
+  .recreo{
+    grid-column: 1 / -1;
+    background:#161616;
+    color:#6f6f6f;
+    font-size:11px;
+    text-align:center;
+    justify-content:center;
+    padding:5px;
+    min-height:0;
+    border-right:none;
+    letter-spacing:.5px;
+    text-transform:uppercase;
+  }
+
+  .entry{
+    border-left:3px solid var(--c, #888);
+    background:rgba(255,255,255,0.03);
+    border-radius:3px;
+    padding:5px 7px;
+  }
+  .entry .name{ font-size:12.5px; font-weight:600; color:#fff; line-height:1.25; }
+  .entry .teacher{ font-size:11px; color:var(--muted); margin-top:1px; }
+  .entry .note{ font-size:10.5px; color:#7f7f7f; font-style:italic; margin-top:1px; }
+
+  /* ---------- Tabla de materias ---------- */
+  h2{
+    font-family:"Cascadia Code",Consolas,monospace;
+    font-size:17px; color:#4fc1ff;
+    margin:40px 0 12px;
+  }
+  table{ border-collapse:collapse; width:100%; font-size:13.5px; }
+  th, td{ border:1px solid var(--border); padding:7px 12px; text-align:left; vertical-align:top; }
+  th{ background:var(--header); color:#fff; font-family:"Cascadia Code",Consolas,monospace; font-size:12px; }
+  tr:nth-child(even) td{ background:#232324; }
+  .swatch{
+    display:inline-block; width:10px; height:10px; border-radius:2px;
+    margin-right:7px; vertical-align:middle;
+  }
+  .abbr{ font-family:"Cascadia Code",Consolas,monospace; font-weight:600; }
+</style>
+</head>
+<body>
+
+<h1>Horario semanal</h1>
+<p class="subtitle">2º DAM · el día de hoy se resalta automáticamente</p>
+
+<div class="schedule-scroll">
+  <div class="schedule" id="schedule"></div>
+</div>
+
+<h2>Materias</h2>
+<table id="materias-table">
+  <thead>
+    <tr><th>Asignatura</th><th>Descripción</th><th>Docente</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+  const subjects = {
+    PROGR:  { name: 'Programación',                                             teacher: 'Luis Manuel Vázquez Venegas', color: '#569cd6' },
+    BADAT:  { name: 'Bases de Datos',                                            teacher: 'Miguel Ángel García Blanes',  color: '#c586c0' },
+    ENDES:  { name: 'Entornos de desarrollo',                                    teacher: 'Pablo Hernández García',      color: '#4ec9b0' },
+    'IPE I':{ name: 'Itinerario Personal para la Empleabilidad I',               teacher: 'Alejandro Martín Rodríguez',  color: '#ce9178' },
+    LMSGI:  { name: 'Lenguajes de marcas y sistemas de gestión de información',  teacher: 'Pablo Hernández García',      color: '#d7ba7d' },
+    SIINF:  { name: 'Sistemas informáticos',                                    teacher: 'Juan Aguilar Ferrer',         color: '#6a9955' },
+    SASP:   { name: 'Sostenibilidad Aplicada al Sistema Productivo',            teacher: 'Luis Manuel Vázquez Venegas', color: '#dcdcaa' },
+    DASPGS: { name: 'Digitalización Aplicada a los Sectores Productivos GS',    teacher: 'Luis Manuel Vázquez Venegas', color: '#9cdcfe' },
+  };
+
+  const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+  const slots = ['08:15–09:15', '09:15–10:15', '10:15–11:15', '11:45–12:45', '12:45–13:45', '13:45–14:45'];
+
+  // Cada franja: array de entradas. Una entrada normal usa "code" (busca en subjects);
+  // una entrada suelta (tutorías, etc.) define name/teacher directamente.
+  const schedule = [
+    // Lunes
+    [ [{code:'PROGR'}], [{code:'PROGR'}], [{code:'ENDES'}],
+      [{code:'IPE I'}, {name:'Tutoría con alumnado', note:'Bachillerato / Formac. Profes.', teacher:'Luis Manuel Vázquez Venegas'}],
+      [{code:'LMSGI'}], [{code:'SIINF'}] ],
+    // Martes
+    [ [{code:'BADAT'}], [{code:'BADAT'}], [{code:'PROGR'}],
+      [{code:'ENDES'}], [{code:'SASP'}], [{code:'SIINF'}] ],
+    // Miércoles
+    [ [{code:'DASPGS'}], [{code:'BADAT'}],
+      [{code:'BADAT'}, {name:'Tutoría con alumnado', note:'Bachillerato / Formac. Profes.', teacher:'Pablo Hernández García'}],
+      [{code:'LMSGI'}], [{code:'PROGR'}], [{code:'IPE I'}] ],
+    // Jueves
+    [ [{code:'ENDES'}], [{code:'PROGR'}], [{code:'PROGR'}],
+      [{name:'Tutoría tareas administrativas', teacher:'Pablo Hernández García'}, {code:'SIINF'}],
+      [{code:'SIINF'}], [{code:'IPE I'}] ],
+    // Viernes
+    [ [{code:'LMSGI'}], [{code:'PROGR'}], [{code:'PROGR'}],
+      [{code:'BADAT'}], [{code:'BADAT'}], [{code:'SIINF'}] ],
+  ];
+
+  const todayIdx = new Date().getDay() - 1; // Lunes=0 ... Viernes=4
+
+  function entryHtml(e) {
+    const info = e.code ? subjects[e.code] : null;
+    const name = info ? info.name : e.name;
+    const teacher = e.teacher || (info ? info.teacher : '');
+    const color = info ? info.color : '#808080';
+    const note = e.note ? `<div class="note">${e.note}</div>` : '';
+    return `<div class="entry" style="--c:${color}">
+      <div class="name">${e.code || name}</div>
+      <div class="teacher">${teacher}</div>
+      ${note}
+    </div>`;
+  }
+
+  const grid = document.getElementById('schedule');
+  let html = '<div class="cell head"></div>';
+  days.forEach((d, i) => {
+    html += `<div class="cell head${i === todayIdx ? ' today' : ''}">${d}</div>`;
+  });
+
+  slots.forEach((slot, rowIdx) => {
+    html += `<div class="cell time-cell">${slot}</div>`;
+    days.forEach((d, colIdx) => {
+      const entries = schedule[colIdx][rowIdx];
+      const today = colIdx === todayIdx ? ' today' : '';
+      html += `<div class="cell day-cell${today}">${entries.map(entryHtml).join('')}</div>`;
+    });
+    if (rowIdx === 2) {
+      html += `<div class="cell recreo">Recreo · 11:15–11:45</div>`;
+    }
+  });
+
+  grid.innerHTML = html;
+
+  const tbody = document.querySelector('#materias-table tbody');
+  tbody.innerHTML = Object.entries(subjects).map(([abbr, s]) => `
+    <tr>
+      <td><span class="swatch" style="background:${s.color}"></span><span class="abbr">${abbr}</span></td>
+      <td>${s.name}</td>
+      <td>${s.teacher}</td>
+    </tr>
+  `).join('');
+</script>
+
+</body>
+</html>
