@@ -104,6 +104,38 @@
   }
   .abbr{ font-family:"Cascadia Code",Consolas,monospace; font-weight:600; }
 
+  /* ---------- Filtro por asignatura ---------- */
+  .filter-bar{
+    display:flex; flex-wrap:wrap; gap:8px;
+    margin-bottom:14px;
+  }
+  .chip{
+    display:inline-flex; align-items:center; gap:6px;
+    border:1px solid var(--c, #555);
+    background:transparent;
+    color:var(--fg);
+    font-family:"Cascadia Code",Consolas,monospace;
+    font-size:11.5px;
+    font-weight:600;
+    padding:5px 11px;
+    border-radius:14px;
+    cursor:pointer;
+    transition:background .12s, color .12s, opacity .12s;
+  }
+  .chip .dot{ width:8px; height:8px; border-radius:50%; background:var(--c, #555); flex-shrink:0; }
+  .chip:hover{ background:rgba(255,255,255,0.06); }
+  .chip.active{ background:var(--c, #555); color:#1a1a1a; }
+  .chip.active .dot{ background:#1a1a1a; }
+  .chip.all{ border-style:dashed; }
+  .chip.all.active{ background:#555; color:#fff; }
+  .chip.all.active .dot{ display:none; }
+
+  /* Atenuado cuando hay un filtro activo y esto no coincide */
+  .entry.dimmed{ opacity:.12; }
+  .entry.match{ box-shadow:0 0 0 1px var(--c, #888); }
+  tr.dimmed{ opacity:.25; }
+  tr.match td:first-child{ background:rgba(255,255,255,0.05); }
+
   /* ---------- Scrollbar oscura (el iframe tiene su propio documento) ---------- */
   html{ scrollbar-width: thin; scrollbar-color: #4f4f4f #1a1a1a; }
   ::-webkit-scrollbar{ width:12px; height:12px; }
@@ -122,6 +154,7 @@
 </div>
 
 <h2>Materias</h2>
+<div class="filter-bar" id="filter-bar"></div>
 <table id="materias-table">
   <thead>
     <tr><th>Asignatura</th><th>Descripción</th><th>Docente</th></tr>
@@ -175,7 +208,7 @@
     const teacher = e.teacher || (info ? info.teacher : '');
     const color = info ? info.color : '#808080';
     const note = e.note ? `<div class="note">${e.note}</div>` : '';
-    return `<div class="entry" style="--c:${color}">
+    return `<div class="entry" data-code="${e.code || ''}" style="--c:${color}">
       <div class="name">${e.code || name}</div>
       <div class="teacher">${teacher}</div>
       ${note}
@@ -204,12 +237,50 @@
 
   const tbody = document.querySelector('#materias-table tbody');
   tbody.innerHTML = Object.entries(subjects).map(([abbr, s]) => `
-    <tr>
+    <tr data-code="${abbr}">
       <td><span class="swatch" style="background:${s.color}"></span><span class="abbr">${abbr}</span></td>
       <td>${s.name}</td>
       <td>${s.teacher}</td>
     </tr>
   `).join('');
+
+  // ---------- Filtro por asignatura ----------
+  const filterBar = document.getElementById('filter-bar');
+  let activeCode = null; // null = sin filtro (se ve todo normal)
+
+  const allChip = `<button class="chip all active" data-filter="__all__">
+    <span class="dot"></span>Todas
+  </button>`;
+  const subjectChips = Object.entries(subjects).map(([abbr, s]) => `
+    <button class="chip" data-filter="${abbr}" style="--c:${s.color}">
+      <span class="dot"></span>${abbr}
+    </button>
+  `).join('');
+  filterBar.innerHTML = allChip + subjectChips;
+
+  function applyFilter(code) {
+    activeCode = code;
+    filterBar.querySelectorAll('.chip').forEach(chip => {
+      chip.classList.toggle('active', chip.dataset.filter === (code || '__all__'));
+    });
+    document.querySelectorAll('.entry').forEach(el => {
+      const isMatch = !code || el.dataset.code === code;
+      el.classList.toggle('dimmed', !isMatch);
+      el.classList.toggle('match', !!code && isMatch);
+    });
+    document.querySelectorAll('#materias-table tbody tr').forEach(row => {
+      const isMatch = !code || row.dataset.code === code;
+      row.classList.toggle('dimmed', !isMatch);
+      row.classList.toggle('match', !!code && isMatch);
+    });
+  }
+
+  filterBar.addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const code = chip.dataset.filter;
+    applyFilter(code === '__all__' ? null : code);
+  });
 </script>
 
 </body>
