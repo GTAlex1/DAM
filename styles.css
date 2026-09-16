@@ -395,6 +395,11 @@ html,body{
 .status-item.branch{ gap:5px; }
 
 /* ---------- Scrollbars ---------- */
+/* ---------- Scrollbars ---------- */
+html{
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar) transparent;
+}
 ::-webkit-scrollbar{ width:12px; height:12px; }
 ::-webkit-scrollbar-track{ background:transparent; }
 ::-webkit-scrollbar-thumb{ background:transparent; }
