@@ -322,7 +322,7 @@ async function renderEditor(path) {
   let raw = contentCache[path];
   if (!raw) {
     try {
-      const res = await fetch(rawUrl(path));
+      const res = await fetch(rawUrl(path), { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       raw = await res.text();
       contentCache[path] = raw;

@@ -35,12 +35,12 @@ export async function fetchGithubTree() {
   let branch = info.branch;
 
   if (!branch) {
-    const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+    const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, { cache: 'no-store' });
     if (!repoRes.ok) throw new Error('REPO_NOT_FOUND');
     branch = (await repoRes.json()).default_branch;
   }
 
-  const treeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`);
+  const treeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`, { cache: 'no-store' });
   if (!treeRes.ok) throw new Error('TREE_NOT_FOUND');
   const treeData = await treeRes.json();
 
