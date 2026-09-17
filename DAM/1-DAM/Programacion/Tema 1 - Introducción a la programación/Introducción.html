@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Arquitectura del Software</title>
+<style>
+  :root{
+    --bg:#1e1e1e; --fg:#d4d4d4; --h:#4fc1ff; --h3:#9cdcfe;
+    --code-bg:#2d2d2d; --code-fg:#ce9178; --border:#333;
+    --panel:#252526; --muted:#9a9a9a;
+    --blue:#569cd6; --orange:#ce9178; --purple:#c586c0; --green:#6a9955; --yellow:#dcdcaa; --red:#f48771;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    max-width:840px; margin:0 auto; padding:32px 40px 64px; line-height:1.7; font-size:15px;
+  }
+  h1{ font-family:"Cascadia Code",Consolas,monospace; font-size:27px; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:4px; }
+  .subtitulo{ color:var(--muted); font-size:14px; margin:0 0 8px; }
+  .modulo{ color:var(--muted); font-size:12px; font-family:"Cascadia Code",Consolas,monospace; margin:0 0 30px; }
+  h2{ font-family:"Cascadia Code",Consolas,monospace; color:var(--h); margin-top:44px; font-size:19px; border-top:2px solid #333; padding-top:16px; }
+  h3{ color:var(--h3); font-size:15.5px; margin-top:24px; }
+  p{ margin:10px 0; }
+  code{ background:var(--code-bg); color:var(--code-fg); padding:1px 5px; border-radius:3px; font-size:0.9em; font-family:"Cascadia Code",Consolas,monospace; }
+  pre{ background:#1a1a1a; border:1px solid var(--border); border-radius:6px; padding:14px 16px; overflow-x:auto; font-family:"Cascadia Code",Consolas,monospace; font-size:13px; line-height:1.55; }
+  pre code{ background:none; padding:0; color:var(--fg); }
+  table{ border-collapse:collapse; width:100%; margin:14px 0; font-size:13.5px; }
+  th, td{ border:1px solid var(--border); padding:8px 12px; text-align:left; vertical-align:top; }
+  th{ background:var(--panel); font-family:"Cascadia Code",Consolas,monospace; font-size:12px; color:#fff; }
+  tr:nth-child(even) td{ background:#232324; }
+  blockquote{ border-left:3px solid #007acc; background:var(--panel); margin:16px 0; padding:10px 16px; font-size:14px; }
+  ul, ol{ padding-left:22px; margin:10px 0; }
+  li{ margin:4px 0; }
+
+  .caja{ background:var(--panel); border:1px solid var(--border); border-left:4px solid var(--h); padding:14px 18px; margin:16px 0; }
+  .caja p:first-child{ margin-top:0; }
+  .caja p:last-child{ margin-bottom:0; }
+
+  .grid{ display:grid; gap:14px; margin:18px 0; }
+  .grid-2{ grid-template-columns:1fr 1fr; }
+  .grid-3{ grid-template-columns:repeat(3, 1fr); }
+  .card{ background:var(--panel); border:1px solid var(--border); border-top:3px solid var(--h); padding:14px 16px; }
+  .card h4{ margin:0 0 6px; font-size:14px; color:#fff; font-family:"Cascadia Code",Consolas,monospace; }
+  .card p{ margin:0; font-size:13.5px; color:var(--muted); }
+  .card.blue{ border-top-color:var(--blue); }
+  .card.orange{ border-top-color:var(--orange); }
+  .card.purple{ border-top-color:var(--purple); }
+  .card.green{ border-top-color:var(--green); }
+  .card.yellow{ border-top-color:var(--yellow); }
+
+  .cajanegra{ display:flex; align-items:center; gap:14px; margin:18px 0; flex-wrap:wrap; }
+  .cajanegra .flechas{ display:flex; flex-direction:column; gap:8px; }
+  .cajanegra .flecha{ font-family:"Cascadia Code",Consolas,monospace; font-size:12px; padding:6px 10px; border-radius:3px; text-align:center; }
+  .flecha.in{ background:rgba(206,145,120,0.15); color:var(--orange); border:1px solid var(--orange); }
+  .flecha.out{ background:rgba(106,153,85,0.15); color:var(--green); border:1px solid var(--green); }
+  .caja3d{
+    flex:1; min-width:220px; background:#111; border:1px solid var(--border); border-radius:4px;
+    padding:14px 16px; font-size:12.5px; color:var(--muted); font-family:"Cascadia Code",Consolas,monospace;
+  }
+  .caja3d b{ display:block; color:#fff; margin-bottom:8px; font-size:12px; letter-spacing:.03em; }
+
+  .ciclo{ display:grid; grid-template-columns:repeat(5, 1fr); gap:10px; margin:18px 0; }
+  .paso{ background:var(--panel); border:1px solid var(--border); padding:12px 10px; text-align:center; }
+  .paso .num{ font-family:"Cascadia Code",Consolas,monospace; color:var(--h); font-size:11px; margin-bottom:4px; }
+  .paso .tit{ font-weight:600; font-size:13px; color:#fff; margin-bottom:6px; }
+  .paso .desc{ font-size:11.5px; color:var(--muted); line-height:1.4; }
+  .ciclo-nota{ font-size:12px; color:var(--muted); text-align:center; margin-top:-6px; font-style:italic; }
+
+  .pila{ display:flex; flex-direction:column; gap:8px; margin:18px 0; }
+  .pila .capa{ background:var(--panel); border:1px solid var(--border); border-left:4px solid var(--h); padding:12px 16px; }
+  .pila .capa b{ color:#fff; font-family:"Cascadia Code",Consolas,monospace; font-size:13.5px; }
+  .pila .capa span{ display:block; font-size:12.5px; color:var(--muted); margin-top:2px; }
+  .pila .flechaabajo{ text-align:center; color:var(--muted); font-size:12px; }
+
+  .verdad{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin:18px 0; }
+  .verdad .op{ background:var(--panel); border:1px solid var(--border); padding:12px; text-align:center; }
+  .verdad .op b{ display:block; color:var(--h); font-family:"Cascadia Code",Consolas,monospace; margin-bottom:6px; }
+  .verdad .op p{ font-size:12px; color:var(--muted); margin:0; }
+
+  .expresion{ background:#111; border:1px solid var(--border); border-radius:4px; padding:24px; text-align:center;
+    font-family:"Cascadia Code",Consolas,monospace; font-size:22px; margin:18px 0; letter-spacing:.02em; }
+  .expresion .fn{ color:var(--blue); }
+  .expresion .var{ color:var(--green); }
+  .expresion .cte{ color:var(--purple); }
+  .leyenda-exp{ display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; font-size:12.5px; margin-top:14px; }
+  .leyenda-exp span{ display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:middle; }
+
+  html{ scrollbar-width: thin; scrollbar-color: #4f4f4f #1a1a1a; }
+  ::-webkit-scrollbar{ width:12px; height:12px; }
+  ::-webkit-scrollbar-track{ background:#1a1a1a; }
+  ::-webkit-scrollbar-thumb{ background:#4f4f4f; border-radius:6px; border:3px solid #1a1a1a; }
+  ::-webkit-scrollbar-thumb:hover{ background:#6f6f6f; }
+
+  @media (max-width:700px){
+    body{ padding:24px 18px 48px; }
+    .grid-2, .grid-3{ grid-template-columns:1fr; }
+    .ciclo{ grid-template-columns:1fr 1fr; }
+    .verdad{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>&lt;module&gt;Arquitectura del Software&lt;/module&gt;</h1>
+<p class="subtitulo">De la Lógica Abstracta a la Ejecución Mecánica</p>
+<p class="modulo">Programación · DAM 1º · Introducción a la Programación</p>
+
+<h2>¿Qué es un algoritmo?</h2>
+<p>Un <strong>algoritmo</strong> es una secuencia de pasos sencillos, diseñados para resolver un problema, que pueda realizar un ordenador. Para que un conjunto de pasos merezca llamarse algoritmo, tiene que cumplir 5 reglas:</p>
+
+<div class="grid grid-2">
+  <div class="card blue"><h4>Finito</h4><p>Tiene que acabar siempre tras un número finito de pasos.</p></div>
+  <div class="card blue"><h4>Preciso</h4><p>Cada paso debe definirse de modo exacto, sin ambigüedad.</p></div>
+  <div class="card orange"><h4>Entrada</h4><p>Requiere datos iniciales (el caso particular del problema).</p></div>
+  <div class="card orange"><h4>Salida</h4><p>Genera un conjunto de objetos como resultado final.</p></div>
+  <div class="card blue"><h4>Tiempo finito</h4><p>Sus acciones deben efectuarse en un intervalo temporal acotado.</p></div>
+</div>
+
+<h3>Ejemplo: físico vs. digital</h3>
+<p>La misma idea de "algoritmo" aparece en lo cotidiano y en el código, solo cambia el nivel de precisión exigido:</p>
+<div class="grid grid-2">
+  <div class="card">
+    <h4>Diario: arrancar el coche</h4>
+    <p>Poner llave → Punto muerto → Girar</p>
+  </div>
+  <div class="card green">
+    <h4>Informático: ALGORITMO SUMA</h4>
+    <pre style="margin:0"><code>LEE A
+LEE B
+C = A + B
+ESCRIBIR C</code></pre>
+  </div>
+</div>
+
+<h2>La metáfora de la caja negra</h2>
+<p>Un algoritmo actúa como un mecanismo cerrado: entran datos brutos y salen resultados procesados. No hace falta ver por dentro para usarlo — solo conocer qué entra y qué sale.</p>
+
+<div class="cajanegra">
+  <div class="flechas">
+    <div class="flecha in">SUELDOHORA →</div>
+    <div class="flecha in">HORASTRAB →</div>
+  </div>
+  <div class="caja3d">
+    <b>ALGORITMO: CÁLCULO DE SALARIO</b>
+    1. Si horas ≤ 40: multiplicar por sueldo.<br>
+    2. Si horas &gt; 40: paga regular (40h) + paga extra (dif × 2).<br>
+    3. Sumar ambos para el sueldo total.
+  </div>
+  <div class="flechas">
+    <div class="flecha out">→ SUELDOTOTAL</div>
+  </div>
+</div>
+
+<h2>Traduciendo la lógica a instrucciones</h2>
+<p>Para que el ordenador entienda la caja negra, hay que dictar exactamente lo que queremos usando un lenguaje de programación. Un programa es simplemente esta secuencia de instrucciones — este ejemplo está en Pascal:</p>
+
+<pre><code>program calculosueldo;
+var sueldohora, horastrab: integer;
+    sueldototal, pagaregular, pagaextra: integer;
+begin
+  readln(sueldohora);       <span style="color:#6a9955">// Entrada de datos (ingresando a la caja negra)</span>
+  readln(horastrab);
+  if (horastrab &lt;= 40) THEN
+    sueldototal := sueldototal * horastrab
+  else
+    begin                    <span style="color:#c586c0">// Control de flujo (la lógica de decisión)</span>
+      pagaregular := sueldohora * (horastrab - 40);
+      pagaextra := 2 * sueldohora * (horastrab - 40);
+      sueldototal := pagaregular + pagaextra
+    end;
+  writeln(sueldototal)
+end.</code></pre>
+<p style="font-size:13px;color:var(--muted)">La línea <code>var ...</code> es la <strong>declaración de datos</strong> (preparando la memoria) antes de poder usarlos.</p>
+
+<h2>Puesta a punto: el ciclo de vida del programa</h2>
+<div class="ciclo">
+  <div class="paso"><div class="num">1</div><div class="tit">Edición</div><div class="desc">El programa fuente se graba en un soporte mediante un editor.</div></div>
+  <div class="paso"><div class="num">2</div><div class="tit">Compilación</div><div class="desc">El código se traduce a programa objeto y se verifica la sintaxis.</div></div>
+  <div class="paso"><div class="num">3</div><div class="tit">Montaje</div><div class="desc">El linker une el programa con rutinas del sistema y librerías.</div></div>
+  <div class="paso"><div class="num">4</div><div class="tit">Ejecución</div><div class="desc">El ejecutable se prueba con datos para verificarlo.</div></div>
+  <div class="paso"><div class="num">5</div><div class="tit">Documentación</div><div class="desc">Tras el éxito, se documenta para el mantenimiento.</div></div>
+</div>
+<p class="ciclo-nota">Si hay errores (depuración), se repiten las fases desde la edición.</p>
+
+<h2>Características del código profesional</h2>
+<p>Se pueden construir múltiples algoritmos para un mismo problema. El diseño óptimo — el "programa ideal" — se evalúa bajo estos criterios:</p>
+<div class="grid grid-3">
+  <div class="card blue"><h4>Legibilidad</h4><p>De fácil lectura y comprensión humana.</p></div>
+  <div class="card orange"><h4>Modificabilidad</h4><p>Arquitectura fácil de mantener y alterar.</p></div>
+  <div class="card green"><h4>Portabilidad</h4><p>Funciona igual en distintos sistemas.</p></div>
+  <div class="card purple"><h4>Eficiencia</h4><p>Aprovecha los recursos al máximo.</p></div>
+  <div class="card yellow"><h4>Estructurado</h4><p>Sigue las estructuras básicas de control.</p></div>
+  <div class="card blue"><h4>Modularidad</h4><p>Subdividido en bloques independientes.</p></div>
+</div>
+
+<h2>Matriz de evolución de lenguajes</h2>
+<table>
+  <tr><th></th><th>Lenguaje máquina <span style="color:var(--muted);font-weight:400">(nivel hardware)</span></th><th>Ensamblador <span style="color:var(--muted);font-weight:400">(bajo nivel)</span></th><th>Alto nivel <span style="color:var(--muted);font-weight:400">(nivel humano)</span></th></tr>
+  <tr><td><strong>Aspecto</strong></td><td>Cadenas de 0s y 1s</td><td>Nemotécnicos. Ej: <code>ENT M(16), E, CAR A, M(16)</code></td><td>Inglés lógico (COBOL, C, PASCAL)</td></tr>
+  <tr><td><strong>Portabilidad</strong></td><td>Nula (específicos del procesador)</td><td>Nula (depende de la máquina)</td><td>Totalmente independiente de la máquina</td></tr>
+  <tr><td><strong>Rendimiento</strong></td><td>Ejecución directa y ultrarrápida</td><td>Muy rápido, pero difícil de codificar</td><td>Mayor tiempo de ejecución, menor optimización de memoria</td></tr>
+  <tr><td><strong>Traducción</strong></td><td>No necesita</td><td>Requiere programa ensamblador</td><td>Necesita compilador o intérprete</td></tr>
+</table>
+
+<h2>Traductores: intérpretes vs. compiladores</h2>
+<p>Todo lenguaje de alto nivel debe transformarse a código máquina. Existen dos estrategias para lograrlo:</p>
+<div class="grid grid-2">
+  <div class="card orange">
+    <h4>Intérpretes — traducción en vivo</h4>
+    <p>Sentencia fuente → intérprete → ejecución inmediata → siguiente sentencia. Traducen y ejecutan a la vez, línea por línea. No generan archivo intermedio.</p>
+  </div>
+  <div class="card green">
+    <h4>Compiladores — traducción en bloque</h4>
+    <p>Programa fuente completo → compilador → código objeto → montador (linker) → programa ejecutable. Traducen todo el código antes de ejecutar. Generan un programa objeto.</p>
+  </div>
+</div>
+
+<h2>Técnicas de programación: paradigmas</h2>
+<div class="grid grid-3">
+  <div class="card blue">
+    <h4>Programación modular</h4>
+    <p>El programa se divide en partes independientes. Permite a varios programadores trabajar a la vez, reduciendo el tiempo de diseño.</p>
+  </div>
+  <div class="card orange">
+    <h4>Programación estructurada</h4>
+    <p>Uso estricto de tres estructuras básicas de control (secuencia, selección, iteración) para facilitar escritura y mantenimiento.</p>
+  </div>
+  <div class="card purple">
+    <h4>Orientada a objetos (OOP)</h4>
+    <p>Diseñada para maximizar la reutilización de código mediante jerarquías de objetos. Lo importante no es cómo, sino cuáles son los objetos.</p>
+  </div>
+</div>
+
+<h2>Átomos del sistema: datos, constantes y variables</h2>
+<div class="grid grid-2">
+  <div class="card blue"><h4>Constante</h4><p>Su valor permanece invariable durante la ejecución. Ej: <code>PI = 3.14</code></p></div>
+  <div class="card orange"><h4>Variable</h4><p>Su valor puede modificarse y necesita un nombre de referencia. Ej: <code>RADIO = 5</code></p></div>
+</div>
+
+<h3>Tipos de datos simples</h3>
+<table>
+  <tr><th>Tipo</th><th>Descripción</th></tr>
+  <tr><td><strong>Numérico</strong></td><td>Enteros y reales (tratables por el ordenador).</td></tr>
+  <tr><td><strong>Alfanumérico</strong></td><td>Letras, números, caracteres — entre comillas. Ej: <code>"juan"</code></td></tr>
+  <tr><td><strong>Lógico</strong></td><td>Solo dos valores posibles: <code>TRUE</code> (cierto) y <code>FALSE</code> (falso).</td></tr>
+</table>
+
+<h2>Anatomía de una expresión</h2>
+<p>Una expresión es una combinación lógica que, al evaluarse, siempre produce un resultado. Existen 3 tipos según su resultado final: numéricas, alfanuméricas y lógicas/booleanas.</p>
+
+<div class="expresion">
+  <span class="fn">COS</span> (<span class="cte">PI</span> * <span class="var">X</span>) + <span class="cte">1.25</span>
+</div>
+<div class="leyenda-exp">
+  <div><span style="background:var(--blue)"></span>Función (operación predefinida)</div>
+  <div><span style="background:var(--purple)"></span>Constante (valor estático inmutable)</div>
+  <div><span style="background:var(--green)"></span>Variable (valor dinámico de entrada)</div>
+  <div><span style="background:var(--fg)"></span>Operadores aritméticos (relación matemática)</div>
+</div>
+
+<h2>Operadores: el pegamento lógico</h2>
+<div class="grid grid-3">
+  <div class="card blue">
+    <h4>Aritméticos</h4>
+    <table style="margin:0;font-size:12.5px">
+      <tr><td><code>+</code></td><td>Suma</td></tr>
+      <tr><td><code>-</code></td><td>Resta</td></tr>
+      <tr><td><code>*</code></td><td>Multiplicación</td></tr>
+      <tr><td><code>/</code></td><td>División</td></tr>
+      <tr><td><code>%</code></td><td>Residuo de división entera</td></tr>
+      <tr><td><code>^</code></td><td>Potenciación</td></tr>
+    </table>
+  </div>
+  <div class="card orange">
+    <h4>Alfanuméricos</h4>
+    <table style="margin:0;font-size:12.5px">
+      <tr><td><code>+</code></td><td>Concatenación</td></tr>
+    </table>
+    <p style="margin-top:8px">Ej: <code>"DON" + N</code></p>
+  </div>
+  <div class="card purple">
+    <h4>Relacionales</h4>
+    <table style="margin:0;font-size:12.5px">
+      <tr><td><code>&gt;</code></td><td>Mayor</td></tr>
+      <tr><td><code>&gt;=</code></td><td>Mayor o igual</td></tr>
+      <tr><td><code>&lt;</code></td><td>Menor</td></tr>
+      <tr><td><code>&lt;=</code></td><td>Menor o igual</td></tr>
+      <tr><td><code>==</code></td><td>Igual a</td></tr>
+      <tr><td><code>&lt;&gt;</code></td><td>Diferente de</td></tr>
+    </table>
+  </div>
+</div>
+
+<h2>Tablas de verdad: rutas lógicas</h2>
+<div class="verdad">
+  <div class="op"><b>AND (Y)</b><p>Ambas entradas deben ser V para salida V.<br>(V+V=V, V+F=F, F+V=F, F+F=F)</p></div>
+  <div class="op"><b>OR (O)</b><p>Al menos una entrada V da salida V.<br>(V+V=V, V+F=V, F+V=V, F+F=F)</p></div>
+  <div class="op"><b>NOT (NO)</b><p>Invierte la señal.<br>(V → F, F → V)</p></div>
+</div>
+
+<h3>Evaluación práctica</h3>
+<p>Valores: <code>a = 10, b = 12, c = 13</code> — Expresión: <code>not (a == c) and (c &gt; b)</code></p>
+<pre><code>Paso 1:  not (F)  →  and (V)
+Paso 2:      (V)  →  and (V)
+Resultado:           V (Verdadero)</code></pre>
+
+<h2>El motor lógico en acción</h2>
+<p>¿Cómo dirigen los "átomos" lógicos el comportamiento de todo un algoritmo? Así funciona la toma de decisiones, con <code>horastrab = 45</code>:</p>
+<pre><code>Evaluación lógica:  (horastrab &lt;= 40)   →   Resultado: FALSE
+
+  THEN (TRUE)  → sueldototal := sueldohora * horastrab
+  ELSE (FALSE) → pagaregular := sueldohora * 40;
+                 pagaextra := ...</code></pre>
+<p style="font-size:13px;color:var(--muted)">Las expresiones lógicas son los "interruptores" que deciden qué camino toma el programa dentro de la caja negra.</p>
+
+<h2>La pila de abstracción</h2>
+<div class="pila">
+  <div class="capa"><b>Lógica humana: el algoritmo</b><span>Caja negra, pasos finitos.</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>Código de alto nivel: el lenguaje</b><span>Variables, expresiones, paradigmas.</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>Traducción: compilador &amp; montador</b><span>Transformando la sintaxis.</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>Ejecución mecánica: lenguaje máquina</b><span>0s y 1s procesados por el hardware.</span></div>
+</div>
+
+<blockquote>La programación es el arte de construir puentes precisos entre el pensamiento humano abstracto y la ejecución mecánica absoluta.</blockquote>
+
+</body>
+</html>
