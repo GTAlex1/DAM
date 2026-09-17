@@ -426,7 +426,7 @@ html{ scrollbar-width: thin; scrollbar-color: #4f4f4f var(--papel); }
   <div id="cuentaAnon">
     <p class="cuenta-tit">Guarda tu progreso</p>
     <p class="cuenta-estado">Sin sesión, lo marcado como hecho se pierde al recargar. Inicia sesión o crea una cuenta para que se guarde solo.</p>
-    <input type="email" id="cuentaEmail" placeholder="correo">
+    <input type="text" id="cuentaEmail" placeholder="usuario" autocapitalize="off" autocomplete="username">
     <input type="password" id="cuentaPass" placeholder="contraseña">
     <div class="cuenta-botones">
       <button class="b" id="cuentaEntrar">Entrar</button>
@@ -2015,7 +2015,7 @@ $('#btnMenu').addEventListener('click', () => {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword,
-  createUserWithEmailAndPassword, signOut
+  createUserWithEmailAndPassword, signOut, updateProfile
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc
@@ -2075,13 +2075,26 @@ document.addEventListener('click', (e) => {
 function limpiarError() { errorEl.hidden = true; }
 function mostrarError(msg) { errorEl.textContent = msg; errorEl.hidden = false; }
 
+// Firebase Auth necesita un "email" internamente, pero el alumno solo ve y
+// escribe un nombre de usuario. Lo convertimos a un correo ficticio interno
+// que nunca se muestra ni se usa para enviar nada.
+const DOMINIO_USUARIO = 'alumnos.dam-notes.local';
+function usuarioAEmail(bruto) {
+  const u = bruto.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '');
+  return u ? `${u}@${DOMINIO_USUARIO}` : null;
+}
+function nombreDeUsuario(user) {
+  if (user.displayName) return user.displayName;
+  return (user.email || '').split('@')[0];
+}
+
 function mapErrorAuth(codigo) {
   const m = {
-    'auth/invalid-email': 'Ese correo no es válido.',
-    'auth/user-not-found': 'No existe ninguna cuenta con ese correo.',
+    'auth/invalid-email': 'Ese nombre de usuario no es válido (usa solo letras, números, puntos, guiones o guiones bajos).',
+    'auth/user-not-found': 'No existe ninguna cuenta con ese usuario.',
     'auth/wrong-password': 'Contraseña incorrecta.',
-    'auth/invalid-credential': 'Correo o contraseña incorrectos.',
-    'auth/email-already-in-use': 'Ya existe una cuenta con ese correo. Prueba a iniciar sesión.',
+    'auth/invalid-credential': 'Usuario o contraseña incorrectos.',
+    'auth/email-already-in-use': 'Ese nombre de usuario ya está en uso. Prueba a iniciar sesión, o elige otro.',
     'auth/weak-password': 'La contraseña necesita al menos 6 caracteres.',
   };
   return m[codigo] || 'Algo ha fallado. Inténtalo de nuevo.';
@@ -2089,15 +2102,22 @@ function mapErrorAuth(codigo) {
 
 document.getElementById('cuentaEntrar').addEventListener('click', async () => {
   limpiarError();
-  try { await signInWithEmailAndPassword(auth, emailInput.value.trim(), passInput.value); }
+  const email = usuarioAEmail(emailInput.value);
+  if (!email) { mostrarError('Escribe un nombre de usuario.'); return; }
+  try { await signInWithEmailAndPassword(auth, email, passInput.value); }
   catch (e) { mostrarError(mapErrorAuth(e.code)); }
 });
 
 document.getElementById('cuentaCrear').addEventListener('click', async () => {
   limpiarError();
+  const usuario = emailInput.value.trim();
+  const email = usuarioAEmail(usuario);
+  if (!email) { mostrarError('Escribe un nombre de usuario.'); return; }
   if (passInput.value.length < 6) { mostrarError('La contraseña necesita al menos 6 caracteres.'); return; }
-  try { await createUserWithEmailAndPassword(auth, emailInput.value.trim(), passInput.value); }
-  catch (e) { mostrarError(mapErrorAuth(e.code)); }
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, passInput.value);
+    await updateProfile(cred.user, { displayName: usuario });
+  } catch (e) { mostrarError(mapErrorAuth(e.code)); }
 });
 
 document.getElementById('cuentaSalir').addEventListener('click', () => { signOut(auth); });
@@ -2107,7 +2127,7 @@ function pintaCuenta(user) {
     btn.classList.add('logueado');
     vistaLogueado.hidden = false;
     vistaAnon.hidden = true;
-    mailEl.textContent = user.email;
+    mailEl.textContent = nombreDeUsuario(user);
   } else {
     btn.classList.remove('logueado');
     vistaLogueado.hidden = true;
