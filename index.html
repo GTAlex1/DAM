@@ -6,7 +6,7 @@
 <title>Apuntes DAM</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><rect width=%2224%22 height=%2224%22 rx=%224%22 fill=%22%23007acc%22/><text x=%2212%22 y=%2217%22 font-size=%2213%22 font-family=%22monospace%22 fill=%22white%22 text-anchor=%22middle%22>{}</text></svg>">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
-<link rel="stylesheet" href="styles.css?v=3">
+<link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
 
@@ -24,14 +24,14 @@
 
   <!-- Activity bar -->
   <div class="activitybar">
-    <button class="activity-icon active" title="Explorador" aria-label="Explorador">
+    <button class="activity-icon active" id="nav-explorer" data-view="explorer" title="Explorador" aria-label="Explorador">
       <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M14.5 3H9.5L8 4.5V6H4a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-4V4.5L14.5 3zM9 5h6v1H9V5zm11 15H4V8h16v12z"/></svg>
     </button>
-    <button class="activity-icon" title="Buscar" aria-label="Buscar">
+    <button class="activity-icon" id="nav-search" data-view="search" title="Buscar en todos los apuntes" aria-label="Buscar">
       <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 5L20.49 19l-5-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
     </button>
-    <button class="activity-icon" title="Control de código fuente" aria-label="Git">
-      <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M17.5 10.5a2.5 2.5 0 0 0-4.9-.8L9 8V6.83a2.5 2.5 0 1 0-2 0v6.34a2.5 2.5 0 1 0 2.13.07L12 12a2.5 2.5 0 0 0 4-2 2.5 2.5 0 0 0 1.5-2.5v-1a2.49 2.49 0 0 0 0-3.9V10.5z"/><circle cx="7" cy="4.5" r="1.3"/><circle cx="7" cy="16.5" r="1.3"/><circle cx="15" cy="10.5" r="1.3"/></svg>
+    <button class="activity-icon" id="nav-favoritos" data-view="favoritos" title="Favoritos" aria-label="Favoritos">
+      <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.3 6.1 20.6l1.4-6.6-5-4.6 6.6-.7L12 2.5z"/></svg>
     </button>
     <div class="activity-spacer"></div>
     <button class="activity-icon" id="account-icon" title="Cuenta" aria-label="Cuenta">
@@ -44,15 +44,36 @@
 
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <span>Explorador</span>
+
+    <div class="sidebar-view" id="view-explorer">
+      <div class="sidebar-header">
+        <span>Explorador</span>
+      </div>
+      <div class="sidebar-section-header">
+        <svg class="chevron" viewBox="0 0 16 16" width="16" height="16"><path fill="currentColor" d="M6 4l4 4-4 4V4z"/></svg>
+        <span>APUNTES-DAM</span>
+        <span class="edit-badge" id="edit-badge" hidden>modo edición</span>
+      </div>
+      <div id="file-tree" class="file-tree"></div>
     </div>
-    <div class="sidebar-section-header">
-      <svg class="chevron" viewBox="0 0 16 16" width="16" height="16"><path fill="currentColor" d="M6 4l4 4-4 4V4z"/></svg>
-      <span>APUNTES-DAM</span>
-      <span class="edit-badge" id="edit-badge" hidden>modo edición</span>
+
+    <div class="sidebar-view" id="view-search" hidden>
+      <div class="sidebar-header"><span>Buscar</span></div>
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Buscar en todos los apuntes…" autocomplete="off">
+        <select id="search-filtro">
+          <option value="">Todas las asignaturas</option>
+        </select>
+      </div>
+      <div id="search-status" class="search-status"></div>
+      <div id="search-results" class="search-results"></div>
     </div>
-    <div id="file-tree" class="file-tree"></div>
+
+    <div class="sidebar-view" id="view-favoritos" hidden>
+      <div class="sidebar-header"><span>Favoritos</span></div>
+      <div id="favoritos-list" class="favoritos-list"></div>
+    </div>
+
   </div>
 
   <!-- Editor area -->
@@ -112,6 +133,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script type="module" src="app.js?v=2"></script>
+<script type="module" src="app.js?v=3"></script>
 </body>
 </html>

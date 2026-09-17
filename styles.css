@@ -119,6 +119,50 @@ html,body{
   border-radius:8px;
 }
 
+/* ---------- Vistas de la sidebar (Explorador / Buscar / Favoritos) ---------- */
+.sidebar-view{ display:flex; flex-direction:column; height:100%; }
+
+.search-box{ padding:8px 12px; display:flex; flex-direction:column; gap:6px; }
+.search-box input, .search-box select{
+  background:#3c3c3c; border:1px solid #5a5a5a; color:#fff;
+  font-size:12.5px; padding:6px 8px; border-radius:3px; font-family:var(--font-ui);
+}
+.search-box input:focus, .search-box select:focus{ outline:1px solid var(--accent-blue); border-color:var(--accent-blue); }
+.search-status{ padding:0 12px 6px; font-size:11.5px; color:#8a8a8a; }
+.search-results{ flex:1; overflow-y:auto; }
+.search-result{
+  padding:8px 12px; border-bottom:1px solid #2a2a2a; cursor:pointer;
+}
+.search-result:hover{ background:var(--hover-bg); }
+.search-result .sr-name{ display:flex; align-items:center; gap:6px; font-size:13px; color:#fff; }
+.search-result .sr-crumbs{ font-size:11px; color:#8a8a8a; margin:2px 0 4px 22px; }
+.search-result .sr-snippet{ font-size:12px; color:#b0b0b0; margin-left:22px; line-height:1.4; }
+.search-result .sr-snippet mark{ background:#5a4a1a; color:#ffd479; padding:0 1px; border-radius:2px; }
+.search-empty{ padding:16px 12px; font-size:12.5px; color:#8a8a8a; line-height:1.5; }
+
+.favoritos-list{ flex:1; overflow-y:auto; }
+.fav-item{
+  display:flex; align-items:center; gap:8px; padding:6px 12px;
+  cursor:pointer; border-bottom:1px solid #2a2a2a;
+}
+.fav-item:hover{ background:var(--hover-bg); }
+.fav-item .fav-info{ flex:1; min-width:0; }
+.fav-item .fav-name{ font-size:13px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fav-item .fav-crumbs{ font-size:11px; color:#8a8a8a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fav-item .fav-remove{
+  flex-shrink:0; opacity:.6; color:#dcb67a; background:none; border:none; cursor:pointer; padding:2px;
+  display:flex; align-items:center;
+}
+.fav-item .fav-remove:hover{ opacity:1; }
+
+.fav-star{
+  margin-left:auto; flex-shrink:0; opacity:.35; color:#8a8a8a;
+  display:flex; align-items:center; padding:2px 4px; cursor:pointer;
+}
+.tree-row:hover .fav-star{ opacity:.7; }
+.fav-star:hover{ opacity:1 !important; color:#dcb67a; }
+.fav-star.activo{ opacity:1; color:#dcb67a; }
+
 .file-tree{ padding-bottom:20px; }
 .tree-node{ user-select:none; }
 .tree-row{

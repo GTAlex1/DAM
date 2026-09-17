@@ -21,6 +21,11 @@ const statusLangEl = document.getElementById('status-lang');
 const statusSyncEl = document.getElementById('status-sync');
 const sidebarEl = document.getElementById('sidebar');
 const editBadgeEl = document.getElementById('edit-badge');
+const searchInputEl = document.getElementById('search-input');
+const searchFiltroEl = document.getElementById('search-filtro');
+const searchStatusEl = document.getElementById('search-status');
+const searchResultsEl = document.getElementById('search-results');
+const favoritosListEl = document.getElementById('favoritos-list');
 
 let root = null;            // raíz del árbol en memoria (con parent/id/pathKey)
 let savedOrder = {};        // orden guardado en Firestore { pathKey: [nombres] }
@@ -33,6 +38,20 @@ let editMode = false;
 let nextId = 1;
 const nodesById = {};
 
+// ---------- Favoritos (guardados en este navegador) ----------
+const CLAVE_FAVORITOS = 'damNotesFavoritos';
+let favoritos = new Set();
+try { favoritos = new Set(JSON.parse(localStorage.getItem(CLAVE_FAVORITOS) || '[]')); } catch (e) { }
+
+function esFavorito(path) { return favoritos.has(path); }
+function guardarFavoritos() {
+  try { localStorage.setItem(CLAVE_FAVORITOS, JSON.stringify([...favoritos])); } catch (e) { }
+}
+function alternarFavorito(path) {
+  if (favoritos.has(path)) favoritos.delete(path); else favoritos.add(path);
+  guardarFavoritos();
+}
+
 // ---------- Icons ----------
 const ICON_FOLDER = `<svg class="icon" viewBox="0 0 24 24" width="16" height="16"><path fill="#dcb67a" d="M20 6h-8l-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z"/></svg>`;
 const ICON_FOLDER_OPEN = `<svg class="icon" viewBox="0 0 24 24" width="16" height="16"><path fill="#dcb67a" d="M20 6h-8l-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zM4 6h5.17l2 2H20v10H4V6z"/></svg>`;
@@ -41,6 +60,8 @@ const ICON_HTML = `<svg class="icon" viewBox="0 0 24 24" width="16" height="16">
 const ICON_CHEVRON = `<svg class="chevron" viewBox="0 0 16 16" width="16" height="16"><path fill="currentColor" d="M6 4l4 4-4 4V4z"/></svg>`;
 const ICON_CLOSE = `<svg viewBox="0 0 16 16" width="16" height="16"><path fill="currentColor" d="M8 8.7l3.15 3.15.7-.7L8.7 8l3.15-3.15-.7-.7L8 7.3 4.85 4.15l-.7.7L7.3 8l-3.15 3.15.7.7z"/></svg>`;
 const ICON_GRIP = `<svg class="grip" viewBox="0 0 16 16" width="12" height="16"><circle cx="5" cy="3" r="1.3"/><circle cx="11" cy="3" r="1.3"/><circle cx="5" cy="8" r="1.3"/><circle cx="11" cy="8" r="1.3"/><circle cx="5" cy="13" r="1.3"/><circle cx="11" cy="13" r="1.3"/></svg>`;
+const ICON_STAR_OUTLINE = `<svg viewBox="0 0 24 24" width="14" height="14"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M12 3.5l2.6 5.4 5.9.6-4.4 4 1.3 5.8L12 16.4l-5.4 2.9 1.3-5.8-4.4-4 5.9-.6L12 3.5z"/></svg>`;
+const ICON_STAR_FILL = `<svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M12 3.5l2.6 5.4 5.9.6-4.4 4 1.3 5.8L12 16.4l-5.4 2.9 1.3-5.8-4.4-4 5.9-.6L12 3.5z"/></svg>`;
 
 function fileIcon(name) {
   const ext = name.split('.').pop().toLowerCase();
@@ -151,9 +172,12 @@ function renderTree(node, container, crumbs) {
         if (nowCollapsed) collapsedIds.add(child.id); else collapsedIds.delete(child.id);
       });
     } else {
-      row.innerHTML = `${grip}<span style="width:16px;flex-shrink:0;"></span>${fileIcon(child.name)}<span class="label">${child.name}</span>`;
+      const activo = esFavorito(child.path);
+      row.innerHTML = `${grip}<span style="width:16px;flex-shrink:0;"></span>${fileIcon(child.name)}<span class="label">${child.name}</span>`
+        + `<span class="fav-star${activo ? ' activo' : ''}" title="${activo ? 'Quitar de favoritos' : 'Añadir a favoritos'}">${activo ? ICON_STAR_FILL : ICON_STAR_OUTLINE}</span>`;
       row.addEventListener('click', (e) => {
         if (e.target.closest('.grip-handle')) return;
+        if (e.target.closest('.fav-star')) { toggleFavorito(child.path); return; }
         openFile(child, [...crumbs]);
       });
       wrapper.appendChild(row);
@@ -181,6 +205,15 @@ function findByPath(node, path) {
     if (found) return found;
   }
   return null;
+}
+
+// Reconstruye el camino de nombres de carpeta desde la raíz hasta (sin
+// incluir) el propio nodo, subiendo por node.parent.
+function crumbsFor(node) {
+  const crumbs = [];
+  let p = node.parent;
+  while (p && p.parent) { crumbs.unshift(p.name); p = p.parent; }
+  return crumbs;
 }
 
 // ---------- Drag & drop (reordenar hermanos) ----------
@@ -241,6 +274,218 @@ async function persistOrder(parentNode) {
     statusSyncEl.textContent = '⚠ error al guardar';
   }
 }
+
+// ---------- Favoritos: refresco centralizado de ambas vistas ----------
+function toggleFavorito(path) {
+  alternarFavorito(path);
+  if (root) buildTree();
+  renderFavoritos();
+}
+
+function renderFavoritos() {
+  if (!favoritosListEl) return;
+  const items = [...favoritos]
+    .map(path => root && findByPath(root, path))
+    .filter(Boolean)
+    .sort((a, b) => a.name.localeCompare(b.name, 'es'));
+
+  if (!items.length) {
+    favoritosListEl.innerHTML = `<div class="search-empty">Aún no tienes ningún apunte marcado. Pulsa la ☆ junto a un archivo del explorador para guardarlo aquí.</div>`;
+    return;
+  }
+
+  favoritosListEl.innerHTML = '';
+  items.forEach(node => {
+    const crumbs = crumbsFor(node);
+    const el = document.createElement('div');
+    el.className = 'fav-item';
+    el.innerHTML = `${fileIcon(node.name)}<div class="fav-info"><div class="fav-name">${node.name}</div>`
+      + `<div class="fav-crumbs">${crumbs.join(' / ')}</div></div>`
+      + `<button class="fav-remove" title="Quitar de favoritos">${ICON_STAR_FILL}</button>`;
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.fav-remove')) { toggleFavorito(node.path); return; }
+      openFile(node, crumbs);
+    });
+    favoritosListEl.appendChild(el);
+  });
+}
+
+// ---------- Vistas de la sidebar (Explorador / Buscar / Favoritos) ----------
+const explorerViewEl = document.getElementById('view-explorer');
+const searchViewEl = document.getElementById('view-search');
+const favoritosViewEl = document.getElementById('view-favoritos');
+const navExplorer = document.getElementById('nav-explorer');
+const navSearch = document.getElementById('nav-search');
+const navFavoritos = document.getElementById('nav-favoritos');
+
+let vistaActual = 'explorer';
+
+function sidebarOculta() { return sidebarEl.style.display === 'none'; }
+function mostrarSidebar() { sidebarEl.style.display = ''; }
+function ocultarSidebar() { sidebarEl.style.display = 'none'; }
+function alternarSidebar() { sidebarEl.style.display = sidebarOculta() ? '' : 'none'; }
+
+function mostrarVista(nombre) {
+  vistaActual = nombre;
+  explorerViewEl.hidden = nombre !== 'explorer';
+  searchViewEl.hidden = nombre !== 'search';
+  favoritosViewEl.hidden = nombre !== 'favoritos';
+  navExplorer.classList.toggle('active', nombre === 'explorer');
+  navSearch.classList.toggle('active', nombre === 'search');
+  navFavoritos.classList.toggle('active', nombre === 'favoritos');
+  if (nombre === 'search') { iniciarIndiceBusqueda(); searchInputEl.focus(); }
+  if (nombre === 'favoritos') renderFavoritos();
+}
+
+// Un clic en un icono de la barra de actividad: si la sidebar está oculta, la
+// muestra con esa vista; si ya se ve esa misma vista, la oculta (esto hace
+// que el icono de Explorador se comporte exactamente como Ctrl+B); si se ve
+// otra vista, simplemente cambia a la pedida.
+function clicNav(nombre) {
+  if (sidebarOculta()) { mostrarSidebar(); mostrarVista(nombre); return; }
+  if (vistaActual === nombre) { ocultarSidebar(); return; }
+  mostrarVista(nombre);
+}
+
+navExplorer.addEventListener('click', () => clicNav('explorer'));
+navSearch.addEventListener('click', () => clicNav('search'));
+navFavoritos.addEventListener('click', () => clicNav('favoritos'));
+
+// ---------- Buscador: indexa el contenido de todos los apuntes ----------
+let indiceListo = false;
+let indiceEnCurso = null;
+const textoIndexado = {}; // nodeId -> texto plano en minúsculas
+
+function todosLosArchivos(node, out) {
+  if (node.type === 'file') { out.push(node); return out; }
+  (node.children || []).forEach(c => todosLosArchivos(c, out));
+  return out;
+}
+
+function htmlAPlano(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return (tmp.textContent || '').replace(/\s+/g, ' ');
+}
+
+async function indexarArchivo(node) {
+  try {
+    const res = await fetch(rawUrl(node.path), { cache: 'no-store' });
+    if (!res.ok) return;
+    const raw = await res.text();
+    contentCache[node.path] = raw; // aprovecha para no re-descargar al abrir el archivo
+    const esHtml = /\.(html?)$/i.test(node.path);
+    textoIndexado[node.id] = (esHtml ? htmlAPlano(raw) : raw).toLowerCase();
+  } catch (e) { /* si un archivo falla, sencillamente no aparecerá en resultados */ }
+}
+
+// Indexa con un máximo de 5 descargas en paralelo, para no saturar la CDN.
+async function construirIndice(archivos) {
+  const cola = [...archivos];
+  let hechos = 0;
+  const total = cola.length;
+  searchStatusEl.textContent = `Indexando apuntes… (0/${total})`;
+
+  async function trabajador() {
+    while (cola.length) {
+      const nodo = cola.shift();
+      await indexarArchivo(nodo);
+      hechos++;
+      searchStatusEl.textContent = `Indexando apuntes… (${hechos}/${total})`;
+    }
+  }
+  await Promise.all(Array.from({ length: 5 }, trabajador));
+  indiceListo = true;
+  searchStatusEl.textContent = '';
+  ejecutarBusqueda();
+}
+
+function iniciarIndiceBusqueda() {
+  if (indiceListo || indiceEnCurso || !root) return;
+  const archivos = todosLosArchivos(root, []);
+  indiceEnCurso = construirIndice(archivos);
+
+  // Rellena el filtro de asignaturas con las carpetas de segundo nivel
+  // (curso/asignatura), sin duplicados.
+  const asignaturas = new Set();
+  (root.children || []).forEach(curso => {
+    (curso.children || []).forEach(c => { if (c.type === 'folder') asignaturas.add(c.name); });
+  });
+  [...asignaturas].sort((a, b) => a.localeCompare(b, 'es')).forEach(nombre => {
+    const opt = document.createElement('option');
+    opt.value = nombre;
+    opt.textContent = nombre.replace(/-/g, ' ');
+    searchFiltroEl.appendChild(opt);
+  });
+}
+
+function coincideFiltro(node, filtro) {
+  if (!filtro) return true;
+  let p = node.parent;
+  while (p) { if (p.name === filtro) return true; p = p.parent; }
+  return false;
+}
+
+function snippetCon(texto, q) {
+  const idx = texto.indexOf(q);
+  if (idx === -1) return '';
+  const inicio = Math.max(0, idx - 40);
+  const fin = Math.min(texto.length, idx + q.length + 60);
+  let frag = texto.slice(inicio, fin);
+  if (inicio > 0) frag = '…' + frag;
+  if (fin < texto.length) frag += '…';
+  const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'ig');
+  return frag.replace(re, m => `<mark>${m}</mark>`);
+}
+
+function ejecutarBusqueda() {
+  const q = searchInputEl.value.trim().toLowerCase();
+  const filtro = searchFiltroEl.value;
+
+  if (!q) {
+    searchResultsEl.innerHTML = indiceListo
+      ? `<div class="search-empty">Escribe algo para buscar en todos tus apuntes.</div>`
+      : '';
+    return;
+  }
+  if (!indiceListo) return; // se relanza sola cuando termine de indexar
+
+  const archivos = todosLosArchivos(root, []).filter(n => coincideFiltro(n, filtro));
+  const resultados = archivos
+    .map(node => {
+      const nombreCoincide = node.name.toLowerCase().includes(q);
+      const texto = textoIndexado[node.id] || '';
+      const textoCoincide = texto.includes(q);
+      if (!nombreCoincide && !textoCoincide) return null;
+      return { node, snippet: textoCoincide ? snippetCon(texto, q) : '' };
+    })
+    .filter(Boolean)
+    .slice(0, 60);
+
+  if (!resultados.length) {
+    searchResultsEl.innerHTML = `<div class="search-empty">Sin resultados para "${q}".</div>`;
+    return;
+  }
+
+  searchResultsEl.innerHTML = '';
+  resultados.forEach(({ node, snippet }) => {
+    const crumbs = crumbsFor(node);
+    const el = document.createElement('div');
+    el.className = 'search-result';
+    el.innerHTML = `<div class="sr-name">${fileIcon(node.name)}<span>${node.name}</span></div>`
+      + `<div class="sr-crumbs">${crumbs.join(' / ')}</div>`
+      + (snippet ? `<div class="sr-snippet">${snippet}</div>` : '');
+    el.addEventListener('click', () => openFile(node, crumbs));
+    searchResultsEl.appendChild(el);
+  });
+}
+
+let temporizadorBusqueda = null;
+searchInputEl.addEventListener('input', () => {
+  clearTimeout(temporizadorBusqueda);
+  temporizadorBusqueda = setTimeout(ejecutarBusqueda, 200);
+});
+searchFiltroEl.addEventListener('change', ejecutarBusqueda);
 
 // ---------- Tabs ----------
 function openFile(fileNode, crumbs) {
@@ -377,7 +622,7 @@ document.addEventListener('keydown', (e) => {
   // Ctrl/Cmd+B alterna el explorador (atajo real de VS Code, libre en el navegador)
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
     e.preventDefault();
-    sidebarEl.style.display = (sidebarEl.style.display === 'none') ? '' : 'none';
+    alternarSidebar();
   }
 });
 
