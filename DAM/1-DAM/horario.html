@@ -117,6 +117,19 @@
     50%      { box-shadow:0 0 0 1px var(--c), 0 0 16px 3px var(--c); }
   }
 
+  /* ---------- Convalidadas / aprobadas ---------- */
+  .entry.convalidada{ opacity:.5; }
+  .entry.convalidada .name{ text-decoration:line-through; text-decoration-color:#4ec9b0; text-decoration-thickness:1.5px; }
+  .entry.convalidada::after{
+    content:"CONVALIDADA";
+    display:block;
+    margin-top:3px;
+    font-size:8.5px;
+    font-weight:700;
+    letter-spacing:.4px;
+    color:#4ec9b0;
+  }
+
   /* ---------- Tabla de materias ---------- */
   h2{
     font-family:"Cascadia Code",Consolas,monospace;
@@ -165,18 +178,72 @@
   tr.dimmed{ opacity:.25; }
   tr.match td:first-child{ background:rgba(255,255,255,0.05); }
 
+  .chip{ position:relative; }
+  .chip.convalidada::after{ content:"✓"; margin-left:5px; color:#4ec9b0; font-weight:700; }
+  .filter-bar.modo-edicion .chip:not(.convalidada):not(.all)::after{ content:"✕"; margin-left:5px; opacity:.3; }
+  .filter-bar.modo-edicion .chip{ border-style:dashed; }
+  .edicion-aviso{
+    font-size:11.5px; color:#4ec9b0; margin:-8px 0 14px;
+    display:flex; align-items:center; gap:6px;
+  }
+
   /* ---------- Scrollbar oscura (el iframe tiene su propio documento) ---------- */
   html{ scrollbar-width: thin; scrollbar-color: #4f4f4f #1a1a1a; }
   ::-webkit-scrollbar{ width:12px; height:12px; }
   ::-webkit-scrollbar-track{ background:#1a1a1a; }
   ::-webkit-scrollbar-thumb{ background:#4f4f4f; border-radius:6px; border:3px solid #1a1a1a; }
   ::-webkit-scrollbar-thumb:hover{ background:#6f6f6f; }
+
+  /* ---------- Widget de cuenta (login / registro) ---------- */
+  #cuentaBtn{
+    position:fixed; right:18px; bottom:18px; z-index:95;
+    width:40px; height:40px; border-radius:50%;
+    background:#252526; border:1px solid #333;
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px; cursor:pointer; user-select:none;
+  }
+  #cuentaBtn.logueado{ border-color:#4ec9b0; box-shadow:0 0 0 2px rgba(78,201,176,0.3); }
+  #cuentaBtn:hover{ background:#2a2a2a; }
+  #cuentaPop{
+    position:fixed; right:18px; bottom:66px; z-index:95;
+    width:250px; background:#252526; border:1px solid #333;
+    padding:14px; font-family:-apple-system,"Segoe UI",Arial,sans-serif; font-size:13px; color:var(--fg);
+    box-shadow:0 6px 20px rgba(0,0,0,.4);
+  }
+  .cuenta-tit{ font-family:"Cascadia Code",Consolas,monospace; font-weight:700; font-size:12.5px; margin:0 0 6px; color:#fff; }
+  .cuenta-mail{ font-size:12.5px; color:var(--muted); margin:0 0 4px; word-break:break-all; }
+  .cuenta-estado{ font-size:12px; color:var(--muted); line-height:1.5; margin:0 0 10px; }
+  #cuentaPop input{
+    width:100%; box-sizing:border-box; background:#2d2d2d; border:1px solid #444;
+    color:#fff; font:13px/1.4 -apple-system,"Segoe UI",Arial,sans-serif; padding:6px 8px; margin-bottom:7px;
+  }
+  #cuentaPop input:focus-visible{ outline:2px solid #4fc1ff; }
+  .cuenta-botones{ display:flex; gap:7px; }
+  .cuenta-botones .b{
+    flex:1 1 0; padding:6px 0; font-size:12px; text-align:center;
+    background:#0e639c; color:#fff; border:none; border-radius:3px; cursor:pointer;
+  }
+  .cuenta-botones .b:hover{ background:#1177bb; }
+  .cuenta-botones .b.sec{ background:#3a3a3a; }
+  .cuenta-botones .b.sec:hover{ background:#464646; }
+  .cuenta-error{ color:#f48771; font-size:11.5px; margin:8px 0 0; }
+
+  /* ---------- Botón de modo edición (convalidadas) ---------- */
+  #gradBtn{
+    position:fixed; right:18px; bottom:66px; z-index:94;
+    width:40px; height:40px; border-radius:50%;
+    background:#252526; border:1px solid #333;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; user-select:none; color:var(--fg);
+  }
+  #gradBtn:hover{ background:#2a2a2a; }
+  #gradBtn.activo{ background:#4ec9b0; border-color:#4ec9b0; color:#123b34; }
 </style>
 </head>
 <body>
 
 <h1>Horario semanal</h1>
-<p class="subtitle">1º DAM</p>
+<p class="subtitle">1º DAM · el día de hoy se resalta automáticamente</p>
 
 <div class="schedule-scroll">
   <div class="schedule" id="schedule"></div>
@@ -184,12 +251,40 @@
 
 <h2>Materias</h2>
 <div class="filter-bar" id="filter-bar"></div>
+<p class="edicion-aviso" id="edicion-aviso" hidden>🎓 Modo edición: haz clic en una asignatura para marcarla como convalidada/aprobada.</p>
 <table id="materias-table">
   <thead>
     <tr><th>Asignatura</th><th>Descripción</th><th>Docente</th></tr>
   </thead>
   <tbody></tbody>
 </table>
+
+<!-- Widget de cuenta: las mismas cuentas que en Entornos de Desarrollo -->
+<div id="cuentaBtn" title="Cuenta">👤</div>
+<div id="cuentaPop" hidden>
+  <div id="cuentaLogueado" hidden>
+    <p class="cuenta-tit">Sesión iniciada</p>
+    <p class="cuenta-mail" id="cuentaMail"></p>
+    <p class="cuenta-estado">Usa el birrete 🎓 para marcar tus asignaturas convalidadas.</p>
+    <button class="b sec" id="cuentaSalir">Cerrar sesión</button>
+  </div>
+  <div id="cuentaAnon">
+    <p class="cuenta-tit">Marca tus convalidadas</p>
+    <p class="cuenta-estado">Inicia sesión con tu cuenta de Entornos de Desarrollo (o crea una) para guardar qué asignaturas tienes convalidadas o aprobadas.</p>
+    <input type="text" id="cuentaEmail" placeholder="usuario" autocapitalize="off" autocomplete="username">
+    <input type="password" id="cuentaPass" placeholder="contraseña">
+    <div class="cuenta-botones">
+      <button class="b" id="cuentaEntrar">Entrar</button>
+      <button class="b sec" id="cuentaCrear">Crear cuenta</button>
+    </div>
+    <p class="cuenta-error" id="cuentaError" hidden></p>
+  </div>
+</div>
+
+<!-- Botón de modo edición de convalidaciones (solo visible logueado) -->
+<div id="gradBtn" title="Marcar convalidadas" hidden>
+  <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 3L1 9l11 6 9-4.9V17h2V9L12 3zM5 13.18v4.09L12 21l7-3.73v-4.09L12 17l-7-3.82z"/></svg>
+</div>
 
 <script>
   const subjects = {
@@ -308,6 +403,10 @@
     const chip = e.target.closest('.chip');
     if (!chip) return;
     const code = chip.dataset.filter;
+    if (window.__modoEdicion && code !== '__all__') {
+      window.__toggleConvalidada(code);
+      return;
+    }
     applyFilter(code === '__all__' ? null : code);
   });
 
@@ -350,6 +449,175 @@
 
   updateNow();
   setInterval(updateNow, 30000); // se mantiene al día si dejas la pestaña abierta
+</script>
+<script type="module">
+/* ============================================================
+   CUENTA (Firebase): las mismas cuentas de usuario/contraseña
+   que en entornos-desarrollo.html (mismo proyecto Firebase, así
+   que si ya iniciaste sesión allí, aquí ya te reconoce solo).
+   Además: marcar asignaturas convalidadas/aprobadas.
+   ============================================================ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, signOut, updateProfile
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCOU5RrEN0LA_cvnOXexBUJAxC8Md2NvE8",
+  authDomain: "damm-29df1.firebaseapp.com",
+  projectId: "damm-29df1",
+  storageBucket: "damm-29df1.firebasestorage.app",
+  messagingSenderId: "44798070440",
+  appId: "1:44798070440:web:e6a1ff169820c4a9ff3c9d",
+};
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+
+// Mismo esquema usuario -> correo interno que en entornos-desarrollo.html,
+// para que sea literalmente la misma cuenta en las dos páginas.
+const DOMINIO_USUARIO = 'alumnos.dam-notes.local';
+function usuarioAEmail(bruto) {
+  const u = bruto.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '');
+  return u ? `${u}@${DOMINIO_USUARIO}` : null;
+}
+function nombreDeUsuario(user) {
+  if (user.displayName) return user.displayName;
+  return (user.email || '').split('@')[0];
+}
+
+function convalidacionesRef(uid) { return doc(db, 'convalidaciones', uid); }
+async function cargarConvalidadas(uid) {
+  try {
+    const snap = await getDoc(convalidacionesRef(uid));
+    return snap.exists() ? (snap.data().materias || []) : [];
+  } catch (e) { console.warn('No se pudo leer convalidaciones:', e); return []; }
+}
+async function guardarConvalidadas(uid, lista) {
+  try { await setDoc(convalidacionesRef(uid), { materias: lista, ts: Date.now() }); return true; }
+  catch (e) { console.warn('No se pudo guardar convalidaciones:', e); return false; }
+}
+
+let convalidadas = new Set();
+window.__modoEdicion = false;
+
+/* ---------- Widget de cuenta ---------- */
+const btn = document.getElementById('cuentaBtn');
+const pop = document.getElementById('cuentaPop');
+const vistaLogueado = document.getElementById('cuentaLogueado');
+const vistaAnon = document.getElementById('cuentaAnon');
+const mailEl = document.getElementById('cuentaMail');
+const emailInput = document.getElementById('cuentaEmail');
+const passInput = document.getElementById('cuentaPass');
+const errorEl = document.getElementById('cuentaError');
+const gradBtn = document.getElementById('gradBtn');
+const avisoEl = document.getElementById('edicion-aviso');
+
+btn.addEventListener('click', () => { pop.hidden = !pop.hidden; });
+document.addEventListener('click', (e) => {
+  if (!pop.hidden && !pop.contains(e.target) && !btn.contains(e.target)) pop.hidden = true;
+});
+
+function limpiarError() { errorEl.hidden = true; }
+function mostrarError(msg) { errorEl.textContent = msg; errorEl.hidden = false; }
+
+function mapErrorAuth(codigo) {
+  const m = {
+    'auth/invalid-email': 'Ese nombre de usuario no es válido.',
+    'auth/user-not-found': 'No existe ninguna cuenta con ese usuario.',
+    'auth/wrong-password': 'Contraseña incorrecta.',
+    'auth/invalid-credential': 'Usuario o contraseña incorrectos.',
+    'auth/email-already-in-use': 'Ese nombre de usuario ya está en uso. Prueba a iniciar sesión, o elige otro.',
+    'auth/weak-password': 'La contraseña necesita al menos 6 caracteres.',
+  };
+  return m[codigo] || 'Algo ha fallado. Inténtalo de nuevo.';
+}
+
+document.getElementById('cuentaEntrar').addEventListener('click', async () => {
+  limpiarError();
+  const email = usuarioAEmail(emailInput.value);
+  if (!email) { mostrarError('Escribe un nombre de usuario.'); return; }
+  try { await signInWithEmailAndPassword(auth, email, passInput.value); }
+  catch (e) { mostrarError(mapErrorAuth(e.code)); }
+});
+
+document.getElementById('cuentaCrear').addEventListener('click', async () => {
+  limpiarError();
+  const usuario = emailInput.value.trim();
+  const email = usuarioAEmail(usuario);
+  if (!email) { mostrarError('Escribe un nombre de usuario.'); return; }
+  if (passInput.value.length < 6) { mostrarError('La contraseña necesita al menos 6 caracteres.'); return; }
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, passInput.value);
+    await updateProfile(cred.user, { displayName: usuario });
+  } catch (e) { mostrarError(mapErrorAuth(e.code)); }
+});
+
+document.getElementById('cuentaSalir').addEventListener('click', () => { signOut(auth); });
+
+function pintaCuenta(user) {
+  if (user) {
+    btn.classList.add('logueado');
+    vistaLogueado.hidden = false;
+    vistaAnon.hidden = true;
+    mailEl.textContent = nombreDeUsuario(user);
+    gradBtn.hidden = false;
+  } else {
+    btn.classList.remove('logueado');
+    vistaLogueado.hidden = true;
+    vistaAnon.hidden = false;
+    emailInput.value = ''; passInput.value = '';
+    gradBtn.hidden = true;
+    window.__modoEdicion = false;
+    pintaModoEdicion();
+  }
+}
+
+/* ---------- Modo edición de convalidadas ---------- */
+gradBtn.addEventListener('click', () => {
+  window.__modoEdicion = !window.__modoEdicion;
+  pintaModoEdicion();
+});
+
+function pintaModoEdicion() {
+  gradBtn.classList.toggle('activo', window.__modoEdicion);
+  filterBar.classList.toggle('modo-edicion', window.__modoEdicion);
+  avisoEl.hidden = !window.__modoEdicion;
+}
+
+function pintaConvalidadasChips() {
+  filterBar.querySelectorAll('.chip[data-filter]').forEach(chip => {
+    const code = chip.dataset.filter;
+    chip.classList.toggle('convalidada', code !== '__all__' && convalidadas.has(code));
+  });
+}
+
+function pintaConvalidadasHorario() {
+  document.querySelectorAll('.entry[data-code]').forEach(el => {
+    const code = el.dataset.code;
+    el.classList.toggle('convalidada', !!code && convalidadas.has(code));
+  });
+}
+
+window.__toggleConvalidada = function (code) {
+  const user = auth.currentUser;
+  if (!user) return;
+  if (convalidadas.has(code)) convalidadas.delete(code); else convalidadas.add(code);
+  pintaConvalidadasChips();
+  pintaConvalidadasHorario();
+  guardarConvalidadas(user.uid, [...convalidadas]);
+};
+
+onAuthStateChanged(auth, async (user) => {
+  pintaCuenta(user);
+  convalidadas = new Set(user ? await cargarConvalidadas(user.uid) : []);
+  pintaConvalidadasChips();
+  pintaConvalidadasHorario();
+});
 </script>
 
 </body>
