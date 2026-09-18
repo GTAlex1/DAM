@@ -69,27 +69,37 @@ function fileIcon(name) {
 }
 
 // ---------- Load file tree from GitHub + saved order ----------
-Promise.all([
-  fetchGithubTree(),
-  loadOrder(),
-]).then(([{ root: treeRoot, owner, repo, branch }, orderData]) => {
-  ghOwner = owner; ghRepo = repo; ghBranch = branch;
-  savedOrder = orderData || {};
-  root = treeRoot;
-  annotateTree(root, null, 'root');
-  applySavedOrder(root);
+async function cargarArbol() {
+  try {
+    const [{ root: treeRoot, owner, repo, branch }, orderData] = await Promise.all([
+      fetchGithubTree(),
+      loadOrder(),
+    ]);
+    ghOwner = owner; ghRepo = repo; ghBranch = branch;
+    savedOrder = orderData || {};
+    root = treeRoot;
+    nextId = 1;
+    for (const k in nodesById) delete nodesById[k];
+    annotateTree(root, null, 'root');
+    applySavedOrder(root);
+    for (const k in contentCache) delete contentCache[k];
+    indiceListo = false; indiceEnCurso = null;
+    for (const k in textoIndexado) delete textoIndexado[k];
+    searchFiltroEl.querySelectorAll('option:not(:first-child)').forEach(o => o.remove());
 
-  if (!root.children.length) {
-    fileTreeEl.innerHTML = `<div style="padding:12px;color:#9a9a9a;font-size:12px;line-height:1.5;">
-      La carpeta <strong>DAM/</strong> está vacía (o todavía no existe) en
-      <code>${owner}/${repo}</code>. Sube tus apuntes ahí y recarga la página.
-    </div>`;
-    return;
+    if (!root.children.length) {
+      fileTreeEl.innerHTML = `<div style="padding:12px;color:#9a9a9a;font-size:12px;line-height:1.5;">
+        La carpeta <strong>DAM/</strong> está vacía (o todavía no existe) en
+        <code>${owner}/${repo}</code>. Sube tus apuntes ahí y recarga la página.
+      </div>`;
+      return;
+    }
+    buildTree();
+  } catch (err) {
+    showTreeError(err);
   }
-  buildTree();
-}).catch(err => {
-  showTreeError(err);
-});
+}
+cargarArbol();
 
 function showTreeError(err) {
   let msg = 'No se pudo leer el árbol de archivos desde GitHub.';
@@ -685,3 +695,125 @@ watchAuth((user) => {
 
   if (root) buildTree(); // re-render para mostrar/ocultar los "grips" de arrastre
 });
+
+// ---------- Ajustes (tema, acento, tamaño de letra, fuente, Zen, recargar) ----------
+const CLAVE_AJUSTES = 'damNotesAjustes';
+let ajustes = { theme: 'dark', accent: '', fontsize: 100, fontfamily: 'cascadia', zen: false };
+try { Object.assign(ajustes, JSON.parse(localStorage.getItem(CLAVE_AJUSTES) || '{}')); } catch (e) { }
+
+function guardarAjustes() {
+  try { localStorage.setItem(CLAVE_AJUSTES, JSON.stringify(ajustes)); } catch (e) { }
+}
+
+const FUENTES = {
+  cascadia: `"Cascadia Code", "SF Mono", Consolas, "Courier New", monospace`,
+  fira: `"Fira Code", "Cascadia Code", Consolas, monospace`,
+  jetbrains: `"JetBrains Mono", "Cascadia Code", Consolas, monospace`,
+};
+
+const settingsIcon = document.getElementById('settings-icon');
+const settingsPopover = document.getElementById('settings-popover');
+const themeDarkBtn = document.getElementById('theme-dark');
+const themeLightBtn = document.getElementById('theme-light');
+const accentSwatches = document.querySelectorAll('.accent-swatch');
+const fontsizeMenos = document.getElementById('fontsize-menos');
+const fontsizeMas = document.getElementById('fontsize-mas');
+const fontsizeValor = document.getElementById('fontsize-valor');
+const fontfamilySelect = document.getElementById('fontfamily-select');
+const zenToggleBtn = document.getElementById('zen-toggle');
+const reloadTreeBtn = document.getElementById('reload-tree');
+
+function aplicarAjustes() {
+  document.documentElement.setAttribute('data-theme', ajustes.theme === 'light' ? 'light' : '');
+  document.documentElement.setAttribute('data-accent', ajustes.accent || '');
+  document.documentElement.style.setProperty('--note-scale', ajustes.fontsize / 100);
+  document.documentElement.style.setProperty('--font-mono', FUENTES[ajustes.fontfamily] || FUENTES.cascadia);
+
+  themeDarkBtn.classList.toggle('active', ajustes.theme !== 'light');
+  themeLightBtn.classList.toggle('active', ajustes.theme === 'light');
+  accentSwatches.forEach(s => s.classList.toggle('active', (s.dataset.accent || '') === (ajustes.accent || '')));
+  fontsizeValor.textContent = ajustes.fontsize + '%';
+  fontfamilySelect.value = ajustes.fontfamily;
+
+  aplicarZen(ajustes.zen);
+}
+
+settingsIcon.addEventListener('click', () => {
+  settingsPopover.hidden = !settingsPopover.hidden;
+});
+document.addEventListener('click', (e) => {
+  if (!settingsPopover.hidden && !settingsPopover.contains(e.target) && !settingsIcon.contains(e.target)) {
+    settingsPopover.hidden = true;
+  }
+});
+
+themeDarkBtn.addEventListener('click', () => { ajustes.theme = 'dark'; guardarAjustes(); aplicarAjustes(); });
+themeLightBtn.addEventListener('click', () => { ajustes.theme = 'light'; guardarAjustes(); aplicarAjustes(); });
+
+accentSwatches.forEach(sw => {
+  sw.addEventListener('click', () => { ajustes.accent = sw.dataset.accent || ''; guardarAjustes(); aplicarAjustes(); });
+});
+
+fontsizeMenos.addEventListener('click', () => {
+  ajustes.fontsize = Math.max(80, ajustes.fontsize - 10);
+  guardarAjustes(); aplicarAjustes();
+});
+fontsizeMas.addEventListener('click', () => {
+  ajustes.fontsize = Math.min(150, ajustes.fontsize + 10);
+  guardarAjustes(); aplicarAjustes();
+});
+
+fontfamilySelect.addEventListener('change', () => {
+  ajustes.fontfamily = fontfamilySelect.value;
+  guardarAjustes(); aplicarAjustes();
+});
+
+// ---------- Modo Zen ----------
+let zenSalirBtn = null;
+function aplicarZen(activo) {
+  document.body.classList.toggle('zen', !!activo);
+  zenToggleBtn.classList.toggle('zen-activo', !!activo);
+  zenToggleBtn.textContent = activo ? '🧘 Salir del modo Zen' : '🧘 Modo Zen';
+
+  if (activo && !zenSalirBtn) {
+    zenSalirBtn = document.createElement('button');
+    zenSalirBtn.className = 'zen-salir';
+    zenSalirBtn.textContent = 'Salir del modo Zen (Esc)';
+    zenSalirBtn.addEventListener('click', () => { ajustes.zen = false; guardarAjustes(); aplicarAjustes(); });
+    document.body.appendChild(zenSalirBtn);
+  } else if (!activo && zenSalirBtn) {
+    zenSalirBtn.remove();
+    zenSalirBtn = null;
+  }
+}
+
+zenToggleBtn.addEventListener('click', () => {
+  ajustes.zen = !ajustes.zen;
+  guardarAjustes(); aplicarAjustes();
+  settingsPopover.hidden = true;
+});
+
+// Esc sale del modo Zen con prioridad sobre cerrar la pestaña activa.
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && ajustes.zen) {
+    e.stopPropagation();
+    e.preventDefault();
+    ajustes.zen = false;
+    guardarAjustes();
+    aplicarAjustes();
+  }
+}, true); // captura: se ejecuta antes que el atajo de cerrar pestaña
+
+// ---------- Recargar árbol de archivos ----------
+reloadTreeBtn.addEventListener('click', async () => {
+  reloadTreeBtn.textContent = '⟲ Recargando…';
+  reloadTreeBtn.disabled = true;
+  await cargarArbol();
+  reloadTreeBtn.textContent = '✓ Actualizado';
+  setTimeout(() => {
+    reloadTreeBtn.textContent = '⟲ Recargar árbol de archivos';
+    reloadTreeBtn.disabled = false;
+  }, 1200);
+});
+
+aplicarAjustes();

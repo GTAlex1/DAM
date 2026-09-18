@@ -6,7 +6,10 @@
 <title>Apuntes DAM</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><rect width=%2224%22 height=%2224%22 rx=%224%22 fill=%22%23007acc%22/><text x=%2212%22 y=%2217%22 font-size=%2213%22 font-family=%22monospace%22 fill=%22white%22 text-anchor=%22middle%22>{}</text></svg>">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
-<link rel="stylesheet" href="styles.css?v=4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
 
@@ -37,7 +40,7 @@
     <button class="activity-icon" id="account-icon" title="Cuenta" aria-label="Cuenta">
       <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z"/></svg>
     </button>
-    <button class="activity-icon" title="Ajustes" aria-label="Ajustes">
+    <button class="activity-icon" id="settings-icon" title="Ajustes" aria-label="Ajustes">
       <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M19.4 13a7.8 7.8 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.9 7.9 0 0 0-1.7-1L15 3h-4l-.3 2.9a7.9 7.9 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.8 7.8 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.9 7.9 0 0 0 1.7 1L11 21h4l.3-2.9a7.9 7.9 0 0 0 1.7-1l2.5 1 2-3.5L19.4 13zM13 15.5A3.5 3.5 0 1 1 16.5 12 3.5 3.5 0 0 1 13 15.5z"/></svg>
     </button>
   </div>
@@ -115,6 +118,53 @@
   </div>
 </div>
 
+<!-- Settings popover -->
+<div class="settings-popover" id="settings-popover" hidden>
+  <div class="settings-row">
+    <span class="settings-label">Tema</span>
+    <div class="theme-toggle">
+      <button id="theme-dark" data-theme="dark">Oscuro</button>
+      <button id="theme-light" data-theme="light">Claro</button>
+    </div>
+  </div>
+
+  <div class="settings-row">
+    <span class="settings-label">Acento</span>
+    <div class="accent-swatches">
+      <div class="accent-swatch" data-accent="" style="background:#0098ff" title="Azul"></div>
+      <div class="accent-swatch" data-accent="green" style="background:#2fae83" title="Verde"></div>
+      <div class="accent-swatch" data-accent="purple" style="background:#a074e8" title="Morado"></div>
+      <div class="accent-swatch" data-accent="pink" style="background:#e0609e" title="Rosa"></div>
+    </div>
+  </div>
+
+  <div class="settings-row">
+    <span class="settings-label">Tamaño de letra de las notas</span>
+    <div class="fontsize-control">
+      <button id="fontsize-menos">−</button>
+      <span id="fontsize-valor">100%</span>
+      <button id="fontsize-mas">+</button>
+    </div>
+  </div>
+
+  <div class="settings-row">
+    <span class="settings-label">Fuente monoespaciada</span>
+    <select id="fontfamily-select">
+      <option value="cascadia">Cascadia Code (si la tienes instalada)</option>
+      <option value="fira">Fira Code</option>
+      <option value="jetbrains">JetBrains Mono</option>
+    </select>
+  </div>
+
+  <div class="settings-row">
+    <button class="settings-btn" id="zen-toggle">🧘 Modo Zen</button>
+  </div>
+
+  <div class="settings-row">
+    <button class="settings-btn" id="reload-tree">⟲ Recargar árbol de archivos</button>
+  </div>
+</div>
+
 <!-- Status bar -->
 <div class="statusbar">
   <div class="statusbar-left">
@@ -133,6 +183,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script type="module" src="app.js?v=3"></script>
+<script type="module" src="app.js?v=4"></script>
 </body>
 </html>
