@@ -885,6 +885,42 @@ html.page-calendario{
   margin:40px 0 12px;
 }
 
+/* ---------- Filtro "Solo DAM" (interruptor) ---------- */
+.page-calendario .filtros{ display:flex; justify-content:flex-end; margin:0 0 16px; }
+.page-calendario .filtro-dam{
+  position:relative;
+  display:inline-flex; align-items:center; gap:10px;
+  cursor:pointer; user-select:none;
+  font-size:12.5px; color:var(--muted);
+}
+/* El checkbox real sigue en el DOM (teclado + lectores de pantalla) pero no se ve */
+.page-calendario .filtro-dam-input{ position:absolute; opacity:0; width:1px; height:1px; margin:0; }
+.page-calendario .filtro-dam-switch{
+  position:relative; flex-shrink:0;
+  width:34px; height:18px; border-radius:9px;
+  background:var(--header); border:1px solid var(--border);
+  transition:background .15s, border-color .15s;
+}
+.page-calendario .filtro-dam-switch::after{
+  content:""; position:absolute; top:2px; left:2px;
+  width:12px; height:12px; border-radius:50%;
+  background:var(--muted);
+  transition:transform .15s, background .15s;
+}
+.page-calendario .filtro-dam:hover .filtro-dam-switch{ border-color:#4a4a4a; }
+.page-calendario .filtro-dam-input:checked + .filtro-dam-switch{
+  background:rgba(78,201,176,0.25); border-color:var(--today-accent);
+}
+.page-calendario .filtro-dam-input:checked + .filtro-dam-switch::after{
+  transform:translateX(16px); background:var(--today-accent);
+}
+.page-calendario .filtro-dam-input:checked ~ .filtro-dam-texto{ color:#fff; }
+.page-calendario .filtro-dam-input:focus-visible + .filtro-dam-switch{ outline:2px solid #4fc1ff; outline-offset:2px; }
+@media (prefers-reduced-motion: reduce){
+  .page-calendario .filtro-dam-switch,
+  .page-calendario .filtro-dam-switch::after{ transition:none; }
+}
+
 /* ---------- Navegación de mes ---------- */
 .page-calendario .mes-nav{
   display:flex; align-items:center; justify-content:center; gap:16px;
