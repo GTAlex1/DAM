@@ -569,6 +569,33 @@ function rawUrl(path) {
   return `https://raw.githubusercontent.com/${ghOwner}/${ghRepo}/${ghBranch}/${path}`;
 }
 
+// Las notas HTML se pintan con `srcdoc`, y en un srcdoc las rutas relativas se resuelven contra index.html,
+// no contra el archivo de la nota. Las notas enlazan sus recursos con rutas relativas a SU propia carpeta
+// (p. ej. ../../css/styles.css y ../../js/horario.js), así que se añade un <base> con la ubicación real
+// de la nota en el sitio. Con eso las mismas rutas funcionan dentro de la app y abriendo la nota directamente.
+function conBase(html, path) {
+  const noteUrl = new URL(path.split('/').map(encodeURIComponent).join('/'), document.baseURI).href;
+  const base = `<base href="${noteUrl}">`;
+  const abreHead = /<head(\s[^>]*)?>/i; // ojo: no debe coincidir con <header>
+  return abreHead.test(html) ? html.replace(abreHead, m => m + base) : base + html;
+}
+
+// Efecto secundario del <base>: un enlace `href="#algo"` pasaría a apuntar a la URL real de la nota y
+// recargaría el iframe. Se convierte en un simple salto dentro del propio documento.
+function arreglaAnclas(iframe) {
+  const doc = iframe.contentDocument;
+  if (!doc) return;
+  doc.addEventListener('click', (e) => {
+    if (e.defaultPrevented) return; // la nota ya lo gestiona por su cuenta
+    const a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (!a) return;
+    e.preventDefault();
+    const id = decodeURIComponent(a.getAttribute('href').slice(1));
+    const destino = id ? doc.getElementById(id) : null;
+    if (destino) destino.scrollIntoView(); else if (!id) doc.documentElement.scrollTop = 0;
+  });
+}
+
 async function renderEditor(path) {
   const isHtml = /\.(html?|HTML?)$/.test(path);
   editorContentEl.classList.add('loading');
@@ -597,7 +624,8 @@ async function renderEditor(path) {
     const iframe = document.createElement('iframe');
     iframe.className = 'html-frame';
     iframe.sandbox = 'allow-same-origin allow-scripts allow-popups allow-forms';
-    iframe.srcdoc = raw;
+    iframe.srcdoc = conBase(raw, path);
+    iframe.addEventListener('load', () => arreglaAnclas(iframe));
     editorContentEl.appendChild(iframe);
   } else {
     editorContentEl.classList.remove('full-bleed');

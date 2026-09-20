@@ -1,104 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="note-page page-introduccion">
 <head>
 <meta charset="UTF-8">
 <title>Arquitectura del Software</title>
-<style>
-  :root{
-    --bg:#1e1e1e; --fg:#d4d4d4; --h:#4fc1ff; --h3:#9cdcfe;
-    --code-bg:#2d2d2d; --code-fg:#ce9178; --border:#333;
-    --panel:#252526; --muted:#9a9a9a;
-    --blue:#569cd6; --orange:#ce9178; --purple:#c586c0; --green:#6a9955; --yellow:#dcdcaa; --red:#f48771;
-  }
-  *{ box-sizing:border-box; }
-  body{
-    background:var(--bg); color:var(--fg);
-    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
-    max-width:840px; margin:0 auto; padding:32px 40px 64px; line-height:1.7; font-size:15px;
-  }
-  h1{ font-family:"Cascadia Code",Consolas,monospace; font-size:27px; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:4px; }
-  .subtitulo{ color:var(--muted); font-size:14px; margin:0 0 8px; }
-  .modulo{ color:var(--muted); font-size:12px; font-family:"Cascadia Code",Consolas,monospace; margin:0 0 30px; }
-  h2{ font-family:"Cascadia Code",Consolas,monospace; color:var(--h); margin-top:44px; font-size:19px; border-top:2px solid #333; padding-top:16px; }
-  h3{ color:var(--h3); font-size:15.5px; margin-top:24px; }
-  p{ margin:10px 0; }
-  code{ background:var(--code-bg); color:var(--code-fg); padding:1px 5px; border-radius:3px; font-size:0.9em; font-family:"Cascadia Code",Consolas,monospace; }
-  pre{ background:#1a1a1a; border:1px solid var(--border); border-radius:6px; padding:14px 16px; overflow-x:auto; font-family:"Cascadia Code",Consolas,monospace; font-size:13px; line-height:1.55; }
-  pre code{ background:none; padding:0; color:var(--fg); }
-  table{ border-collapse:collapse; width:100%; margin:14px 0; font-size:13.5px; }
-  th, td{ border:1px solid var(--border); padding:8px 12px; text-align:left; vertical-align:top; }
-  th{ background:var(--panel); font-family:"Cascadia Code",Consolas,monospace; font-size:12px; color:#fff; }
-  tr:nth-child(even) td{ background:#232324; }
-  blockquote{ border-left:3px solid #007acc; background:var(--panel); margin:16px 0; padding:10px 16px; font-size:14px; }
-  ul, ol{ padding-left:22px; margin:10px 0; }
-  li{ margin:4px 0; }
-
-  .caja{ background:var(--panel); border:1px solid var(--border); border-left:4px solid var(--h); padding:14px 18px; margin:16px 0; }
-  .caja p:first-child{ margin-top:0; }
-  .caja p:last-child{ margin-bottom:0; }
-
-  .grid{ display:grid; gap:14px; margin:18px 0; }
-  .grid-2{ grid-template-columns:1fr 1fr; }
-  .grid-3{ grid-template-columns:repeat(3, 1fr); }
-  .card{ background:var(--panel); border:1px solid var(--border); border-top:3px solid var(--h); padding:14px 16px; }
-  .card h4{ margin:0 0 6px; font-size:14px; color:#fff; font-family:"Cascadia Code",Consolas,monospace; }
-  .card p{ margin:0; font-size:13.5px; color:var(--muted); }
-  .card.blue{ border-top-color:var(--blue); }
-  .card.orange{ border-top-color:var(--orange); }
-  .card.purple{ border-top-color:var(--purple); }
-  .card.green{ border-top-color:var(--green); }
-  .card.yellow{ border-top-color:var(--yellow); }
-
-  .cajanegra{ display:flex; align-items:center; gap:14px; margin:18px 0; flex-wrap:wrap; }
-  .cajanegra .flechas{ display:flex; flex-direction:column; gap:8px; }
-  .cajanegra .flecha{ font-family:"Cascadia Code",Consolas,monospace; font-size:12px; padding:6px 10px; border-radius:3px; text-align:center; }
-  .flecha.in{ background:rgba(206,145,120,0.15); color:var(--orange); border:1px solid var(--orange); }
-  .flecha.out{ background:rgba(106,153,85,0.15); color:var(--green); border:1px solid var(--green); }
-  .caja3d{
-    flex:1; min-width:220px; background:#111; border:1px solid var(--border); border-radius:4px;
-    padding:14px 16px; font-size:12.5px; color:var(--muted); font-family:"Cascadia Code",Consolas,monospace;
-  }
-  .caja3d b{ display:block; color:#fff; margin-bottom:8px; font-size:12px; letter-spacing:.03em; }
-
-  .ciclo{ display:grid; grid-template-columns:repeat(5, 1fr); gap:10px; margin:18px 0; }
-  .paso{ background:var(--panel); border:1px solid var(--border); padding:12px 10px; text-align:center; }
-  .paso .num{ font-family:"Cascadia Code",Consolas,monospace; color:var(--h); font-size:11px; margin-bottom:4px; }
-  .paso .tit{ font-weight:600; font-size:13px; color:#fff; margin-bottom:6px; }
-  .paso .desc{ font-size:11.5px; color:var(--muted); line-height:1.4; }
-  .ciclo-nota{ font-size:12px; color:var(--muted); text-align:center; margin-top:-6px; font-style:italic; }
-
-  .pila{ display:flex; flex-direction:column; gap:8px; margin:18px 0; }
-  .pila .capa{ background:var(--panel); border:1px solid var(--border); border-left:4px solid var(--h); padding:12px 16px; }
-  .pila .capa b{ color:#fff; font-family:"Cascadia Code",Consolas,monospace; font-size:13.5px; }
-  .pila .capa span{ display:block; font-size:12.5px; color:var(--muted); margin-top:2px; }
-  .pila .flechaabajo{ text-align:center; color:var(--muted); font-size:12px; }
-
-  .verdad{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin:18px 0; }
-  .verdad .op{ background:var(--panel); border:1px solid var(--border); padding:12px; text-align:center; }
-  .verdad .op b{ display:block; color:var(--h); font-family:"Cascadia Code",Consolas,monospace; margin-bottom:6px; }
-  .verdad .op p{ font-size:12px; color:var(--muted); margin:0; }
-
-  .expresion{ background:#111; border:1px solid var(--border); border-radius:4px; padding:24px; text-align:center;
-    font-family:"Cascadia Code",Consolas,monospace; font-size:22px; margin:18px 0; letter-spacing:.02em; }
-  .expresion .fn{ color:var(--blue); }
-  .expresion .var{ color:var(--green); }
-  .expresion .cte{ color:var(--purple); }
-  .leyenda-exp{ display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; font-size:12.5px; margin-top:14px; }
-  .leyenda-exp span{ display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:middle; }
-
-  html{ scrollbar-width: thin; scrollbar-color: #4f4f4f #1a1a1a; }
-  ::-webkit-scrollbar{ width:12px; height:12px; }
-  ::-webkit-scrollbar-track{ background:#1a1a1a; }
-  ::-webkit-scrollbar-thumb{ background:#4f4f4f; border-radius:6px; border:3px solid #1a1a1a; }
-  ::-webkit-scrollbar-thumb:hover{ background:#6f6f6f; }
-
-  @media (max-width:700px){
-    body{ padding:24px 18px 48px; }
-    .grid-2, .grid-3{ grid-template-columns:1fr; }
-    .ciclo{ grid-template-columns:1fr 1fr; }
-    .verdad{ grid-template-columns:1fr; }
-  }
-</style>
+<link rel="stylesheet" href="../../../../css/styles.css">
 </head>
 <body>
 
@@ -126,7 +31,7 @@
   </div>
   <div class="card green">
     <h4>Informático: ALGORITMO SUMA</h4>
-    <pre style="margin:0"><code>LEE A
+    <pre class="pre-flat"><code>LEE A
 LEE B
 C = A + B
 ESCRIBIR C</code></pre>
@@ -159,19 +64,19 @@ ESCRIBIR C</code></pre>
 var sueldohora, horastrab: integer;
     sueldototal, pagaregular, pagaextra: integer;
 begin
-  readln(sueldohora);       <span style="color:#6a9955">// Entrada de datos (ingresando a la caja negra)</span>
+  readln(sueldohora);       <span class="txt-verde">// Entrada de datos (ingresando a la caja negra)</span>
   readln(horastrab);
   if (horastrab &lt;= 40) THEN
     sueldototal := sueldototal * horastrab
   else
-    begin                    <span style="color:#c586c0">// Control de flujo (la lógica de decisión)</span>
+    begin                    <span class="txt-morado">// Control de flujo (la lógica de decisión)</span>
       pagaregular := sueldohora * (horastrab - 40);
       pagaextra := 2 * sueldohora * (horastrab - 40);
       sueldototal := pagaregular + pagaextra
     end;
   writeln(sueldototal)
 end.</code></pre>
-<p style="font-size:13px;color:var(--muted)">La línea <code>var ...</code> es la <strong>declaración de datos</strong> (preparando la memoria) antes de poder usarlos.</p>
+<p class="nota-pie">La línea <code>var ...</code> es la <strong>declaración de datos</strong> (preparando la memoria) antes de poder usarlos.</p>
 
 <h2>Puesta a punto: el ciclo de vida del programa</h2>
 <div class="ciclo">
@@ -196,7 +101,7 @@ end.</code></pre>
 
 <h2>Matriz de evolución de lenguajes</h2>
 <table>
-  <tr><th></th><th>Lenguaje máquina <span style="color:var(--muted);font-weight:400">(nivel hardware)</span></th><th>Ensamblador <span style="color:var(--muted);font-weight:400">(bajo nivel)</span></th><th>Alto nivel <span style="color:var(--muted);font-weight:400">(nivel humano)</span></th></tr>
+  <tr><th></th><th>Lenguaje máquina <span class="th-sub">(nivel hardware)</span></th><th>Ensamblador <span class="th-sub">(bajo nivel)</span></th><th>Alto nivel <span class="th-sub">(nivel humano)</span></th></tr>
   <tr><td><strong>Aspecto</strong></td><td>Cadenas de 0s y 1s</td><td>Nemotécnicos. Ej: <code>ENT M(16), E, CAR A, M(16)</code></td><td>Inglés lógico (COBOL, C, PASCAL)</td></tr>
   <tr><td><strong>Portabilidad</strong></td><td>Nula (específicos del procesador)</td><td>Nula (depende de la máquina)</td><td>Totalmente independiente de la máquina</td></tr>
   <tr><td><strong>Rendimiento</strong></td><td>Ejecución directa y ultrarrápida</td><td>Muy rápido, pero difícil de codificar</td><td>Mayor tiempo de ejecución, menor optimización de memoria</td></tr>
@@ -253,17 +158,17 @@ end.</code></pre>
   <span class="fn">COS</span> (<span class="cte">PI</span> * <span class="var">X</span>) + <span class="cte">1.25</span>
 </div>
 <div class="leyenda-exp">
-  <div><span style="background:var(--blue)"></span>Función (operación predefinida)</div>
-  <div><span style="background:var(--purple)"></span>Constante (valor estático inmutable)</div>
-  <div><span style="background:var(--green)"></span>Variable (valor dinámico de entrada)</div>
-  <div><span style="background:var(--fg)"></span>Operadores aritméticos (relación matemática)</div>
+  <div><span class="sw-fn"></span>Función (operación predefinida)</div>
+  <div><span class="sw-cte"></span>Constante (valor estático inmutable)</div>
+  <div><span class="sw-var"></span>Variable (valor dinámico de entrada)</div>
+  <div><span class="sw-op"></span>Operadores aritméticos (relación matemática)</div>
 </div>
 
 <h2>Operadores: el pegamento lógico</h2>
 <div class="grid grid-3">
   <div class="card blue">
     <h4>Aritméticos</h4>
-    <table style="margin:0;font-size:12.5px">
+    <table class="tabla-op">
       <tr><td><code>+</code></td><td>Suma</td></tr>
       <tr><td><code>-</code></td><td>Resta</td></tr>
       <tr><td><code>*</code></td><td>Multiplicación</td></tr>
@@ -274,14 +179,14 @@ end.</code></pre>
   </div>
   <div class="card orange">
     <h4>Alfanuméricos</h4>
-    <table style="margin:0;font-size:12.5px">
+    <table class="tabla-op">
       <tr><td><code>+</code></td><td>Concatenación</td></tr>
     </table>
-    <p style="margin-top:8px">Ej: <code>"DON" + N</code></p>
+    <p class="nota-op">Ej: <code>"DON" + N</code></p>
   </div>
   <div class="card purple">
     <h4>Relacionales</h4>
-    <table style="margin:0;font-size:12.5px">
+    <table class="tabla-op">
       <tr><td><code>&gt;</code></td><td>Mayor</td></tr>
       <tr><td><code>&gt;=</code></td><td>Mayor o igual</td></tr>
       <tr><td><code>&lt;</code></td><td>Menor</td></tr>
@@ -312,7 +217,7 @@ Resultado:           V (Verdadero)</code></pre>
   THEN (TRUE)  → sueldototal := sueldohora * horastrab
   ELSE (FALSE) → pagaregular := sueldohora * 40;
                  pagaextra := ...</code></pre>
-<p style="font-size:13px;color:var(--muted)">Las expresiones lógicas son los "interruptores" que deciden qué camino toma el programa dentro de la caja negra.</p>
+<p class="nota-pie">Las expresiones lógicas son los "interruptores" que deciden qué camino toma el programa dentro de la caja negra.</p>
 
 <h2>La pila de abstracción</h2>
 <div class="pila">

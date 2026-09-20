@@ -1,0 +1,1114 @@
+/* ==========================================================================
+   styles.css — ÚNICA hoja de estilos del proyecto
+   Cada página se identifica con una clase en su <html>, y todas sus reglas
+   cuelgan de ella (así los h1/table/body de una no pisan a los de otra):
+
+     index.html                            <html class="page-index">
+     horario.html                          <html class="note-page page-horario">
+     calendario.html                       <html class="note-page page-calendario">
+     Introducción.html                     <html class="note-page page-introduccion">
+
+   Las páginas de apuntes se cargan desde la app dentro de un iframe (srcdoc),
+   por eso repiten sus propias variables de color en vez de usar las de la app.
+   ========================================================================== */
+
+/* ==========================================================================
+   1. APLICACIÓN — index.html  (html.page-index)
+   ========================================================================== */
+:root{
+  --titlebar-bg:#3c3c3c;
+  --activitybar-bg:#333333;
+  --activitybar-fg:#ffffff;
+  --activitybar-inactive:#858585;
+  --sidebar-bg:#252526;
+  --sidebar-fg:#cccccc;
+  --sidebar-header-fg:#bbbbbb;
+  --editor-bg:#1e1e1e;
+  --editor-fg:#d4d4d4;
+  --tab-active-bg:#1e1e1e;
+  --tab-inactive-bg:#2d2d2d;
+  --tab-border:#252526;
+  --statusbar-bg:#007acc;
+  --statusbar-fg:#ffffff;
+  --accent-blue:#0098ff;
+  --accent-strong:#4ec9b0;
+  --hover-bg:#2a2d2e;
+  --selected-bg:#37373d;
+  --folder-icon:#dcb67a;
+  --scrollbar:#4f4f4f;
+  --border:#1e1e1e;
+  --border-soft:#2a2a2a;
+  --border-strong:#333333;
+  --divider:#5a5a5a;
+
+  --text-strong:#ffffff;
+  --text-normal:#cccccc;
+  --text-muted:#8a8a8a;
+  --text-faint:#6f6f6f;
+  --danger:#f48771;
+
+  --surface-1:#252526;   /* popovers, panel oscuro */
+  --surface-2:#2d2d2d;   /* inputs, code bg */
+  --surface-3:#3c3c3c;   /* inputs alternativos */
+
+  --note-h2:#4fc1ff;
+  --note-h3:#9cdcfe;
+  --note-code-fg:#ce9178;
+  --note-link:#4fc1ff;
+  --mark-bg:#5a4a1a;
+  --mark-fg:#ffd479;
+
+  --note-scale:1;
+
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Cascadia Code", "SF Mono", Consolas, "Courier New", monospace;
+}
+
+/* ---------- Tema claro ---------- */
+:root[data-theme="light"]{
+  --titlebar-bg:#dddddd;
+  --activitybar-bg:#2c2c2c;
+  --activitybar-fg:#ffffff;
+  --activitybar-inactive:#b0b0b0;
+  --sidebar-bg:#f3f3f3;
+  --sidebar-fg:#3b3b3b;
+  --sidebar-header-fg:#6f6f6f;
+  --editor-bg:#ffffff;
+  --editor-fg:#1e1e1e;
+  --tab-active-bg:#ffffff;
+  --tab-inactive-bg:#ececec;
+  --tab-border:#e2e2e2;
+  --statusbar-bg:#007acc;
+  --statusbar-fg:#ffffff;
+  --hover-bg:#e8e8e8;
+  --selected-bg:#dbe6f5;
+  --folder-icon:#b98a3a;
+  --scrollbar:#c2c2c2;
+  --border:#e2e2e2;
+  --border-soft:#e2e2e2;
+  --border-strong:#d0d0d0;
+  --divider:#c2c2c2;
+
+  --text-strong:#1a1a1a;
+  --text-normal:#3b3b3b;
+  --text-muted:#6b6b6b;
+  --text-faint:#8a8a8a;
+  --danger:#c22c2c;
+
+  --surface-1:#f3f3f3;
+  --surface-2:#eaeaea;
+  --surface-3:#e2e2e2;
+
+  --note-h2:#0a5a8a;
+  --note-h3:#0a5a8a;
+  --note-code-fg:#a1260d;
+  --note-link:#0a5a8a;
+  --mark-bg:#fff0a8;
+  --mark-fg:#5a4300;
+}
+
+/* ---------- Acentos (color de "elemento activo" en toda la interfaz) ---------- */
+:root[data-accent="green"] { --accent-blue:#2fae83; }
+:root[data-accent="purple"]{ --accent-blue:#a074e8; }
+:root[data-accent="pink"]  { --accent-blue:#e0609e; }
+
+/* Compartido por TODAS las páginas que cargan este archivo. */
+*{ box-sizing:border-box; }
+
+/* Solo la aplicación (index.html). Antes eran reglas globales sobre html/body: ahora que las páginas
+   de apuntes cargan este mismo archivo, si siguieran siéndolo el `overflow:hidden` bloquearía su scroll. */
+html.page-index,
+.page-index body{
+  margin:0; padding:0; height:100%;
+  background:var(--editor-bg);
+  font-family:var(--font-ui);
+  overflow:hidden;
+}
+
+/* ---------- Title bar ---------- */
+.titlebar{
+  height:30px;
+  background:var(--titlebar-bg);
+  color:var(--text-normal);
+  display:flex;
+  align-items:center;
+  font-size:12px;
+  padding:0 8px;
+  user-select:none;
+}
+.titlebar-left{ display:flex; align-items:center; gap:6px; width:180px; flex-shrink:0; }
+.titlebar-center{ flex:1; text-align:center; opacity:.75; }
+.titlebar-right{ width:180px; flex-shrink:0; display:flex; justify-content:flex-end; }
+.vscode-logo{ flex-shrink:0; }
+
+/* ---------- Workbench layout ---------- */
+.workbench{
+  display:flex;
+  height:calc(100vh - 30px - 22px);
+}
+
+/* ---------- Activity bar ---------- */
+.activitybar{
+  width:48px;
+  background:var(--activitybar-bg);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding-top:8px;
+  flex-shrink:0;
+}
+.activity-icon{
+  background:none; border:none; cursor:pointer;
+  width:48px; height:48px;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--activitybar-inactive);
+  border-left:2px solid transparent;
+  padding:0;
+}
+.activity-icon.active{
+  color:var(--activitybar-fg);
+  border-left:2px solid var(--accent-blue);
+}
+.activity-icon:hover{ color:var(--activitybar-fg); }
+.activity-icon#account-icon.active{ color:var(--accent-strong); }
+.activity-spacer{ flex:1; }
+
+/* ---------- Sidebar ---------- */
+.sidebar{
+  width:280px;
+  min-width:170px;
+  max-width:480px;
+  background:var(--sidebar-bg);
+  color:var(--sidebar-fg);
+  font-size:13px;
+  overflow-y:auto;
+  flex-shrink:0;
+  resize:horizontal;
+}
+.sidebar-header{
+  padding:10px 20px 6px;
+  font-size:11px;
+  letter-spacing:0.4px;
+  color:var(--sidebar-header-fg);
+  text-transform:uppercase;
+}
+.sidebar-section-header{
+  display:flex; align-items:center; gap:6px;
+  padding:4px 8px;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:0.4px;
+  cursor:pointer;
+}
+.sidebar-section-header .chevron{ transform:rotate(90deg); transition:transform .1s; flex-shrink:0; }
+.edit-badge{
+  margin-left:auto;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:0.2px;
+  text-transform:none;
+  color:#1e1e1e;
+  background:var(--accent-strong);
+  padding:1px 6px;
+  border-radius:8px;
+}
+
+/* ---------- Vistas de la sidebar (Explorador / Buscar / Favoritos) ---------- */
+.sidebar-view{ display:flex; flex-direction:column; height:100%; }
+
+.search-box{ padding:8px 12px; display:flex; flex-direction:column; gap:6px; }
+.search-box input, .search-box select{
+  background:var(--surface-3); border:1px solid var(--divider); color:var(--text-strong);
+  font-size:12.5px; padding:6px 8px; border-radius:3px; font-family:var(--font-ui);
+}
+.search-box input:focus, .search-box select:focus{ outline:1px solid var(--accent-blue); border-color:var(--accent-blue); }
+.search-status{ padding:0 12px 6px; font-size:11.5px; color:var(--text-muted); }
+.search-results{ flex:1; overflow-y:auto; }
+.search-result{
+  padding:8px 12px; border-bottom:1px solid var(--border-soft); cursor:pointer;
+}
+.search-result:hover{ background:var(--hover-bg); }
+.search-result .sr-name{ display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-strong); }
+.search-result .sr-crumbs{ font-size:11px; color:var(--text-muted); margin:2px 0 4px 22px; }
+.search-result .sr-snippet{ font-size:12px; color:var(--text-normal); margin-left:22px; line-height:1.4; }
+.search-result .sr-snippet mark{ background:var(--mark-bg); color:var(--mark-fg); padding:0 1px; border-radius:2px; }
+.search-empty{ padding:16px 12px; font-size:12.5px; color:var(--text-muted); line-height:1.5; }
+
+.favoritos-list{ flex:1; overflow-y:auto; }
+.fav-item{
+  display:flex; align-items:center; gap:8px; padding:6px 12px;
+  cursor:pointer; border-bottom:1px solid var(--border-soft);
+}
+.fav-item:hover{ background:var(--hover-bg); }
+.fav-item .fav-info{ flex:1; min-width:0; }
+.fav-item .fav-name{ font-size:13px; color:var(--text-strong); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fav-item .fav-crumbs{ font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fav-item .fav-remove{
+  flex-shrink:0; opacity:.6; color:var(--folder-icon); background:none; border:none; cursor:pointer; padding:2px;
+  display:flex; align-items:center;
+}
+.fav-item .fav-remove:hover{ opacity:1; }
+
+.fav-star{
+  margin-left:auto; flex-shrink:0; opacity:.35; color:var(--text-muted);
+  display:flex; align-items:center; padding:2px 4px; cursor:pointer;
+}
+.tree-row:hover .fav-star{ opacity:.7; }
+.fav-star:hover{ opacity:1 !important; color:var(--folder-icon); }
+.fav-star.activo{ opacity:1; color:var(--folder-icon); }
+
+.file-tree{ padding-bottom:20px; }
+.tree-node{ user-select:none; }
+.tree-row{
+  display:flex; align-items:center; gap:4px;
+  padding:3px 8px;
+  cursor:pointer;
+  white-space:nowrap;
+  line-height:22px;
+}
+.tree-row:hover{ background:var(--hover-bg); }
+.tree-row.selected{ background:var(--selected-bg); }
+.tree-row .chevron{ flex-shrink:0; transition:transform .1s; opacity:.8; }
+.tree-row .chevron.collapsed{ transform:rotate(-90deg); }
+.tree-row .icon{ flex-shrink:0; }
+.tree-row .label{ overflow:hidden; text-overflow:ellipsis; }
+.tree-children{ overflow:hidden; }
+.tree-children.collapsed{ display:none; }
+
+/* Modo edición: drag & drop para reordenar */
+.tree-row.draggable{ cursor:grab; }
+.tree-row.dragging{ opacity:.4; }
+.grip-handle{
+  flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  width:14px; height:22px;
+  color:var(--text-faint);
+  cursor:grab;
+}
+.grip-handle:hover{ color:var(--text-normal); }
+.tree-row.drop-before{ box-shadow: inset 0 2px 0 0 var(--accent-strong); }
+.tree-row.drop-after{ box-shadow: inset 0 -2px 0 0 var(--accent-strong); }
+
+/* ---------- Editor area ---------- */
+.editor-area{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  background:var(--editor-bg);
+}
+
+.tabbar{
+  display:flex;
+  background:var(--tab-inactive-bg);
+  overflow-x:auto;
+  flex-shrink:0;
+  height:35px;
+}
+.tab{
+  display:flex; align-items:center; gap:8px;
+  padding:0 8px 0 12px;
+  height:35px;
+  background:var(--tab-inactive-bg);
+  color:var(--text-muted);
+  font-size:13px;
+  border-right:1px solid var(--border);
+  cursor:pointer;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.tab.active{
+  background:var(--tab-active-bg);
+  color:var(--text-strong);
+  border-top:1px solid var(--accent-blue);
+  box-shadow: inset 0 -1px 0 var(--tab-active-bg);
+}
+.tab .tab-icon{ flex-shrink:0; opacity:.85; }
+.tab .tab-close{
+  width:16px; height:16px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:3px;
+  opacity:0;
+  flex-shrink:0;
+}
+.tab:hover .tab-close, .tab.active .tab-close{ opacity:.7; }
+.tab .tab-close:hover{ background:var(--divider); opacity:1; }
+.tab .dirty-dot{ width:8px; height:8px; border-radius:50%; background:var(--text-strong); flex-shrink:0; display:none; }
+
+.breadcrumbs{
+  height:24px;
+  display:flex; align-items:center;
+  padding:0 12px;
+  font-size:12px;
+  color:var(--text-muted);
+  background:var(--editor-bg);
+  border-bottom:1px solid var(--border-soft);
+  flex-shrink:0;
+  gap:4px;
+}
+.breadcrumbs .crumb-sep{ opacity:.5; }
+.breadcrumbs.empty{ visibility:hidden; }
+
+.editor-content{
+  flex:1;
+  overflow-y:auto;
+  padding:32px 0;
+}
+.editor-content.full-bleed{
+  padding:0;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.html-frame{
+  flex:1;
+  width:100%;
+  border:0;
+  background:#ffffff;
+  zoom: var(--note-scale);
+}
+
+/* Welcome screen */
+.welcome{
+  max-width:560px;
+  margin:60px auto 0;
+  text-align:center;
+  color:var(--text-faint);
+}
+.welcome h1{ color:var(--text-normal); font-weight:400; font-size:26px; margin:16px 0 6px; }
+.welcome p{ font-size:14px; }
+.welcome-shortcuts{ margin-top:28px; font-size:13px; text-align:left; display:inline-block; }
+.welcome-shortcuts div{ margin:6px 0; color:var(--text-muted); }
+.kbd{
+  display:inline-block;
+  padding:1px 6px;
+  border:1px solid var(--divider);
+  border-bottom-width:2px;
+  border-radius:4px;
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--text-normal);
+}
+
+/* ---------- Rendered note (markdown) ---------- */
+.note{
+  max-width:760px;
+  margin:0 auto;
+  padding:0 48px;
+  color:var(--editor-fg);
+  font-size:15px;
+  line-height:1.7;
+  zoom: var(--note-scale);
+}
+.note h1{
+  font-family:var(--font-mono);
+  font-size:26px;
+  font-weight:600;
+  color:var(--text-strong);
+  border-bottom:1px solid var(--border-strong);
+  padding-bottom:10px;
+  margin:0 0 24px;
+}
+.note h2{
+  font-family:var(--font-mono);
+  font-size:19px;
+  font-weight:600;
+  color:var(--note-h2);
+  margin:36px 0 12px;
+}
+.note h3{
+  font-family:var(--font-mono);
+  font-size:16px;
+  color:var(--note-h3);
+  margin:26px 0 10px;
+}
+.note p{ margin:12px 0; }
+.note ul, .note ol{ margin:12px 0; padding-left:24px; }
+.note li{ margin:4px 0; }
+.note strong{ color:var(--text-strong); }
+.note blockquote{
+  margin:16px 0;
+  padding:8px 16px;
+  border-left:3px solid var(--accent-blue);
+  background:var(--hover-bg);
+  color:var(--text-normal);
+}
+.note code{
+  font-family:var(--font-mono);
+  background:var(--surface-2);
+  color:var(--note-code-fg);
+  padding:1px 5px;
+  border-radius:3px;
+  font-size:0.9em;
+}
+.note pre{
+  margin:16px 0;
+  border-radius:6px;
+  overflow:hidden;
+  border:1px solid var(--border-strong);
+}
+.note pre code{
+  display:block;
+  padding:14px 16px;
+  background:var(--editor-bg) !important;
+  border-radius:0;
+  font-size:13px;
+  line-height:1.55;
+  overflow-x:auto;
+}
+.note table{
+  border-collapse:collapse;
+  margin:16px 0;
+  width:100%;
+  font-size:14px;
+}
+.note th, .note td{
+  border:1px solid var(--surface-3);
+  padding:6px 12px;
+  text-align:left;
+}
+.note th{ background:var(--hover-bg); color:var(--text-strong); font-family:var(--font-mono); font-size:12.5px; }
+.note tr:nth-child(even) td{ background:var(--surface-2); }
+.note a{ color:var(--note-link); text-decoration:none; }
+.note a:hover{ text-decoration:underline; }
+.note hr{ border:none; border-top:1px solid var(--border-strong); margin:28px 0; }
+
+.editor-content.loading .note{ opacity:.3; }
+
+/* ---------- Account popover & Settings popover (comparten estilo) ---------- */
+.account-popover, .settings-popover{
+  position:fixed;
+  background:var(--surface-1);
+  border:1px solid var(--divider);
+  border-radius:4px;
+  box-shadow:0 4px 16px rgba(0,0,0,.5);
+  padding:14px;
+  z-index:50;
+  font-size:13px;
+  color:var(--text-normal);
+}
+.account-popover{ left:56px; bottom:40px; width:240px; }
+.settings-popover{ left:56px; bottom:40px; width:250px; }
+.account-title{ font-weight:600; font-size:13px; margin-bottom:6px; color:var(--text-strong); }
+.account-hint{ font-size:12px; color:var(--text-muted); margin:0 0 10px; line-height:1.4; }
+.account-popover input{
+  width:100%;
+  box-sizing:border-box;
+  background:var(--surface-3);
+  border:1px solid var(--divider);
+  color:var(--text-strong);
+  font-size:12.5px;
+  padding:6px 8px;
+  margin-bottom:8px;
+  border-radius:3px;
+  font-family:var(--font-ui);
+}
+.account-popover input:focus{ outline:1px solid var(--accent-blue); border-color:var(--accent-blue); }
+.account-popover button{
+  width:100%;
+  background:#0e639c;
+  color:#fff;
+  border:none;
+  padding:7px 0;
+  border-radius:3px;
+  font-size:12.5px;
+  cursor:pointer;
+}
+.account-popover button:hover{ background:#1177bb; }
+.account-error{ margin-top:8px; font-size:11.5px; color:var(--danger); }
+
+/* ---------- Panel de ajustes ---------- */
+.settings-row{ margin-bottom:14px; }
+.settings-row:last-child{ margin-bottom:0; }
+.settings-label{
+  display:block; font-size:11px; text-transform:uppercase; letter-spacing:.4px;
+  color:var(--text-muted); margin-bottom:6px;
+}
+.theme-toggle{ display:flex; gap:6px; }
+.theme-toggle button{
+  flex:1; padding:6px 0; font-size:12px; border-radius:3px; cursor:pointer;
+  background:var(--surface-3); border:1px solid var(--divider); color:var(--text-normal);
+}
+.theme-toggle button.active{ background:var(--accent-blue); color:#fff; border-color:var(--accent-blue); }
+
+.accent-swatches{ display:flex; gap:8px; }
+.accent-swatch{
+  width:22px; height:22px; border-radius:50%; cursor:pointer;
+  border:2px solid transparent;
+}
+.accent-swatch.active{ border-color:var(--text-strong); }
+
+/* Los colores de los círculos (antes style="background:..." en index.html) */
+.accent-swatch[data-accent=""]{ background:#0098ff; }
+.accent-swatch[data-accent="green"]{ background:#2fae83; }
+.accent-swatch[data-accent="purple"]{ background:#a074e8; }
+.accent-swatch[data-accent="pink"]{ background:#e0609e; }
+
+.fontsize-control{ display:flex; align-items:center; gap:10px; }
+.fontsize-control button{
+  width:26px; height:26px; border-radius:3px; cursor:pointer; font-size:14px;
+  background:var(--surface-3); border:1px solid var(--divider); color:var(--text-normal);
+}
+.fontsize-control span{ font-size:12.5px; color:var(--text-normal); min-width:38px; text-align:center; }
+
+.settings-popover select{
+  width:100%; background:var(--surface-3); border:1px solid var(--divider); color:var(--text-strong);
+  font-size:12.5px; padding:6px 8px; border-radius:3px; font-family:var(--font-ui);
+}
+
+.settings-btn{
+  width:100%; background:var(--surface-3); color:var(--text-normal); border:1px solid var(--divider);
+  padding:7px 0; border-radius:3px; font-size:12.5px; cursor:pointer; text-align:center;
+}
+.settings-btn:hover{ background:var(--hover-bg); }
+.settings-btn.zen-activo{ background:var(--accent-strong); color:#123b34; border-color:var(--accent-strong); }
+
+/* ---------- Modo Zen ---------- */
+body.zen .activitybar, body.zen .sidebar, body.zen .tabbar, body.zen .breadcrumbs, body.zen .statusbar{
+  display:none !important;
+}
+body.zen .titlebar{ opacity:.5; }
+body.zen .titlebar:hover{ opacity:1; }
+.zen-salir{
+  position:fixed; top:36px; right:14px; z-index:60;
+  background:var(--surface-1); color:var(--text-normal); border:1px solid var(--divider);
+  padding:5px 12px; border-radius:14px; font-size:11.5px; cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+.zen-salir:hover{ background:var(--hover-bg); }
+
+/* ---------- Status bar ---------- */
+.statusbar{
+  height:22px;
+  background:var(--statusbar-bg);
+  color:var(--statusbar-fg);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:12px;
+  padding:0 8px;
+  user-select:none;
+}
+.statusbar-left, .statusbar-right{ display:flex; align-items:center; gap:14px; }
+.status-item{ display:flex; align-items:center; gap:5px; opacity:.95; }
+.status-item.branch{ gap:5px; }
+
+/* ---------- Scrollbars ---------- */
+html.page-index{
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar) transparent;
+}
+.page-index::-webkit-scrollbar, .page-index *::-webkit-scrollbar{ width:12px; height:12px; }
+.page-index::-webkit-scrollbar-track, .page-index *::-webkit-scrollbar-track{ background:transparent; }
+.page-index::-webkit-scrollbar-thumb, .page-index *::-webkit-scrollbar-thumb{ background:transparent; }
+.page-index *:hover::-webkit-scrollbar-thumb{ background:var(--scrollbar); }
+.page-index *::-webkit-scrollbar-thumb:hover{ background:var(--text-faint); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 760px){
+  .titlebar-left span, .titlebar-center{ display:none; }
+  .sidebar{ position:absolute; z-index:20; height:calc(100vh - 30px - 22px); box-shadow:2px 0 8px rgba(0,0,0,.4); }
+  .note{ padding:0 16px; }
+}
+
+/* ==========================================================================
+   2. BASE COMPARTIDA DE LAS PÁGINAS DE APUNTES  (html.note-page)
+   Scrollbar oscura: el iframe tiene su propio documento.
+   ========================================================================== */
+html.note-page{ scrollbar-width: thin; scrollbar-color: #4f4f4f #1a1a1a; }
+.note-page::-webkit-scrollbar, .note-page *::-webkit-scrollbar{ width:12px; height:12px; }
+.note-page::-webkit-scrollbar-track, .note-page *::-webkit-scrollbar-track{ background:#1a1a1a; }
+.note-page::-webkit-scrollbar-thumb, .note-page *::-webkit-scrollbar-thumb{ background:#4f4f4f; border-radius:6px; border:3px solid #1a1a1a; }
+.note-page::-webkit-scrollbar-thumb:hover, .note-page *::-webkit-scrollbar-thumb:hover{ background:#6f6f6f; }
+
+/* ==========================================================================
+   3. horario.html  (.page-horario)
+   ========================================================================== */
+html.page-horario{
+  --bg:#1e1e1e; --panel:#252526; --fg:#d4d4d4; --muted:#9a9a9a;
+  --border:#333; --header:#2d2d2d; --today-accent:#4ec9b0;
+}
+.page-horario body{
+  background:var(--bg); color:var(--fg);
+  font-family:-apple-system, "Segoe UI", Arial, sans-serif;
+  margin:0; padding:32px 40px 56px;
+}
+.page-horario h1{
+  font-family:"Cascadia Code",Consolas,monospace;
+  font-size:24px; font-weight:600; color:#fff;
+  margin:0 0 4px;
+}
+.page-horario .subtitle{ color:var(--muted); font-size:13.5px; margin:0 0 28px; }
+
+/* ---------- Cuadrícula del horario ---------- */
+.page-horario .schedule-scroll{ overflow-x:auto; padding-bottom:4px; }
+.page-horario .schedule{
+  display:grid;
+  grid-template-columns: 78px repeat(5, minmax(150px, 1fr));
+  min-width:820px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  overflow:hidden;
+}
+.page-horario .cell{
+  border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  padding:8px;
+  min-height:64px;
+  display:flex; flex-direction:column; gap:6px; justify-content:center;
+}
+.page-horario .schedule > .cell:nth-child(6n){ border-right:none; }
+
+.page-horario .head{
+  background:var(--header);
+  color:#fff;
+  font-weight:600;
+  font-size:13px;
+  letter-spacing:.3px;
+  text-align:center;
+  justify-content:center;
+  padding:12px 8px;
+}
+.page-horario .head.today{ background:#0e3f3a; color:var(--today-accent); }
+
+.page-horario .time-cell{
+  background:var(--header);
+  color:var(--muted);
+  font-size:11.5px;
+  font-family:"Cascadia Code",Consolas,monospace;
+  text-align:center;
+  justify-content:center;
+  padding:6px 4px;
+}
+
+.page-horario .day-cell.today{ background:#1a2b29; }
+.page-horario .day-cell.now{ background:#123b34; box-shadow: inset 0 0 0 2px var(--today-accent); }
+
+.page-horario .recreo{
+  grid-column: 1 / -1;
+  background:#161616;
+  color:#6f6f6f;
+  font-size:11px;
+  text-align:center;
+  justify-content:center;
+  padding:5px;
+  min-height:0;
+  border-right:none;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+}
+.page-horario .recreo.now{
+  background:#123b34;
+  color:var(--today-accent);
+  font-weight:700;
+}
+
+.page-horario .entry{
+  border-left:3px solid var(--c, #888);
+  background:rgba(255,255,255,0.03);
+  border-radius:3px;
+  padding:5px 7px;
+  position:relative;
+}
+.page-horario .entry .name{ font-size:12.5px; font-weight:600; color:#fff; line-height:1.25; }
+.page-horario .entry .teacher{ font-size:11px; color:var(--muted); margin-top:1px; }
+.page-horario .entry .note{ font-size:10.5px; color:#7f7f7f; font-style:italic; margin-top:1px; }
+
+.page-horario .entry.now-entry{
+  border-left-width:4px;
+  box-shadow:0 0 0 1px var(--c), 0 0 14px 1px var(--c);
+  animation: pulse-glow 2.2s ease-in-out infinite;
+}
+.page-horario .entry.now-entry .name::after{
+  content:"AHORA";
+  float:right;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.5px;
+  color:var(--today-accent);
+  background:rgba(78,201,176,0.15);
+  padding:1px 5px;
+  border-radius:8px;
+  margin-left:6px;
+}
+@keyframes pulse-glow{
+  0%, 100% { box-shadow:0 0 0 1px var(--c), 0 0 8px 0px var(--c); }
+  50%      { box-shadow:0 0 0 1px var(--c), 0 0 16px 3px var(--c); }
+}
+
+/* ---------- Convalidadas / aprobadas ---------- */
+.page-horario .entry.convalidada{ opacity:.5; }
+.page-horario .entry.convalidada .name{ text-decoration:line-through; text-decoration-color:#4ec9b0; text-decoration-thickness:1.5px; }
+.page-horario .entry.convalidada::after{
+  content:"CONVALIDADA";
+  display:block;
+  margin-top:3px;
+  font-size:8.5px;
+  font-weight:700;
+  letter-spacing:.4px;
+  color:#4ec9b0;
+}
+
+/* ---------- Tabla de materias ---------- */
+.page-horario h2{
+  font-family:"Cascadia Code",Consolas,monospace;
+  font-size:17px; color:#4fc1ff;
+  margin:40px 0 12px;
+}
+.page-horario table{ border-collapse:collapse; width:100%; font-size:13.5px; }
+.page-horario th, .page-horario td{ border:1px solid var(--border); padding:7px 12px; text-align:left; vertical-align:top; }
+.page-horario th{ background:var(--header); color:#fff; font-family:"Cascadia Code",Consolas,monospace; font-size:12px; }
+.page-horario tr:nth-child(even) td{ background:#232324; }
+.page-horario .swatch{
+  display:inline-block; width:10px; height:10px; border-radius:2px;
+  margin-right:7px; vertical-align:middle;
+}
+.page-horario .abbr{ font-family:"Cascadia Code",Consolas,monospace; font-weight:600; }
+
+/* ---------- Filtro por asignatura ---------- */
+.page-horario .filter-bar{
+  display:flex; flex-wrap:wrap; gap:8px;
+  margin-bottom:14px;
+}
+.page-horario .chip{
+  display:inline-flex; align-items:center; gap:6px;
+  border:1px solid var(--c, #555);
+  background:transparent;
+  color:var(--fg);
+  font-family:"Cascadia Code",Consolas,monospace;
+  font-size:11.5px;
+  font-weight:600;
+  padding:5px 11px;
+  border-radius:14px;
+  cursor:pointer;
+  transition:background .12s, color .12s, opacity .12s;
+}
+.page-horario .chip .dot{ width:8px; height:8px; border-radius:50%; background:var(--c, #555); flex-shrink:0; }
+.page-horario .chip:hover{ background:rgba(255,255,255,0.06); }
+.page-horario .chip.active{ background:var(--c, #555); color:#1a1a1a; }
+.page-horario .chip.active .dot{ background:#1a1a1a; }
+.page-horario .chip.all{ border-style:dashed; }
+.page-horario .chip.all.active{ background:#555; color:#fff; }
+.page-horario .chip.all.active .dot{ display:none; }
+
+/* Atenuado cuando hay un filtro activo y esto no coincide */
+.page-horario .entry.dimmed{ opacity:.12; }
+.page-horario .entry.match{ box-shadow:0 0 0 1px var(--c, #888); }
+.page-horario tr.dimmed{ opacity:.25; }
+.page-horario tr.match td:first-child{ background:rgba(255,255,255,0.05); }
+
+.page-horario .chip{ position:relative; }
+.page-horario .chip.convalidada::after{ content:"✓"; margin-left:5px; color:#4ec9b0; font-weight:700; }
+.page-horario .filter-bar.modo-edicion .chip:not(.convalidada):not(.all)::after{ content:"✕"; margin-left:5px; opacity:.3; }
+.page-horario .filter-bar.modo-edicion .chip{ border-style:dashed; }
+.page-horario .edicion-aviso{
+  font-size:11.5px; color:#4ec9b0; margin:-8px 0 14px;
+  display:flex; align-items:center; gap:6px;
+}
+
+/* ---------- Scrollbar oscura (el iframe tiene su propio documento) ---------- */
+
+/* ---------- Widget de cuenta (login / registro) ---------- */
+.page-horario #cuentaBtn{
+  position:fixed; right:18px; bottom:18px; z-index:95;
+  width:40px; height:40px; border-radius:50%;
+  background:#252526; border:1px solid #333;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; cursor:pointer; user-select:none;
+}
+.page-horario #cuentaBtn.logueado{ border-color:#4ec9b0; box-shadow:0 0 0 2px rgba(78,201,176,0.3); }
+.page-horario #cuentaBtn:hover{ background:#2a2a2a; }
+.page-horario #cuentaPop{
+  position:fixed; right:18px; bottom:66px; z-index:95;
+  width:250px; background:#252526; border:1px solid #333;
+  padding:14px; font-family:-apple-system,"Segoe UI",Arial,sans-serif; font-size:13px; color:var(--fg);
+  box-shadow:0 6px 20px rgba(0,0,0,.4);
+}
+.page-horario .cuenta-tit{ font-family:"Cascadia Code",Consolas,monospace; font-weight:700; font-size:12.5px; margin:0 0 6px; color:#fff; }
+.page-horario .cuenta-mail{ font-size:12.5px; color:var(--muted); margin:0 0 4px; word-break:break-all; }
+.page-horario .cuenta-estado{ font-size:12px; color:var(--muted); line-height:1.5; margin:0 0 10px; }
+.page-horario #cuentaPop input{
+  width:100%; box-sizing:border-box; background:#2d2d2d; border:1px solid #444;
+  color:#fff; font:13px/1.4 -apple-system,"Segoe UI",Arial,sans-serif; padding:6px 8px; margin-bottom:7px;
+}
+.page-horario #cuentaPop input:focus-visible{ outline:2px solid #4fc1ff; }
+.page-horario .cuenta-botones{ display:flex; gap:7px; }
+.page-horario .cuenta-botones .b{
+  flex:1 1 0; padding:6px 0; font-size:12px; text-align:center;
+  background:#0e639c; color:#fff; border:none; border-radius:3px; cursor:pointer;
+}
+.page-horario .cuenta-botones .b:hover{ background:#1177bb; }
+.page-horario .cuenta-botones .b.sec{ background:#3a3a3a; }
+.page-horario .cuenta-botones .b.sec:hover{ background:#464646; }
+.page-horario .cuenta-error{ color:#f48771; font-size:11.5px; margin:8px 0 0; }
+
+/* ---------- Botón de modo edición (convalidadas) ---------- */
+.page-horario #gradBtn{
+  position:fixed; right:18px; bottom:66px; z-index:94;
+  width:40px; height:40px; border-radius:50%;
+  background:#252526; border:1px solid #333;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; user-select:none; color:var(--fg);
+}
+.page-horario #gradBtn:hover{ background:#2a2a2a; }
+.page-horario #gradBtn.activo{ background:#4ec9b0; border-color:#4ec9b0; color:#123b34; }
+
+/* `.note` también es una clase de la aplicación (el contenedor de las notas Markdown, con padding y
+   max-width). Como ahora comparten archivo, se neutraliza aquí para que no afecte a las notas del horario. */
+.page-horario .entry .note{ padding:0; max-width:none; line-height:inherit; }
+
+
+/* ==========================================================================
+   4. calendario.html  (.page-calendario)
+   ========================================================================== */
+html.page-calendario{
+  --bg:#1e1e1e; --panel:#252526; --fg:#d4d4d4; --muted:#9a9a9a;
+  --border:#333; --header:#2d2d2d; --today-accent:#4ec9b0;
+  --c-festivo:#f14c4c; --c-vacaciones:#4a9eff; --c-hito:#e6a23c;
+  --c-cultural:#c586c0; --c-evaluacion:#4ec9b0; --c-reunion:#569cd6; --c-evento:#9a9a9a;
+}
+.page-calendario body{
+  background:var(--bg); color:var(--fg);
+  font-family:-apple-system, "Segoe UI", Arial, sans-serif;
+  margin:0; padding:32px 40px 56px;
+}
+.page-calendario h1{
+  font-family:"Cascadia Code",Consolas,monospace;
+  font-size:24px; font-weight:600; color:#fff;
+  margin:0 0 4px;
+}
+.page-calendario .subtitle{ color:var(--muted); font-size:13.5px; margin:0 0 26px; }
+
+.page-calendario h2{
+  font-family:"Cascadia Code",Consolas,monospace;
+  font-size:17px; color:#4fc1ff;
+  margin:40px 0 12px;
+}
+
+/* ---------- Navegación de mes ---------- */
+.page-calendario .mes-nav{
+  display:flex; align-items:center; justify-content:center; gap:16px;
+  margin-bottom:16px;
+}
+.page-calendario .mes-nav button{
+  width:32px; height:32px; border-radius:6px; border:1px solid var(--border);
+  background:var(--panel); color:var(--fg); font-size:15px; cursor:pointer;
+}
+.page-calendario .mes-nav button:hover:not(:disabled){ background:#2f2f2f; }
+.page-calendario .mes-nav button:disabled{ opacity:.3; cursor:default; }
+.page-calendario .mes-nav .mes-label{
+  font-family:"Cascadia Code",Consolas,monospace; font-size:16px; font-weight:600; color:#fff;
+  min-width:190px; text-align:center;
+}
+.page-calendario .mes-lectivos{ text-align:center; font-size:12px; color:var(--muted); margin-bottom:18px; }
+
+/* ---------- Cuadrícula del calendario ---------- */
+.page-calendario .cal-scroll{ overflow-x:auto; }
+.page-calendario .cal{
+  display:grid;
+  grid-template-columns:repeat(7, minmax(72px, 1fr));
+  gap:4px;
+  min-width:560px;
+}
+.page-calendario .cal-head{
+  text-align:center; font-size:11px; font-weight:600; color:var(--muted);
+  padding:4px 0 8px; letter-spacing:.4px;
+}
+.page-calendario .cal-day{
+  background:var(--panel); border:1px solid var(--border); border-radius:6px;
+  min-height:64px; padding:6px 7px;
+  cursor:pointer; position:relative;
+  display:flex; flex-direction:column; gap:4px;
+}
+.page-calendario .cal-day:hover{ border-color:#4a4a4a; }
+.page-calendario .cal-day.vacio{ background:transparent; border-color:transparent; cursor:default; }
+.page-calendario .cal-day .num{ font-family:"Cascadia Code",Consolas,monospace; font-size:13px; color:#fff; }
+
+.page-calendario .cal-day.hoy{ box-shadow:0 0 0 2px var(--today-accent); }
+.page-calendario .cal-day.hoy .num{ color:var(--today-accent); font-weight:700; }
+.page-calendario .cal-day.seleccionado{ background:#2f2f2f; }
+
+.page-calendario .cal-day.tipo-festivo{ background:rgba(241,76,76,0.16); border-color:var(--c-festivo); }
+.page-calendario .cal-day.tipo-vacaciones{ background:rgba(74,158,255,0.14); border-color:var(--c-vacaciones); }
+.page-calendario .cal-day.tipo-hito{ background:rgba(230,162,60,0.16); border-color:var(--c-hito); }
+.page-calendario .cal-day.tipo-cultural{ background:rgba(197,134,192,0.14); border-color:var(--c-cultural); }
+
+.page-calendario .cal-dots{ display:flex; gap:3px; flex-wrap:wrap; margin-top:auto; }
+.page-calendario .cal-dot{ width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.page-calendario .dot-evaluacion{ background:var(--c-evaluacion); }
+.page-calendario .dot-reunion{ background:var(--c-reunion); }
+.page-calendario .dot-evento{ background:var(--c-evento); }
+.page-calendario .dot-cultural{ background:var(--c-cultural); }
+
+.page-calendario .cal-day .etiqueta-mini{
+  font-size:9px; color:#fff; line-height:1.15; opacity:.85;
+  overflow:hidden; text-overflow:ellipsis; display:-webkit-box;
+  -webkit-line-clamp:2; -webkit-box-orient:vertical;
+}
+
+/* ---------- Leyenda ---------- */
+.page-calendario .leyenda{ display:flex; flex-wrap:wrap; gap:14px; margin:18px 0 0; font-size:12px; color:var(--muted); }
+.page-calendario .leyenda span{ display:inline-flex; align-items:center; gap:6px; }
+.page-calendario .leyenda .sw{ width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+
+/* ---------- Panel de detalle del día ---------- */
+.page-calendario .detalle{
+  background:var(--panel); border:1px solid var(--border); border-radius:8px;
+  padding:14px 18px; margin-top:20px; min-height:52px;
+}
+.page-calendario .detalle .fecha{ font-family:"Cascadia Code",Consolas,monospace; font-size:13px; color:#fff; margin-bottom:8px; }
+.page-calendario .detalle .item{
+  display:flex; align-items:flex-start; gap:8px; font-size:13px; margin:6px 0; color:var(--fg);
+}
+.page-calendario .detalle .item .sw{ width:9px; height:9px; border-radius:3px; margin-top:4px; flex-shrink:0; }
+.page-calendario .detalle .vacio{ color:var(--muted); font-size:13px; }
+.page-calendario .estrella{ color:#ffd479; margin-left:4px; }
+
+/* ---------- Próximos festivos ---------- */
+.page-calendario .festivos-list{ display:flex; flex-direction:column; gap:8px; }
+.page-calendario .festivo-item{
+  display:flex; align-items:center; gap:12px;
+  background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--c-festivo);
+  border-radius:6px; padding:10px 14px;
+}
+.page-calendario .festivo-item.tipo-vacaciones{ border-left-color:var(--c-vacaciones); }
+.page-calendario .festivo-item .f-fecha{
+  font-family:"Cascadia Code",Consolas,monospace; font-size:12.5px; color:#fff;
+  min-width:150px; flex-shrink:0;
+}
+.page-calendario .festivo-item .f-label{ font-size:13.5px; flex:1; }
+.page-calendario .festivo-item .f-cuenta{ font-size:11.5px; color:var(--muted); flex-shrink:0; }
+
+/* ---------- Notas sin fecha ---------- */
+.page-calendario .notas-list{ font-size:13px; color:var(--muted); line-height:1.8; padding-left:20px; margin:0; }
+
+/* ---------- Tabla resumen ---------- */
+.page-calendario table{ border-collapse:collapse; width:100%; font-size:13px; margin-top:4px; }
+.page-calendario th, .page-calendario td{ border:1px solid var(--border); padding:6px 10px; text-align:center; }
+.page-calendario th{ background:var(--header); color:#fff; font-family:"Cascadia Code",Consolas,monospace; font-size:11.5px; }
+.page-calendario td.total{ font-weight:700; color:var(--today-accent); }
+
+/* ---------- Scrollbar oscura (el iframe tiene su propio documento) ---------- */
+
+@media (max-width:600px){
+  .page-calendario body{ padding:24px 16px 48px; }
+  .page-calendario .cal{ grid-template-columns:repeat(7, minmax(50px, 1fr)); }
+  .page-calendario .cal-day{ min-height:52px; padding:4px 5px; }
+  .page-calendario .etiqueta-mini{ display:none !important; }
+}
+
+/* Colores de los cuadraditos de la leyenda y del detalle del día (antes style="background:..." en el HTML/JS) */
+.page-calendario .sw-festivo{ background:var(--c-festivo); }
+.page-calendario .sw-vacaciones{ background:var(--c-vacaciones); }
+.page-calendario .sw-hito{ background:var(--c-hito); }
+.page-calendario .sw-cultural{ background:var(--c-cultural); }
+.page-calendario .sw-evaluacion{ background:var(--c-evaluacion); }
+.page-calendario .sw-reunion{ background:var(--c-reunion); }
+.page-calendario .sw-evento{ background:var(--c-evento); }
+.page-calendario p.vacio{ color:var(--muted); }
+
+
+/* ==========================================================================
+   5. Introducción.html  (.page-introduccion)
+   ========================================================================== */
+html.page-introduccion{
+  --bg:#1e1e1e; --fg:#d4d4d4; --h:#4fc1ff; --h3:#9cdcfe;
+  --code-bg:#2d2d2d; --code-fg:#ce9178; --border:#333;
+  --panel:#252526; --muted:#9a9a9a;
+  --blue:#569cd6; --orange:#ce9178; --purple:#c586c0; --green:#6a9955; --yellow:#dcdcaa; --red:#f48771;
+}
+.page-introduccion body{
+  background:var(--bg); color:var(--fg);
+  font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+  max-width:840px; margin:0 auto; padding:32px 40px 64px; line-height:1.7; font-size:15px;
+}
+.page-introduccion h1{ font-family:"Cascadia Code",Consolas,monospace; font-size:27px; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:4px; }
+.page-introduccion .subtitulo{ color:var(--muted); font-size:14px; margin:0 0 8px; }
+.page-introduccion .modulo{ color:var(--muted); font-size:12px; font-family:"Cascadia Code",Consolas,monospace; margin:0 0 30px; }
+.page-introduccion h2{ font-family:"Cascadia Code",Consolas,monospace; color:var(--h); margin-top:44px; font-size:19px; border-top:2px solid #333; padding-top:16px; }
+.page-introduccion h3{ color:var(--h3); font-size:15.5px; margin-top:24px; }
+.page-introduccion p{ margin:10px 0; }
+.page-introduccion code{ background:var(--code-bg); color:var(--code-fg); padding:1px 5px; border-radius:3px; font-size:0.9em; font-family:"Cascadia Code",Consolas,monospace; }
+.page-introduccion pre{ background:#1a1a1a; border:1px solid var(--border); border-radius:6px; padding:14px 16px; overflow-x:auto; font-family:"Cascadia Code",Consolas,monospace; font-size:13px; line-height:1.55; }
+.page-introduccion pre code{ background:none; padding:0; color:var(--fg); }
+.page-introduccion table{ border-collapse:collapse; width:100%; margin:14px 0; font-size:13.5px; }
+.page-introduccion th, .page-introduccion td{ border:1px solid var(--border); padding:8px 12px; text-align:left; vertical-align:top; }
+.page-introduccion th{ background:var(--panel); font-family:"Cascadia Code",Consolas,monospace; font-size:12px; color:#fff; }
+.page-introduccion tr:nth-child(even) td{ background:#232324; }
+.page-introduccion blockquote{ border-left:3px solid #007acc; background:var(--panel); margin:16px 0; padding:10px 16px; font-size:14px; }
+.page-introduccion ul, .page-introduccion ol{ padding-left:22px; margin:10px 0; }
+.page-introduccion li{ margin:4px 0; }
+
+.page-introduccion .caja{ background:var(--panel); border:1px solid var(--border); border-left:4px solid var(--h); padding:14px 18px; margin:16px 0; }
+.page-introduccion .caja p:first-child{ margin-top:0; }
+.page-introduccion .caja p:last-child{ margin-bottom:0; }
+
+.page-introduccion .grid{ display:grid; gap:14px; margin:18px 0; }
+.page-introduccion .grid-2{ grid-template-columns:1fr 1fr; }
+.page-introduccion .grid-3{ grid-template-columns:repeat(3, 1fr); }
+.page-introduccion .card{ background:var(--panel); border:1px solid var(--border); border-top:3px solid var(--h); padding:14px 16px; }
+.page-introduccion .card h4{ margin:0 0 6px; font-size:14px; color:#fff; font-family:"Cascadia Code",Consolas,monospace; }
+.page-introduccion .card p{ margin:0; font-size:13.5px; color:var(--muted); }
+.page-introduccion .card.blue{ border-top-color:var(--blue); }
+.page-introduccion .card.orange{ border-top-color:var(--orange); }
+.page-introduccion .card.purple{ border-top-color:var(--purple); }
+.page-introduccion .card.green{ border-top-color:var(--green); }
+.page-introduccion .card.yellow{ border-top-color:var(--yellow); }
+
+.page-introduccion .cajanegra{ display:flex; align-items:center; gap:14px; margin:18px 0; flex-wrap:wrap; }
+.page-introduccion .cajanegra .flechas{ display:flex; flex-direction:column; gap:8px; }
+.page-introduccion .cajanegra .flecha{ font-family:"Cascadia Code",Consolas,monospace; font-size:12px; padding:6px 10px; border-radius:3px; text-align:center; }
+.page-introduccion .flecha.in{ background:rgba(206,145,120,0.15); color:var(--orange); border:1px solid var(--orange); }
+.page-introduccion .flecha.out{ background:rgba(106,153,85,0.15); color:var(--green); border:1px solid var(--green); }
+.page-introduccion .caja3d{
+  flex:1; min-width:220px; background:#111; border:1px solid var(--border); border-radius:4px;
+  padding:14px 16px; font-size:12.5px; color:var(--muted); font-family:"Cascadia Code",Consolas,monospace;
+}
+.page-introduccion .caja3d b{ display:block; color:#fff; margin-bottom:8px; font-size:12px; letter-spacing:.03em; }
+
+.page-introduccion .ciclo{ display:grid; grid-template-columns:repeat(5, 1fr); gap:10px; margin:18px 0; }
+.page-introduccion .paso{ background:var(--panel); border:1px solid var(--border); padding:12px 10px; text-align:center; }
+.page-introduccion .paso .num{ font-family:"Cascadia Code",Consolas,monospace; color:var(--h); font-size:11px; margin-bottom:4px; }
+.page-introduccion .paso .tit{ font-weight:600; font-size:13px; color:#fff; margin-bottom:6px; }
+.page-introduccion .paso .desc{ font-size:11.5px; color:var(--muted); line-height:1.4; }
+.page-introduccion .ciclo-nota{ font-size:12px; color:var(--muted); text-align:center; margin-top:-6px; font-style:italic; }
+
+.page-introduccion .pila{ display:flex; flex-direction:column; gap:8px; margin:18px 0; }
+.page-introduccion .pila .capa{ background:var(--panel); border:1px solid var(--border); border-left:4px solid var(--h); padding:12px 16px; }
+.page-introduccion .pila .capa b{ color:#fff; font-family:"Cascadia Code",Consolas,monospace; font-size:13.5px; }
+.page-introduccion .pila .capa span{ display:block; font-size:12.5px; color:var(--muted); margin-top:2px; }
+.page-introduccion .pila .flechaabajo{ text-align:center; color:var(--muted); font-size:12px; }
+
+.page-introduccion .verdad{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin:18px 0; }
+.page-introduccion .verdad .op{ background:var(--panel); border:1px solid var(--border); padding:12px; text-align:center; }
+.page-introduccion .verdad .op b{ display:block; color:var(--h); font-family:"Cascadia Code",Consolas,monospace; margin-bottom:6px; }
+.page-introduccion .verdad .op p{ font-size:12px; color:var(--muted); margin:0; }
+
+.page-introduccion .expresion{ background:#111; border:1px solid var(--border); border-radius:4px; padding:24px; text-align:center;
+  font-family:"Cascadia Code",Consolas,monospace; font-size:22px; margin:18px 0; letter-spacing:.02em; }
+.page-introduccion .expresion .fn{ color:var(--blue); }
+.page-introduccion .expresion .var{ color:var(--green); }
+.page-introduccion .expresion .cte{ color:var(--purple); }
+.page-introduccion .leyenda-exp{ display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; font-size:12.5px; margin-top:14px; }
+.page-introduccion .leyenda-exp span{ display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:middle; }
+
+@media (max-width:700px){
+  .page-introduccion body{ padding:24px 18px 48px; }
+  .page-introduccion .grid-2, .page-introduccion .grid-3{ grid-template-columns:1fr; }
+  .page-introduccion .ciclo{ grid-template-columns:1fr 1fr; }
+  .page-introduccion .verdad{ grid-template-columns:1fr; }
+}
+
+/* Antes eran atributos style="..." sueltos en el HTML */
+.page-introduccion pre.pre-flat{ margin:0; }
+.page-introduccion table.tabla-op{ margin:0; font-size:12.5px; }
+.page-introduccion .card p.nota-op{ margin-top:8px; }
+.page-introduccion p.nota-pie{ font-size:13px; color:var(--muted); }
+.page-introduccion th .th-sub{ color:var(--muted); font-weight:400; }
+.page-introduccion .txt-verde{ color:#6a9955; }
+.page-introduccion .txt-morado{ color:#c586c0; }
+.page-introduccion .leyenda-exp .sw-fn{ background:var(--blue); }
+.page-introduccion .leyenda-exp .sw-cte{ background:var(--purple); }
+.page-introduccion .leyenda-exp .sw-var{ background:var(--green); }
+.page-introduccion .leyenda-exp .sw-op{ background:var(--fg); }
+

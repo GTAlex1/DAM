@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es" class="note-page page-calendario">
+<head>
+<meta charset="UTF-8">
+<title>Calendario Escolar 2026-2027</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<h1>Calendario Escolar 2026-2027</h1>
+<p class="subtitle">I.E.S. Almunia · ESO, Bachillerato, FP · 178 días lectivos</p>
+
+<div class="mes-nav">
+  <button id="mesAnterior" aria-label="Mes anterior">‹</button>
+  <span class="mes-label" id="mesLabel"></span>
+  <button id="mesSiguiente" aria-label="Mes siguiente">›</button>
+</div>
+<p class="mes-lectivos" id="mesLectivos"></p>
+
+<div class="cal-scroll">
+  <div class="cal" id="cal"></div>
+</div>
+
+<div class="leyenda">
+  <span><span class="sw sw-festivo"></span>Festivo</span>
+  <span><span class="sw sw-vacaciones"></span>Vacaciones</span>
+  <span><span class="sw sw-hito"></span>Inicio/fin de curso</span>
+  <span><span class="sw sw-cultural"></span>Jornada cultural</span>
+  <span><span class="sw sw-evaluacion"></span>Evaluación / examen</span>
+  <span><span class="sw sw-reunion"></span>Reunión / Claustro</span>
+  <span><span class="sw sw-evento"></span>Otro evento</span>
+</div>
+
+<div class="detalle" id="detalle"></div>
+
+<h2>Próximos festivos</h2>
+<div class="festivos-list" id="festivosList"></div>
+
+<h2>Días lectivos por mes</h2>
+<table id="tablaLectivos"></table>
+
+<h2>Fechas por determinar</h2>
+<ul class="notas-list" id="notasList"></ul>
+
+<script src="js/calendario.js"></script>
+</body>
+</html>
