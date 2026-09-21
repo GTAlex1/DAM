@@ -3,9 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <title>Calendario Escolar 2026-2027</title>
-<link rel="stylesheet" href="../../css/styles.css">
+<link rel="stylesheet" href="../../css/styles.css?v=7">
 </head>
 <body>
+
+<!-- Acceso unificado: header (lo gestiona firebase-init.js) -->
+<div class="auth-header auth-header--flotante" id="auth-header" data-estado="cargando">
+  <button type="button" class="auth-trigger" id="btn-auth-trigger" aria-haspopup="dialog" aria-controls="modal-auth" aria-label="Acceder / Mi cuenta">
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z"/></svg>
+    <span class="auth-label">Acceder</span>
+  </button>
+  <div class="auth-user" id="auth-user" hidden>
+    <span class="auth-user-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12" focusable="false"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z"/></svg></span>
+    <span class="auth-user-name" id="auth-user-name"></span>
+    <span class="auth-user-rol" id="auth-user-rol" hidden>admin</span>
+    <button type="button" class="auth-logout" id="btn-auth-logout" aria-label="Cerrar sesión">
+      <svg class="auth-icon-solo" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+      <span class="auth-label">Cerrar sesión</span>
+    </button>
+  </div>
+</div>
 
 <h1>Calendario Escolar 2026-2027</h1>
 <p class="subtitle">I.E.S. Almunia · ESO, Bachillerato, FP · 178 días lectivos</p>
@@ -45,7 +62,38 @@
 <h2>Fechas por determinar</h2>
 <ul class="notas-list" id="notasList"></ul>
 
+<!-- Modal de acceso unificado (iniciar sesión / crear cuenta) -->
+<div class="auth-modal" id="modal-auth" role="dialog" aria-modal="true" aria-labelledby="auth-title" hidden>
+  <div class="auth-backdrop" data-auth-cerrar></div>
+  <div class="auth-card">
+    <button type="button" class="auth-close" data-auth-cerrar aria-label="Cerrar">&times;</button>
+    <div class="auth-title" id="auth-title">Acceso a tu cuenta</div>
+    <div class="auth-tabs" role="tablist" aria-label="Tipo de acceso">
+      <button type="button" class="auth-tab is-active" id="tab-login" role="tab" aria-selected="true" aria-controls="form-auth" data-auth-tab="login">Iniciar sesión</button>
+      <button type="button" class="auth-tab" id="tab-registro" role="tab" aria-selected="false" aria-controls="form-auth" data-auth-tab="registro">Crear cuenta</button>
+    </div>
+    <form class="auth-form" id="form-auth" role="tabpanel" aria-labelledby="tab-login" novalidate>
+      <label class="auth-field">
+        <span>Usuario o correo</span>
+        <input class="auth-input" type="text" id="auth-email" name="email" autocomplete="username" autocapitalize="off" spellcheck="false" required>
+      </label>
+      <label class="auth-field">
+        <span>Contraseña</span>
+        <input class="auth-input" type="password" id="auth-password" name="password" autocomplete="current-password" required>
+      </label>
+      <label class="auth-field" data-auth-solo="registro" hidden>
+        <span>Repite la contraseña</span>
+        <input class="auth-input" type="password" id="auth-password2" name="password2" autocomplete="new-password">
+      </label>
+      <p class="auth-hint" data-auth-solo="registro" hidden>Mínimo 6 caracteres. Con tu cuenta se guarda tu progreso en la nube.</p>
+      <p class="auth-error" id="auth-error" role="alert" hidden></p>
+      <button type="submit" class="auth-submit" id="auth-submit">Entrar</button>
+    </form>
+  </div>
+</div>
+
 <script src="../../js/calendario.js"></script>
+<script type="module" src="../../js/firebase-init.js?v=3"></script>
 
 </body>
 </html>

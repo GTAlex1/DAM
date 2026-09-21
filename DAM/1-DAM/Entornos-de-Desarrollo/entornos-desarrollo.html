@@ -2173,7 +2173,7 @@ import {
 // ⚠️ Ajusta la ruta si este archivo no está a dos niveles de js/ (como horario.html).
 // Si no carga, la página funciona igual pero sin cuenta (progreso solo local).
 let fb = null;
-try { fb = await import('../../js/firebase-init.js'); }
+try { fb = await import('../../js/firebase-init.js?v=3'); }
 catch (e) { console.warn('No se pudo cargar firebase-init.js; la cuenta no estará disponible.', e); }
 
 // Misma app de Firebase que usa firebase-init.js (no se inicializa otra).

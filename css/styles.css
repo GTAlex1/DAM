@@ -942,6 +942,9 @@ html.page-horario{
   display:flex; align-items:center; justify-content:center;
   cursor:pointer; user-select:none; color:var(--fg);
 }
+/* `hidden` no bastaba: el display:flex de arriba lo anulaba y el 🎓 se veía sin sesión. */
+.page-horario #gradBtn[hidden],
+.page-horario .edicion-aviso[hidden]{ display:none; }
 .page-horario #gradBtn:hover{ background:#2a2a2a; }
 .page-horario #gradBtn.activo{ background:#4ec9b0; border-color:#4ec9b0; color:#123b34; }
 

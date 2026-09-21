@@ -1,4 +1,4 @@
-import { auth, isAuthorized, watchAuth, login, logout, loadOrder, saveOrderForPath } from './firebase-init.js?v=2';
+import { isAuthorized, watchAuth, loadOrder, saveOrderForPath } from './firebase-init.js?v=3';
 import { fetchGithubTree } from './github-source.js?v=2';
 
 // ---------- Config ----------
@@ -664,62 +664,14 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// ---------- Cuenta / login ----------
-const accountIcon = document.getElementById('account-icon');
-const accountPopover = document.getElementById('account-popover');
-const loginView = document.getElementById('login-view');
-const accountView = document.getElementById('account-view');
-const loginEmail = document.getElementById('login-email');
-const loginPassword = document.getElementById('login-password');
-const loginSubmit = document.getElementById('login-submit');
-const loginError = document.getElementById('login-error');
-const logoutSubmit = document.getElementById('logout-submit');
-const accountEmailEl = document.getElementById('account-email');
-const accountStatusEl = document.getElementById('account-status');
-
-accountIcon.addEventListener('click', () => {
-  const hidden = accountPopover.hasAttribute('hidden');
-  if (hidden) accountPopover.removeAttribute('hidden'); else accountPopover.setAttribute('hidden', '');
-});
-document.addEventListener('click', (e) => {
-  if (!accountPopover.contains(e.target) && !accountIcon.contains(e.target)) {
-    accountPopover.setAttribute('hidden', '');
-  }
-});
-
-loginSubmit.addEventListener('click', async () => {
-  loginError.setAttribute('hidden', '');
-  try {
-    await login(loginEmail.value.trim(), loginPassword.value);
-  } catch (e) {
-    loginError.textContent = 'No se pudo iniciar sesión. Revisa el correo y la contraseña.';
-    loginError.removeAttribute('hidden');
-  }
-});
-[loginEmail, loginPassword].forEach(input => {
-  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') loginSubmit.click(); });
-});
-logoutSubmit.addEventListener('click', () => logout());
-
+// ---------- Cuenta ----------
+// El acceso (botón del header, modal de login/registro) vive en firebase-init.js.
+// Aquí solo se reacciona a la sesión: cualquiera puede registrarse, pero el modo
+// edición (arrastrar carpetas y archivos) es solo de la cuenta autorizada.
 watchAuth((user) => {
   const authorized = isAuthorized(user);
   editMode = authorized;
-  accountIcon.classList.toggle('active', !!user);
   editBadgeEl.toggleAttribute('hidden', !authorized);
-
-  if (user) {
-    loginView.setAttribute('hidden', '');
-    accountView.removeAttribute('hidden');
-    accountEmailEl.textContent = user.email;
-    accountStatusEl.textContent = authorized
-      ? 'Puedes arrastrar carpetas y archivos para reordenarlos.'
-      : 'Esta cuenta no tiene permiso de edición.';
-  } else {
-    loginView.removeAttribute('hidden');
-    accountView.setAttribute('hidden', '');
-    loginEmail.value = '';
-    loginPassword.value = '';
-  }
 
   if (root) buildTree(); // re-render para mostrar/ocultar los "grips" de arrastre
 });

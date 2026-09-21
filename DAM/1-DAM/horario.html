@@ -3,9 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <title>Horario — 1º DAM</title>
-<link rel="stylesheet" href="../../css/styles.css">
+<link rel="stylesheet" href="../../css/styles.css?v=7">
 </head>
 <body>
+
+<!-- Acceso unificado: header (lo gestiona firebase-init.js) -->
+<div class="auth-header auth-header--flotante" id="auth-header" data-estado="cargando">
+  <button type="button" class="auth-trigger" id="btn-auth-trigger" aria-haspopup="dialog" aria-controls="modal-auth" aria-label="Acceder / Mi cuenta">
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z"/></svg>
+    <span class="auth-label">Acceder</span>
+  </button>
+  <div class="auth-user" id="auth-user" hidden>
+    <span class="auth-user-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12" focusable="false"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z"/></svg></span>
+    <span class="auth-user-name" id="auth-user-name"></span>
+    <span class="auth-user-rol" id="auth-user-rol" hidden>admin</span>
+    <button type="button" class="auth-logout" id="btn-auth-logout" aria-label="Cerrar sesión">
+      <svg class="auth-icon-solo" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+      <span class="auth-label">Cerrar sesión</span>
+    </button>
+  </div>
+</div>
 
 <h1>Horario semanal</h1>
 <p class="subtitle">1º DAM · el día de hoy se resalta automáticamente</p>
@@ -24,35 +41,44 @@
   <tbody></tbody>
 </table>
 
-<!-- Widget de cuenta: las mismas cuentas que en Entornos de Desarrollo -->
-<div id="cuentaBtn" title="Cuenta">👤</div>
-<div id="cuentaPop" hidden>
-  <div id="cuentaLogueado" hidden>
-    <p class="cuenta-tit">Sesión iniciada</p>
-    <p class="cuenta-mail" id="cuentaMail"></p>
-    <p class="cuenta-estado">Usa el birrete 🎓 para marcar tus asignaturas convalidadas.</p>
-    <button class="b sec" id="cuentaSalir">Cerrar sesión</button>
-  </div>
-  <div id="cuentaAnon">
-    <p class="cuenta-tit">Marca tus convalidadas</p>
-    <p class="cuenta-estado">Inicia sesión con tu cuenta de Entornos de Desarrollo (o crea una) para guardar qué asignaturas tienes convalidadas o aprobadas.</p>
-    <input type="text" id="cuentaEmail" placeholder="usuario" autocapitalize="off" autocomplete="username">
-    <input type="password" id="cuentaPass" placeholder="contraseña">
-    <div class="cuenta-botones">
-      <button class="b" id="cuentaEntrar">Entrar</button>
-      <button class="b sec" id="cuentaCrear">Crear cuenta</button>
-    </div>
-    <p class="cuenta-error" id="cuentaError" hidden></p>
-  </div>
-</div>
-
 <!-- Botón de modo edición de convalidaciones (solo visible logueado) -->
 <div id="gradBtn" title="Marcar convalidadas" hidden>
   <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 3L1 9l11 6 9-4.9V17h2V9L12 3zM5 13.18v4.09L12 21l7-3.73v-4.09L12 17l-7-3.82z"/></svg>
 </div>
 
+<!-- Modal de acceso unificado (iniciar sesión / crear cuenta) -->
+<div class="auth-modal" id="modal-auth" role="dialog" aria-modal="true" aria-labelledby="auth-title" hidden>
+  <div class="auth-backdrop" data-auth-cerrar></div>
+  <div class="auth-card">
+    <button type="button" class="auth-close" data-auth-cerrar aria-label="Cerrar">&times;</button>
+    <div class="auth-title" id="auth-title">Acceso a tu cuenta</div>
+    <div class="auth-tabs" role="tablist" aria-label="Tipo de acceso">
+      <button type="button" class="auth-tab is-active" id="tab-login" role="tab" aria-selected="true" aria-controls="form-auth" data-auth-tab="login">Iniciar sesión</button>
+      <button type="button" class="auth-tab" id="tab-registro" role="tab" aria-selected="false" aria-controls="form-auth" data-auth-tab="registro">Crear cuenta</button>
+    </div>
+    <form class="auth-form" id="form-auth" role="tabpanel" aria-labelledby="tab-login" novalidate>
+      <label class="auth-field">
+        <span>Usuario o correo</span>
+        <input class="auth-input" type="text" id="auth-email" name="email" autocomplete="username" autocapitalize="off" spellcheck="false" required>
+      </label>
+      <label class="auth-field">
+        <span>Contraseña</span>
+        <input class="auth-input" type="password" id="auth-password" name="password" autocomplete="current-password" required>
+      </label>
+      <label class="auth-field" data-auth-solo="registro" hidden>
+        <span>Repite la contraseña</span>
+        <input class="auth-input" type="password" id="auth-password2" name="password2" autocomplete="new-password">
+      </label>
+      <p class="auth-hint" data-auth-solo="registro" hidden>Mínimo 6 caracteres. Con tu cuenta se guarda tu progreso en la nube.</p>
+      <p class="auth-error" id="auth-error" role="alert" hidden></p>
+      <button type="submit" class="auth-submit" id="auth-submit">Entrar</button>
+    </form>
+  </div>
+</div>
+
 <script src="../../js/horario.js"></script>
-<script type="module" src="../../js/horario-cuenta.js"></script>
+<script type="module" src="../../js/firebase-init.js?v=3"></script>
+<script type="module" src="../../js/horario-cuenta.js?v=2"></script>
 
 </body>
 </html>
