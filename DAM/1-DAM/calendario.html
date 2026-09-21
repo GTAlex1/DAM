@@ -2,8 +2,9 @@
 <html lang="es" class="note-page page-calendario">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Calendario Escolar 2026-2027</title>
-<link rel="stylesheet" href="../../css/styles.css?v=7">
+<link rel="stylesheet" href="../../css/styles.css?v=8">
 </head>
 <body>
 
@@ -25,7 +26,15 @@
 </div>
 
 <h1>Calendario Escolar 2026-2027</h1>
-<p class="subtitle">I.E.S. Almunia · ESO, Bachillerato, FP · 178 días lectivos</p>
+<p class="subtitle">I.E.S. Almunia · 1º DAM / Formación Profesional · 178 días lectivos</p>
+
+<div class="cal-toolbar">
+  <p class="cal-aviso" id="avisoSesion" hidden>
+    Inicia sesión para añadir o editar exámenes y tareas. Sin sesión, las tareas que marques se guardan solo en este navegador.
+    <button type="button" class="cal-enlace" id="btnAcceder">Acceder</button>
+  </p>
+  <button type="button" class="cal-btn cal-btn-primario" id="btnNuevoEvento" hidden>+ Añadir examen o tarea</button>
+</div>
 
 <div class="mes-nav">
   <button id="mesAnterior" aria-label="Mes anterior">‹</button>
@@ -49,6 +58,7 @@
 </div>
 
 <div class="detalle" id="detalle"></div>
+<p class="cal-msg" id="msgCal" role="status" aria-live="polite" hidden></p>
 
 <h2>Próximos exámenes</h2>
 <div class="examenes-list" id="examenesList"></div>
@@ -61,6 +71,59 @@
 
 <h2>Fechas por determinar</h2>
 <ul class="notas-list" id="notasList"></ul>
+
+<!-- Modal para añadir / editar un examen o una tarea (lo gestiona calendario.js) -->
+<dialog class="cal-modal" id="modalEvento" aria-labelledby="modalEventoTitulo">
+  <form class="cal-form" id="formEvento" novalidate>
+    <div class="cal-modal-cab">
+      <h3 id="modalEventoTitulo">Añadir evento</h3>
+      <button type="button" class="cal-modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+    </div>
+
+    <div class="cal-tipo" id="grupoTipo" role="radiogroup" aria-label="Tipo de evento">
+      <label class="cal-tipo-op cal-tipo-op--examen"><input type="radio" name="tipo" value="examen" checked><span>Examen</span></label>
+      <label class="cal-tipo-op cal-tipo-op--tarea"><input type="radio" name="tipo" value="tarea"><span>Tarea</span></label>
+    </div>
+
+    <div class="cal-campos">
+      <label class="cal-campo">
+        <span>Fecha</span>
+        <input type="date" name="fecha" required>
+      </label>
+      <label class="cal-campo">
+        <span>Asignatura</span>
+        <select name="asignatura" required></select>
+      </label>
+      <label class="cal-campo cal-campo--ancho" id="campoOtra" hidden>
+        <span>Nombre de la asignatura</span>
+        <input type="text" name="asignaturaOtra" maxlength="60" autocomplete="off">
+      </label>
+      <label class="cal-campo cal-campo--ancho">
+        <span>Título</span>
+        <input type="text" name="titulo" maxlength="100" autocomplete="off" required placeholder="Ej. Examen UT1 / Entrega de la práctica">
+      </label>
+      <label class="cal-campo" data-solo="examen">
+        <span>Hora</span>
+        <input type="time" name="hora">
+      </label>
+      <label class="cal-campo" data-solo="examen">
+        <span>Lugar</span>
+        <input type="text" name="lugar" maxlength="60" autocomplete="off" placeholder="Ej. Aula 12">
+      </label>
+      <label class="cal-campo cal-campo--ancho" data-solo="examen">
+        <span>Temario / explicación detallada</span>
+        <textarea name="temario" rows="5" maxlength="1500" placeholder="Qué entra en el examen, qué hay que llevar…"></textarea>
+      </label>
+    </div>
+
+    <p class="cal-error" id="errorEvento" role="alert" hidden></p>
+
+    <div class="cal-modal-pie">
+      <button type="button" class="cal-btn" data-cerrar>Cancelar</button>
+      <button type="submit" class="cal-btn cal-btn-primario" id="btnGuardarEvento">Guardar</button>
+    </div>
+  </form>
+</dialog>
 
 <!-- Modal de acceso unificado (iniciar sesión / crear cuenta) -->
 <div class="auth-modal" id="modal-auth" role="dialog" aria-modal="true" aria-labelledby="auth-title" hidden>
@@ -92,8 +155,8 @@
   </div>
 </div>
 
-<script src="../../js/calendario.js"></script>
-<script type="module" src="../../js/firebase-init.js?v=3"></script>
+<!-- calendario.js es un módulo que importa firebase-init.js (sesión + Firestore): no hace falta cargarlo aparte. -->
+<script type="module" src="../../js/calendario.js?v=1"></script>
 
 </body>
 </html>

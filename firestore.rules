@@ -1,0 +1,153 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Solo tu usuario (el mismo UID de firebase-init.js) puede escribir en las
+    // colecciones "de administración". Comprobar solo request.auth != null NO
+    // basta: cualquiera puede crearse una cuenta desde la página.
+    function esPropietario() {
+      return request.auth != null
+          && request.auth.uid == "KxbZfGljpRdTIQlnOPDqjUs61v73";
+    }
+
+    // Documento único que guarda el orden de carpetas/archivos del árbol.
+    // Cualquiera puede leerlo (así todos los visitantes ven el orden
+    // personalizado), pero SOLO tu usuario autorizado puede escribirlo.
+    match /site/order {
+      allow read: if true;
+      allow write: if esPropietario();
+    }
+
+    // Metadatos de los apuntes (gestor #firebase-apuntes). Los archivos viven en
+    // Cloudinary; aquí solo se guarda su registro. Lectura pública.
+    //
+    // La escritura es SOLO del propietario (mismo UID que firebase-init.js).
+    // No basta con "request.auth != null": cualquiera puede crearse una cuenta
+    // desde la página y podría subir, mover o reordenar tus apuntes.
+    match /apuntes/{docId} {
+      allow read: if true;
+
+      // Crear: forma exacta que genera el JS. Ni campos extra, ni tipos raros,
+      // ni URLs que no sean de tu cuenta de Cloudinary, ni autor falsificado.
+      allow create: if esPropietario()
+        && request.resource.data.keys().hasOnly(['nombre', 'url', 'tipo', 'asignatura', 'orden', 'creado_por', 'fecha'])
+        && request.resource.data.keys().hasAll(['nombre', 'url', 'tipo', 'asignatura', 'orden', 'creado_por', 'fecha'])
+        && request.resource.data.nombre is string
+        && request.resource.data.nombre.size() > 0
+        && request.resource.data.nombre.size() <= 255
+        && request.resource.data.asignatura is string
+        && request.resource.data.asignatura.size() > 0
+        && request.resource.data.asignatura.size() <= 100
+        && request.resource.data.orden is int
+        && request.resource.data.orden >= 0
+        && request.resource.data.tipo in ['pdf', 'html']
+        && request.resource.data.url is string
+        && request.resource.data.url.matches('https://res[.]cloudinary[.]com/vagm1bzj/.*')
+        && request.resource.data.creado_por == request.auth.uid
+        && request.resource.data.fecha == request.time;
+
+      // Mover de asignatura y reordenar: solo pueden cambiar "asignatura" y
+      // "orden". Nombre, url, tipo, autor y fecha quedan inmutables.
+      allow update: if esPropietario()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['asignatura', 'orden'])
+        && request.resource.data.asignatura is string
+        && request.resource.data.asignatura.size() > 0
+        && request.resource.data.asignatura.size() <= 100
+        && request.resource.data.orden is int
+        && request.resource.data.orden >= 0;
+
+      allow delete: if esPropietario();
+    }
+
+    // ------------------------------------------------------------------
+    // CALENDARIO (calendario.html): exámenes y tareas de la clase.
+    // ------------------------------------------------------------------
+    // Lectura pública (como los apuntes). Crear: cualquier usuario con sesión
+    // (los alumnos usan cuentas normales; el admin también). Editar y borrar:
+    // solo quien creó el evento o el propietario (esPropietario). Las reglas
+    // fuerzan la forma exacta de los datos que escribe calendario.js.
+    function fechaIso(f) {
+      return f is string
+          && f.matches('^20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$');
+    }
+    function textoObligatorio(v, max) {
+      return v is string && v.size() > 0 && v.size() <= max;
+    }
+    function textoOpcional(v, max) {
+      return v is string && v.size() <= max;
+    }
+    // Campos editables + forma según el tipo. Los exámenes llevan siempre
+    // hora/lugar/temario (pueden ir vacíos); las tareas no los llevan.
+    function eventoValido(d) {
+      return d.keys().hasAll(['tipo', 'fecha', 'asignatura', 'titulo', 'creado_por', 'creado'])
+          && d.tipo in ['examen', 'tarea']
+          && fechaIso(d.fecha)
+          && textoObligatorio(d.asignatura, 60)
+          && textoObligatorio(d.titulo, 100)
+          && (d.tipo == 'examen'
+              ? d.keys().hasOnly(['tipo', 'fecha', 'asignatura', 'titulo', 'hora', 'lugar', 'temario', 'creado_por', 'creado'])
+                && d.keys().hasAll(['hora', 'lugar', 'temario'])
+                && d.hora is string
+                && (d.hora == '' || d.hora.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$'))
+                && textoOpcional(d.lugar, 60)
+                && textoOpcional(d.temario, 1500)
+              : d.keys().hasOnly(['tipo', 'fecha', 'asignatura', 'titulo', 'creado_por', 'creado']));
+    }
+
+    match /calendario_eventos/{eventoId} {
+      allow read: if true;
+
+      allow create: if request.auth != null
+        && eventoValido(request.resource.data)
+        && request.resource.data.creado_por == request.auth.uid
+        && request.resource.data.creado == request.time;
+
+      // El tipo, el autor y la fecha de creación son inmutables.
+      allow update: if request.auth != null
+        && (resource.data.creado_por == request.auth.uid || esPropietario())
+        && eventoValido(request.resource.data)
+        && request.resource.data.tipo == resource.data.tipo
+        && request.resource.data.creado_por == resource.data.creado_por
+        && request.resource.data.creado == resource.data.creado;
+
+      allow delete: if request.auth != null
+        && (resource.data.creado_por == request.auth.uid || esPropietario());
+    }
+
+    // Tareas marcadas como completadas: un documento por usuario, privado.
+    // { hechas: { <idTarea>: true }, actualizado: <timestamp> }
+    match /calendario_hechas/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['hechas', 'actualizado'])
+        && request.resource.data.hechas is map
+        && request.resource.data.hechas.size() <= 500
+        && request.resource.data.actualizado == request.time;
+
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Progreso de las apps de apuntes tipo "entornos-desarrollo.html"
+    // (una por curso/asignatura, identificada por su APP.sello). Cada
+    // usuario, sea quien sea (cualquiera puede crear una cuenta desde la
+    // propia página), solo puede leer y escribir SU PROPIO documento.
+    // Nadie puede leer ni tocar el progreso de otro compañero.
+    match /progreso/{sello}/usuarios/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Asignaturas convalidadas/aprobadas, marcadas desde horario.html.
+    // Es un dato personal del alumno (no depende de un curso concreto),
+    // así que va en su propio documento, uno por usuario.
+    match /convalidaciones/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Todo lo demás, bloqueado por defecto.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

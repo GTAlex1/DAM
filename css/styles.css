@@ -964,6 +964,99 @@ html.page-horario{
   display:flex; align-items:center; gap:6px;
 }
 
+/* ---------- Gestión de exámenes y tareas (botones, aviso, modal) ---------- */
+/* Las reglas con display propio anulan el atributo hidden: se le da prioridad. */
+.page-calendario [hidden]{ display:none !important; }
+
+.page-calendario .cal-toolbar{
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px;
+  margin:0 0 18px;
+}
+.page-calendario .cal-aviso{ margin:0; flex:1 1 280px; font-size:12.5px; line-height:1.55; color:var(--muted); }
+.page-calendario .cal-enlace{
+  font:inherit; padding:0; border:0; background:none; cursor:pointer;
+  color:#4fc1ff; text-decoration:underline; text-underline-offset:2px;
+}
+
+.page-calendario .cal-btn{
+  font:inherit; font-size:13px; line-height:1.2; padding:8px 14px; border-radius:6px;
+  border:1px solid #444; background:var(--panel); color:var(--fg); cursor:pointer;
+}
+.page-calendario .cal-btn:hover:not(:disabled){ background:#2f2f2f; border-color:#5a5a5a; }
+.page-calendario .cal-btn:disabled{ opacity:.55; cursor:default; }
+.page-calendario .cal-btn:focus-visible,
+.page-calendario .cal-enlace:focus-visible,
+.page-calendario .cal-modal-cerrar:focus-visible{ outline:2px solid var(--today-accent); outline-offset:2px; }
+.page-calendario .cal-btn-primario{ background:var(--today-accent); border-color:var(--today-accent); color:#123b34; font-weight:600; }
+.page-calendario .cal-btn-primario:hover:not(:disabled){ background:#63d9c1; border-color:#63d9c1; }
+.page-calendario .cal-btn-mini{ font-size:12px; padding:4px 10px; }
+.page-calendario .cal-btn-peligro{ color:#f48771; border-color:rgba(244,135,113,.5); }
+.page-calendario .cal-btn-peligro:hover:not(:disabled){ background:rgba(244,135,113,.14); border-color:#f48771; }
+.page-calendario .cal-btn-peligro[data-confirmar="1"]{ background:#f48771; border-color:#f48771; color:#2b0f09; font-weight:600; }
+.page-calendario .cal-btn-peligro[data-confirmar="1"]:hover:not(:disabled){ background:#f7a08f; border-color:#f7a08f; }
+
+/* Mensaje de resultado (guardado, borrado, errores de permisos…) */
+.page-calendario .cal-msg{
+  margin:12px 0 0; padding:9px 12px; border-radius:6px; font-size:12.5px; line-height:1.5;
+  border:1px solid var(--border); background:var(--panel);
+}
+.page-calendario .cal-msg[data-tipo="ok"]{ color:var(--today-accent); border-color:rgba(78,201,176,.45); background:rgba(78,201,176,.09); }
+.page-calendario .cal-msg[data-tipo="err"]{ color:#f48771; border-color:rgba(244,135,113,.45); background:rgba(244,135,113,.09); }
+
+/* Modal «Añadir / Editar evento» (<dialog>: foco y Esc los gestiona el navegador) */
+.page-calendario dialog.cal-modal{
+  padding:0; margin:auto; color-scheme:dark;
+  width:min(580px, calc(100% - 24px)); max-height:calc(100% - 24px);
+  background:var(--panel); color:var(--fg);
+  border:1px solid #3d3d3d; border-radius:10px; box-shadow:0 18px 50px rgba(0,0,0,.55);
+}
+.page-calendario dialog.cal-modal::backdrop{ background:rgba(0,0,0,.62); }
+.page-calendario .cal-form{ display:flex; flex-direction:column; gap:14px; padding:18px 20px 16px; }
+.page-calendario .cal-modal-cab{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.page-calendario .cal-modal-cab h3{
+  margin:0; font-family:"Cascadia Code",Consolas,monospace; font-size:16px; font-weight:600; color:#fff;
+}
+.page-calendario .cal-modal-cerrar{
+  width:30px; height:30px; border-radius:6px; border:1px solid transparent; background:none;
+  color:var(--muted); font-size:22px; line-height:1; cursor:pointer;
+}
+.page-calendario .cal-modal-cerrar:hover{ background:#2f2f2f; color:#fff; }
+
+/* Selector Examen / Tarea */
+.page-calendario .cal-tipo{ display:flex; gap:8px; }
+.page-calendario .cal-tipo-op{ position:relative; flex:1; cursor:pointer; }
+.page-calendario .cal-tipo-op input{ position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; }
+.page-calendario .cal-tipo-op span{
+  display:block; padding:9px 12px; text-align:center; font-size:13.5px; color:var(--muted);
+  background:#1e1e1e; border:1px solid #444; border-radius:6px;
+}
+.page-calendario .cal-tipo-op input:checked + span{ color:#fff; font-weight:600; }
+.page-calendario .cal-tipo-op--examen input:checked + span{ border-color:var(--c-examen); background:rgba(255,126,182,.14); }
+.page-calendario .cal-tipo-op--tarea input:checked + span{ border-color:var(--c-tarea); background:rgba(166,216,84,.14); }
+.page-calendario .cal-tipo-op input:focus-visible + span{ outline:2px solid var(--today-accent); outline-offset:2px; }
+
+/* Campos */
+.page-calendario .cal-campos{ display:grid; grid-template-columns:1fr 1fr; gap:12px 14px; }
+.page-calendario .cal-campo{ display:flex; flex-direction:column; gap:5px; min-width:0; font-size:12.5px; color:var(--muted); }
+.page-calendario .cal-campo--ancho{ grid-column:1 / -1; }
+.page-calendario .cal-campo input,
+.page-calendario .cal-campo select,
+.page-calendario .cal-campo textarea{
+  width:100%; font:inherit; font-size:14px; color:var(--fg);
+  background:#1e1e1e; border:1px solid #444; border-radius:6px; padding:8px 10px;
+}
+.page-calendario .cal-campo textarea{ min-height:96px; resize:vertical; line-height:1.45; }
+.page-calendario .cal-campo input:focus,
+.page-calendario .cal-campo select:focus,
+.page-calendario .cal-campo textarea:focus{ outline:2px solid var(--today-accent); outline-offset:0; border-color:var(--today-accent); }
+.page-calendario .cal-campo ::placeholder{ color:#6f6f6f; }
+
+.page-calendario .cal-error{
+  margin:0; padding:8px 10px; border-radius:6px; font-size:12.5px; line-height:1.5;
+  color:#f48771; background:rgba(244,135,113,.12); border:1px solid rgba(244,135,113,.4);
+}
+.page-calendario .cal-modal-pie{ display:flex; justify-content:flex-end; gap:8px; }
+
 /* ---------- Scrollbar oscura (el iframe tiene su propio documento) ---------- */
 
 /* ---------- Botón de modo edición (convalidadas) ---------- */
@@ -1086,14 +1179,20 @@ html.page-calendario{
 }
 .page-calendario .detalle .fecha{ font-family:"Cascadia Code",Consolas,monospace; font-size:13px; color:#fff; margin-bottom:8px; }
 .page-calendario .detalle .item{
-  display:flex; align-items:flex-start; gap:8px; font-size:13px; margin:6px 0; color:var(--fg);
+  display:flex; flex-wrap:wrap; align-items:flex-start; gap:6px 8px; font-size:13px; margin:8px 0; color:var(--fg);
 }
 .page-calendario .detalle .item .sw{ width:9px; height:9px; border-radius:3px; margin-top:4px; flex-shrink:0; }
 .page-calendario .detalle .vacio{ color:var(--muted); font-size:13px; }
 .page-calendario .estrella{ color:#ffd479; margin-left:4px; }
 
 /* Contenido de cada anotación del detalle */
-.page-calendario .detalle .item-cuerpo{ min-width:0; }
+.page-calendario .detalle .item-cuerpo{ min-width:0; flex:1 1 200px; }
+.page-calendario .detalle .item-titulo{ overflow-wrap:anywhere; }
+.page-calendario .detalle .detalle-cab{
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;
+}
+.page-calendario .detalle .detalle-cab .fecha{ margin-bottom:0; }
+.page-calendario .detalle .item-acciones{ display:flex; gap:6px; margin-left:auto; flex-shrink:0; }
 .page-calendario .detalle .meta-k{ color:var(--muted); margin-right:6px; }
 
 /* Examen: hora, lugar y temario */
@@ -1106,13 +1205,12 @@ html.page-calendario{
 }
 .page-calendario .detalle .item-explicacion .meta-k{ display:block; margin:0 0 1px; }
 
-/* Tarea: pendiente (destacada) o completada (atenuada y tachada) */
-.page-calendario .detalle .estado{
-  display:inline-block; margin-left:8px; padding:1px 8px; border-radius:10px;
-  border:1px solid var(--c-tarea); font-size:11px; font-weight:600; white-space:nowrap;
+/* Tarea: checkbox por usuario; completada = atenuada y tachada */
+.page-calendario .detalle .tarea-check{ display:flex; align-items:flex-start; gap:8px; cursor:pointer; }
+.page-calendario .detalle .tarea-check input{
+  width:16px; height:16px; margin:2px 0 0; flex-shrink:0; cursor:pointer; accent-color:var(--c-tarea); color-scheme:dark;
 }
-.page-calendario .detalle .estado-pendiente{ background:var(--c-tarea); color:#1a1a1a; }
-.page-calendario .detalle .estado-hecha{ background:rgba(166,216,84,0.14); color:var(--c-tarea); }
+.page-calendario .detalle .tarea-check input:focus-visible{ outline:2px solid var(--today-accent); outline-offset:2px; }
 .page-calendario .detalle .item-hecha .tarea-label{ text-decoration:line-through; opacity:.55; }
 
 /* ---------- Próximos exámenes ---------- */
@@ -1130,6 +1228,8 @@ html.page-calendario{
 .page-calendario .examen-item .e-label{ font-size:13.5px; }
 .page-calendario .examen-item .e-meta{ font-size:12px; color:var(--muted); }
 .page-calendario .examen-item .e-cuenta{ font-size:11.5px; color:var(--muted); flex-shrink:0; }
+.page-calendario .examen-item .e-cuenta.pronto{ color:var(--c-examen); font-weight:600; }
+.page-calendario .examen-item .e-label{ overflow-wrap:anywhere; }
 
 /* ---------- Próximos festivos ---------- */
 .page-calendario .festivos-list{ display:flex; flex-direction:column; gap:8px; }
@@ -1162,6 +1262,8 @@ html.page-calendario{
   .page-calendario .cal{ grid-template-columns:repeat(7, minmax(50px, 1fr)); }
   .page-calendario .cal-day{ min-height:52px; padding:4px 5px; }
   .page-calendario .etiqueta-mini{ display:none !important; }
+  .page-calendario .cal-campos{ grid-template-columns:1fr; }
+  .page-calendario .cal-form{ padding:16px 14px 14px; }
 }
 
 /* Colores de los cuadraditos de la leyenda y del detalle del día (antes style="background:..." en el HTML/JS) */
@@ -1173,6 +1275,7 @@ html.page-calendario{
 .page-calendario .sw-examen{ background:var(--c-examen); }
 .page-calendario .sw-tarea{ background:var(--c-tarea); }
 .page-calendario p.vacio{ color:var(--muted); }
+.page-calendario p.vacio-error{ color:#f48771; }
 
 
 /* ==========================================================================
