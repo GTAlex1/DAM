@@ -32,35 +32,23 @@ const mesesCurso = [
 const NOMBRES_MES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 // ---------- Eventos del curso ----------
-// tipo: festivo | vacaciones | hito | cultural | evaluacion | reunion | evento
-// dam:  true → el evento afecta a 1º/2º DAM (aunque comparta fecha con otros grupos).
-//       Con el filtro "Solo DAM" se muestran los eventos con dam:true y, siempre, los festivos y vacaciones.
-//       Sin la propiedad, es un evento genérico del instituto y el filtro lo oculta.
+// Solo se guardan los festivos, las vacaciones, el inicio/fin de curso, los días especiales y lo que afecta a DAM.
+// tipo: festivo | vacaciones | hito | cultural | evaluacion | examen | tarea
+//
+// Todos los eventos llevan  ini (y fin, opcional, si dura varios días), tipo y label.
+// Campos propios de cada tipo:
+//   examen → hora:'09:00', lugar:'Aula 12', explicacion:'Temario que entra'   (label: 'Asignatura — título')
+//   tarea  → completada: true | false                                        (ini = fecha de entrega)
 const eventos = [
   // Septiembre 2026
-  { ini: dia(2026,8,4),  tipo:'reunion',   label:'ETCP (planificación de curso)' },
-  { ini: dia(2026,8,8),  tipo:'reunion',   label:'Claustro (normas de funcionamiento, asignación de materias)' },
-  { ini: dia(2026,8,9),  tipo:'reunion',   label:'Reunión de tutores' },
-  { ini: dia(2026,8,10), tipo:'reunion',   label:'Reunión de equipos educativos NEAE' },
-  { ini: dia(2026,8,14), tipo:'reunion',   label:'Claustro (comienzo de curso)' },
   { ini: dia(2026,8,15), tipo:'hito',      label:'Comienzo de las clases' },
   { ini: dia(2026,8,24), tipo:'festivo',   label:'Día de la Merced (Ayto.)' },
-  { ini: dia(2026,8,28), tipo:'reunion',   label:'ETCP' },
-  { ini: dia(2026,8,30), tipo:'evento',    label:'Presentación de padres y madres' },
 
   // Octubre 2026
-  { ini: dia(2026,9,5), fin: dia(2026,9,7), tipo:'evaluacion', label:'Sesiones de evaluación inicial' },
   { ini: dia(2026,9,12), tipo:'festivo',   label:'Fiesta Nacional (Día del Pilar)' },
-  { ini: dia(2026,9,15), tipo:'reunion',   label:'Consejo Escolar (aprobación de cuentas)' },
-  { ini: dia(2026,9,21), tipo:'evento',    label:'Reunión Erasmus+' },
-  { ini: dia(2026,9,26), tipo:'reunion',   label:'ETCP' },
 
   // Noviembre 2026
   { ini: dia(2026,10,2), tipo:'festivo',   label:'Fiesta de Todos los Santos (traslado)' },
-  { ini: dia(2026,10,9), tipo:'reunion',   label:'Claustro (programaciones didácticas) y Consejo Escolar (planificación AACCE)' },
-  { ini: dia(2026,10,10), fin: dia(2026,10,12), tipo:'evaluacion', label:'Preevaluaciones ESO' },
-  { ini: dia(2026,10,10), fin: dia(2026,10,12), tipo:'evaluacion', label:'Seguimiento de pendientes' },
-  { ini: dia(2026,10,30), tipo:'reunion',  label:'ETCP' },
 
   // Diciembre 2026
   { ini: dia(2026,11,7), tipo:'festivo',   label:'Día de la Constitución' },
@@ -69,83 +57,54 @@ const eventos = [
   { ini: dia(2026,11,22), tipo:'evaluacion', label:'Publicación de notas en iPasen' },
   { ini: dia(2026,11,23), fin: dia(2027,0,10), tipo:'vacaciones', label:'Vacaciones de Navidad' },
 
-  // Enero 2027
-  { ini: dia(2027,0,11), tipo:'reunion',   label:'ETCP' },
-  { ini: dia(2027,0,11), fin: dia(2027,0,15), tipo:'evaluacion', label:'Exámenes de pendientes' },
-  { ini: dia(2027,0,18), tipo:'reunion',   label:'Claustro y Consejo Escolar — resultados 1ª evaluación' },
-
   // Febrero 2027
-  { ini: dia(2027,1,1),  tipo:'reunion',   label:'ETCP' },
-  { ini: dia(2027,1,9), fin: dia(2027,1,11), tipo:'evaluacion', label:'Preevaluaciones ESO' },
   { ini: dia(2027,1,25), fin: dia(2027,1,26), tipo:'cultural', label:'Jornadas culturales por el Día de Andalucía' },
 
   // Marzo 2027
   { ini: dia(2027,2,1),  tipo:'festivo',   label:'Día de Andalucía' },
-  { ini: dia(2027,2,8),  tipo:'reunion',   label:'ETCP' },
   { ini: dia(2027,2,15), fin: dia(2027,2,17), tipo:'evaluacion', label:'Sesiones 2ª evaluación' },
   { ini: dia(2027,2,19), tipo:'evaluacion', label:'Publicación de notas en iPasen' },
   { ini: dia(2027,2,20), fin: dia(2027,2,28), tipo:'vacaciones', label:'Vacaciones de Semana Santa' },
 
   // Abril 2027
-  { ini: dia(2027,3,5),  tipo:'reunion',   label:'ETCP' },
-  { ini: dia(2027,3,12), fin: dia(2027,3,16), tipo:'evaluacion', label:'Exámenes de pendientes' },
-  { ini: dia(2027,3,12), tipo:'reunion',   label:'Claustro y Consejo Escolar — resultados 2ª evaluación' },
   { ini: dia(2027,3,26), tipo:'festivo',   label:'Feria de Jerez (Ayto.)' },
   { ini: dia(2027,3,30), tipo:'hito',      label:'Día de la Comunidad Educativa' },
 
   // Mayo 2027
-  { ini: dia(2027,4,4), fin: dia(2027,4,6), tipo:'evaluacion', label:'Preevaluaciones ESO' },
-  { ini: dia(2027,4,10), tipo:'reunion',   label:'ETCP' },
-  { ini: dia(2027,4,18), fin: dia(2027,4,21), tipo:'evaluacion', label:'Exámenes finales de 2º Bachillerato' },
-  { ini: dia(2027,4,24), tipo:'evaluacion', label:'Sesión de evaluación ordinaria de 2º Bachillerato' },
-  { ini: dia(2027,4,24), tipo:'evaluacion', label:'Sesión de evaluación FINAL de FP — 2º DAM', dam:true },
-  { ini: dia(2027,4,25), tipo:'evaluacion', label:'Publicación de notas de 2º Bachillerato y 2º DAM', dam:true },
+  { ini: dia(2027,4,24), tipo:'evaluacion', label:'Sesión de evaluación FINAL de FP — 2º DAM' },
+  { ini: dia(2027,4,25), tipo:'evaluacion', label:'Publicación de notas de 2º Bachillerato y 2º DAM' },
 
   // Junio 2027
-  { ini: dia(2027,5,3),  tipo:'evaluacion', label:'Sesiones evaluación FINAL FP (1º/2º ACOM, 1º/2º SMR, 1ª FINAL 1º/2º CFGB)' },
-  { ini: dia(2027,5,4),  tipo:'evaluacion', label:'Publicación de notas en iPasen' },
-  { ini: dia(2027,5,7),  tipo:'reunion',   label:'ETCP' },
-  { ini: dia(2027,5,9), fin: dia(2027,5,11), tipo:'evaluacion', label:'Exámenes pendientes 2º Bachillerato' },
-  { ini: dia(2027,5,10), tipo:'evaluacion', label:'Evaluación FINAL de FP — 1º DAM', propia:true, dam:true },
-  { ini: dia(2027,5,11), tipo:'evaluacion', label:'Publicación de notas en iPasen', dam:true }, // notas de la evaluación de 1º DAM del día 10
-  { ini: dia(2027,5,16), fin: dia(2027,5,18), tipo:'evaluacion', label:'Exámenes de 2º Bach. — evaluación extraordinaria' },
-  { ini: dia(2027,5,21), tipo:'evaluacion', label:'Examen de 2º Bach. — evaluación extraordinaria' },
+  { ini: dia(2027,5,10), tipo:'evaluacion', label:'Evaluación FINAL de FP — 1º DAM', propia:true },
+  { ini: dia(2027,5,11), tipo:'evaluacion', label:'Publicación de notas en iPasen' },
   { ini: dia(2027,5,23), tipo:'hito',      label:'Último día lectivo' },
-  { ini: dia(2027,5,23), fin: dia(2027,5,24), tipo:'evaluacion', label:'Sesiones eval. ordinaria ESO/1ºBach.; extraordinaria 2ºBach.; final 2ª FP de Ciclos' },
-  { ini: dia(2027,5,24), tipo:'evaluacion', label:'Publicación de notas en iPasen' },
-  { ini: dia(2027,5,25), tipo:'evento',    label:'Plazo de reclamaciones' },
-  { ini: dia(2027,5,28), tipo:'evento',    label:'Plazo de reclamaciones' },
-  { ini: dia(2027,5,29), tipo:'reunion',   label:'Claustro y Consejo Escolar — resultados evaluación ordinaria' },
+
+  // ---------- Exámenes y tareas ----------
+  // ⚠ EJEMPLOS con datos inventados: sustitúyelos o bórralos y añade los tuyos.
+  { ini: dia(2026,8,28), tipo:'tarea',  label:'Entornos de desarrollo — Informe de instalación del IDE (ejemplo)', completada:true },
+  { ini: dia(2026,9,5),  tipo:'tarea',  label:'Programación — Entrega de ejercicios UT1 (ejemplo)', completada:false },
+  { ini: dia(2026,9,8),  tipo:'examen', label:'Programación — Examen UT1 (ejemplo)',
+    hora:'09:00', lugar:'Aula 12',
+    explicacion:'Sintaxis básica de Java, variables y tipos de datos,\nestructuras de control y arrays.' },
+  { ini: dia(2026,9,8),  tipo:'tarea',  label:'Lenguajes de marcas — Entrega de la práctica de HTML (ejemplo)', completada:false },
+  { ini: dia(2026,9,22), tipo:'examen', label:'Bases de datos — Examen del modelo E/R (ejemplo)',
+    hora:'11:30', lugar:'Laboratorio 2',
+    explicacion:'Modelo entidad-relación, paso a modelo relacional y normalización hasta 3FN.' },
 ];
 
 const notasSinFecha = [
-  { texto: 'Viaje de estudios de 2º Bachillerato — por determinar',        dam: false },
-  { texto: 'Viaje lingüístico de 4º ESO — por determinar',                 dam: false },
-  { texto: 'Acto de graduación de 2º Bachillerato — pendiente de fecha',   dam: false },
-  { texto: 'Acto de graduación de Ciclos y 4º ESO — pendiente de fecha',   dam: true  },
+  'Acto de graduación de Ciclos y 4º ESO — pendiente de fecha',
 ];
 
 // Expande cada evento a su lista concreta de días (para pintar la rejilla)
 eventos.forEach(e => { e.dias = rango(e.ini, e.fin || e.ini); });
 
-// Prioridad de color de fondo de celda (solo los tipos "grandes" tiñen la celda entera)
+// Prioridad de color de fondo de celda (solo los tipos "grandes" tiñen la celda entera;
+// evaluacion, examen y tarea se dibujan como puntos)
 const PRIORIDAD_FONDO = ['festivo', 'vacaciones', 'hito', 'cultural'];
 
-// ---------- Filtro "Solo DAM" ----------
-const filtroDamEl = document.getElementById('filtroDam');
-// Se lee del checkbox por si el navegador lo restaura marcado al recargar la página.
-let soloDAM = filtroDamEl.checked;
-
-// Tipos que se muestran SIEMPRE, con o sin el filtro "Solo DAM" (saber cuándo es fiesta importa igual)
-const TIPOS_SIEMPRE_VISIBLES = ['festivo', 'vacaciones'];
-
-// ¿Debe mostrarse este evento (o nota) con el filtro actual?
-function visible(e) {
-  return !soloDAM || e.dam === true || TIPOS_SIEMPRE_VISIBLES.includes(e.tipo);
-}
-
 function eventosDelDia(fecha) {
-  return eventos.filter(e => visible(e) && e.dias.some(d => mismoDia(d, fecha)));
+  return eventos.filter(e => e.dias.some(d => mismoDia(d, fecha)));
 }
 
 // ---------- Estado: mes mostrado ----------
@@ -193,7 +152,10 @@ function pintaMes() {
 
     const etiquetaMini = tipoFondo
       ? `<div class="etiqueta-mini">${evs.find(e => e.tipo === tipoFondo).label}</div>` : '';
-    const dots = otros.slice(0, 4).map(e => `<span class="cal-dot dot-${e.tipo}"></span>`).join('');
+    // Las tareas ya completadas se pintan atenuadas (clase "hecha")
+    const dots = otros.slice(0, 4).map(e =>
+      `<span class="cal-dot dot-${e.tipo}${e.tipo === 'tarea' && e.completada ? ' hecha' : ''}"></span>`
+    ).join('');
 
     html += `<div class="${clases.join(' ')}" data-fecha="${fecha.toISOString()}">
       <div class="num">${d}</div>
@@ -212,16 +174,43 @@ function pintaMes() {
   });
 }
 
+// ---------- Panel de detalle del día ----------
+// Un dato "Etiqueta valor"; si el valor no existe no se pinta nada
+function campo(etiqueta, valor) {
+  return valor ? `<span><span class="meta-k">${etiqueta}</span>${valor}</span>` : '';
+}
+
+function htmlItemDetalle(e) {
+  const sw = `<span class="sw sw-${e.tipo}"></span>`;
+
+  if (e.tipo === 'examen') {
+    const meta = campo('Hora', e.hora) + campo('Lugar', e.lugar);
+    return `<div class="item">${sw}<div class="item-cuerpo">
+      <div>${e.label}</div>
+      ${meta ? `<div class="item-meta">${meta}</div>` : ''}
+      ${e.explicacion ? `<div class="item-explicacion"><span class="meta-k">Temario</span>${e.explicacion}</div>` : ''}
+    </div></div>`;
+  }
+
+  if (e.tipo === 'tarea') {
+    const estado = e.completada
+      ? '<span class="estado estado-hecha">✓ Completada</span>'
+      : '<span class="estado estado-pendiente">Pendiente</span>';
+    return `<div class="item${e.completada ? ' item-hecha' : ''}">${sw}<div class="item-cuerpo">
+      <span class="tarea-label">${e.label}</span>${estado}
+    </div></div>`;
+  }
+
+  const estrella = e.propia ? '<span class="estrella" title="Tu evaluación">★</span>' : '';
+  return `<div class="item">${sw}<div class="item-cuerpo">${e.label}${estrella}</div></div>`;
+}
+
 function pintaDetalle() {
   const evs = eventosDelDia(fechaSeleccionada);
   let html = `<div class="fecha">${formatoLargo(fechaSeleccionada)}</div>`;
-  if (!evs.length) {
-    html += `<div class="vacio">${soloDAM ? 'Sin anotaciones de DAM para este día.' : 'Sin anotaciones para este día.'}</div>`;
-  } else {
-    evs.forEach(e => {
-      html += `<div class="item"><span class="sw sw-${e.tipo}"></span>${e.label}${e.propia ? '<span class="estrella" title="Tu evaluación">★</span>' : ''}</div>`;
-    });
-  }
+  html += evs.length
+    ? evs.map(htmlItemDetalle).join('')
+    : `<div class="vacio">Sin anotaciones para este día.</div>`;
   detalleEl.innerHTML = html;
 }
 
@@ -231,34 +220,54 @@ btnSiguiente.addEventListener('click', () => { if (idxMes < mesesCurso.length - 
 pintaMes();
 pintaDetalle();
 
-// ---------- Próximos 5 festivos (festivo + vacaciones), aunque sean de otro mes ----------
+// ---------- Utilidades de las listas "Próximos ..." ----------
+const inicioHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+
 function diasHasta(fecha) {
-  const ms = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate())
-    - new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+  const ms = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()) - inicioHoy;
   return Math.round(ms / 86400000);
 }
+function textoRango(e) {
+  return e.fin ? `${formatoCorto(e.ini)} – ${formatoCorto(e.fin)}` : formatoCorto(e.ini);
+}
+function textoCuenta(e) {
+  const n = diasHasta(e.ini);
+  return n === 0 ? 'hoy' : n === 1 ? 'mañana' : n < 0 ? 'en curso' : `en ${n} días`;
+}
+
+// ---------- Próximos exámenes ----------
+const examenes = eventos
+  .filter(e => e.tipo === 'examen')
+  .filter(e => (e.fin || e.ini) >= inicioHoy)
+  .sort((a, b) => a.ini - b.ini || (a.hora || '').localeCompare(b.hora || ''));
+
+const examenesListEl = document.getElementById('examenesList');
+examenesListEl.innerHTML = examenes.map(e => {
+  const meta = [e.hora, e.lugar].filter(Boolean).join(' · ');
+  return `<div class="examen-item">
+    <span class="e-fecha">${textoRango(e)}</span>
+    <span class="e-info">
+      <span class="e-label">${e.label}</span>
+      ${meta ? `<span class="e-meta">${meta}</span>` : ''}
+    </span>
+    <span class="e-cuenta">${textoCuenta(e)}</span>
+  </div>`;
+}).join('') || `<p class="vacio">No hay exámenes próximos anotados.</p>`;
+
+// ---------- Próximos 5 festivos (festivo + vacaciones), aunque sean de otro mes ----------
+const festivos = eventos
+  .filter(e => e.tipo === 'festivo' || e.tipo === 'vacaciones')
+  .filter(e => (e.fin || e.ini) >= inicioHoy)
+  .sort((a, b) => a.ini - b.ini)
+  .slice(0, 5);
 
 const festivosListEl = document.getElementById('festivosList');
-
-function pintaFestivos() {
-  const festivos = eventos
-    .filter(visible)
-    .filter(e => e.tipo === 'festivo' || e.tipo === 'vacaciones')
-    .filter(e => (e.fin || e.ini) >= new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()))
-    .sort((a, b) => a.ini - b.ini)
-    .slice(0, 5);
-
-  festivosListEl.innerHTML = festivos.map(e => {
-    const rangoTexto = e.fin ? `${formatoCorto(e.ini)} – ${formatoCorto(e.fin)}` : formatoCorto(e.ini);
-    const n = diasHasta(e.ini);
-    const cuenta = n === 0 ? 'hoy' : n === 1 ? 'mañana' : `en ${n} días`;
-    return `<div class="festivo-item tipo-${e.tipo}">
-      <span class="f-fecha">${rangoTexto}</span>
-      <span class="f-label">${e.label}</span>
-      <span class="f-cuenta">${cuenta}</span>
-    </div>`;
-  }).join('') || `<p class="vacio">No quedan más festivos en lo que resta de curso.</p>`;
-}
+festivosListEl.innerHTML = festivos.map(e => `<div class="festivo-item tipo-${e.tipo}">
+    <span class="f-fecha">${textoRango(e)}</span>
+    <span class="f-label">${e.label}</span>
+    <span class="f-cuenta">${textoCuenta(e)}</span>
+  </div>`
+).join('') || `<p class="vacio">No quedan más festivos en lo que resta de curso.</p>`;
 
 // ---------- Tabla de días lectivos ----------
 const tabla = document.getElementById('tablaLectivos');
@@ -269,28 +278,4 @@ tabla.innerHTML = `
 `;
 
 // ---------- Notas sin fecha ----------
-const notasListEl = document.getElementById('notasList');
-
-function pintaNotas() {
-  const notas = notasSinFecha.filter(visible);
-  notasListEl.innerHTML = notas.length
-    ? notas.map(n => `<li>${n.texto}</li>`).join('')
-    : `<li>Ninguna fecha pendiente es específica de DAM.</li>`;
-}
-
-// ---------- Interruptor "Solo DAM": repinta todo lo que depende de los eventos ----------
-function repinta() {
-  pintaMes();
-  pintaDetalle();
-  pintaFestivos();
-  pintaNotas();
-}
-
-filtroDamEl.addEventListener('change', () => {
-  soloDAM = filtroDamEl.checked;
-  repinta();
-});
-
-// Primer pintado de las secciones que aún no se habían dibujado
-pintaFestivos();
-pintaNotas();
+document.getElementById('notasList').innerHTML = notasSinFecha.map(n => `<li>${n}</li>`).join('');

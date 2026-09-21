@@ -865,7 +865,7 @@ html.page-calendario{
   --bg:#1e1e1e; --panel:#252526; --fg:#d4d4d4; --muted:#9a9a9a;
   --border:#333; --header:#2d2d2d; --today-accent:#4ec9b0;
   --c-festivo:#f14c4c; --c-vacaciones:#4a9eff; --c-hito:#e6a23c;
-  --c-cultural:#c586c0; --c-evaluacion:#4ec9b0; --c-reunion:#569cd6; --c-evento:#9a9a9a;
+  --c-cultural:#c586c0; --c-evaluacion:#4ec9b0; --c-examen:#ff7eb6; --c-tarea:#a6d854;
 }
 .page-calendario body{
   background:var(--bg); color:var(--fg);
@@ -883,42 +883,6 @@ html.page-calendario{
   font-family:"Cascadia Code",Consolas,monospace;
   font-size:17px; color:#4fc1ff;
   margin:40px 0 12px;
-}
-
-/* ---------- Filtro "Solo DAM" (interruptor) ---------- */
-.page-calendario .filtros{ display:flex; justify-content:flex-end; margin:0 0 16px; }
-.page-calendario .filtro-dam{
-  position:relative;
-  display:inline-flex; align-items:center; gap:10px;
-  cursor:pointer; user-select:none;
-  font-size:12.5px; color:var(--muted);
-}
-/* El checkbox real sigue en el DOM (teclado + lectores de pantalla) pero no se ve */
-.page-calendario .filtro-dam-input{ position:absolute; opacity:0; width:1px; height:1px; margin:0; }
-.page-calendario .filtro-dam-switch{
-  position:relative; flex-shrink:0;
-  width:34px; height:18px; border-radius:9px;
-  background:var(--header); border:1px solid var(--border);
-  transition:background .15s, border-color .15s;
-}
-.page-calendario .filtro-dam-switch::after{
-  content:""; position:absolute; top:2px; left:2px;
-  width:12px; height:12px; border-radius:50%;
-  background:var(--muted);
-  transition:transform .15s, background .15s;
-}
-.page-calendario .filtro-dam:hover .filtro-dam-switch{ border-color:#4a4a4a; }
-.page-calendario .filtro-dam-input:checked + .filtro-dam-switch{
-  background:rgba(78,201,176,0.25); border-color:var(--today-accent);
-}
-.page-calendario .filtro-dam-input:checked + .filtro-dam-switch::after{
-  transform:translateX(16px); background:var(--today-accent);
-}
-.page-calendario .filtro-dam-input:checked ~ .filtro-dam-texto{ color:#fff; }
-.page-calendario .filtro-dam-input:focus-visible + .filtro-dam-switch{ outline:2px solid #4fc1ff; outline-offset:2px; }
-@media (prefers-reduced-motion: reduce){
-  .page-calendario .filtro-dam-switch,
-  .page-calendario .filtro-dam-switch::after{ transition:none; }
 }
 
 /* ---------- Navegación de mes ---------- */
@@ -972,9 +936,10 @@ html.page-calendario{
 .page-calendario .cal-dots{ display:flex; gap:3px; flex-wrap:wrap; margin-top:auto; }
 .page-calendario .cal-dot{ width:6px; height:6px; border-radius:50%; flex-shrink:0; }
 .page-calendario .dot-evaluacion{ background:var(--c-evaluacion); }
-.page-calendario .dot-reunion{ background:var(--c-reunion); }
-.page-calendario .dot-evento{ background:var(--c-evento); }
 .page-calendario .dot-cultural{ background:var(--c-cultural); }
+.page-calendario .dot-examen{ background:var(--c-examen); }
+.page-calendario .dot-tarea{ background:var(--c-tarea); }
+.page-calendario .dot-tarea.hecha{ opacity:.35; }
 
 .page-calendario .cal-day .etiqueta-mini{
   font-size:9px; color:#fff; line-height:1.15; opacity:.85;
@@ -999,6 +964,45 @@ html.page-calendario{
 .page-calendario .detalle .item .sw{ width:9px; height:9px; border-radius:3px; margin-top:4px; flex-shrink:0; }
 .page-calendario .detalle .vacio{ color:var(--muted); font-size:13px; }
 .page-calendario .estrella{ color:#ffd479; margin-left:4px; }
+
+/* Contenido de cada anotación del detalle */
+.page-calendario .detalle .item-cuerpo{ min-width:0; }
+.page-calendario .detalle .meta-k{ color:var(--muted); margin-right:6px; }
+
+/* Examen: hora, lugar y temario */
+.page-calendario .detalle .item-meta{
+  display:flex; flex-wrap:wrap; gap:2px 18px; margin-top:3px; font-size:12.5px;
+}
+.page-calendario .detalle .item-explicacion{
+  margin-top:5px; font-size:12.5px; line-height:1.5; color:var(--muted);
+  white-space:pre-line;
+}
+.page-calendario .detalle .item-explicacion .meta-k{ display:block; margin:0 0 1px; }
+
+/* Tarea: pendiente (destacada) o completada (atenuada y tachada) */
+.page-calendario .detalle .estado{
+  display:inline-block; margin-left:8px; padding:1px 8px; border-radius:10px;
+  border:1px solid var(--c-tarea); font-size:11px; font-weight:600; white-space:nowrap;
+}
+.page-calendario .detalle .estado-pendiente{ background:var(--c-tarea); color:#1a1a1a; }
+.page-calendario .detalle .estado-hecha{ background:rgba(166,216,84,0.14); color:var(--c-tarea); }
+.page-calendario .detalle .item-hecha .tarea-label{ text-decoration:line-through; opacity:.55; }
+
+/* ---------- Próximos exámenes ---------- */
+.page-calendario .examenes-list{ display:flex; flex-direction:column; gap:8px; }
+.page-calendario .examen-item{
+  display:flex; flex-wrap:wrap; align-items:center; gap:12px;
+  background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--c-examen);
+  border-radius:6px; padding:10px 14px;
+}
+.page-calendario .examen-item .e-fecha{
+  font-family:"Cascadia Code",Consolas,monospace; font-size:12.5px; color:#fff;
+  min-width:150px; flex-shrink:0;
+}
+.page-calendario .examen-item .e-info{ flex:1 1 200px; display:flex; flex-direction:column; gap:2px; min-width:0; }
+.page-calendario .examen-item .e-label{ font-size:13.5px; }
+.page-calendario .examen-item .e-meta{ font-size:12px; color:var(--muted); }
+.page-calendario .examen-item .e-cuenta{ font-size:11.5px; color:var(--muted); flex-shrink:0; }
 
 /* ---------- Próximos festivos ---------- */
 .page-calendario .festivos-list{ display:flex; flex-direction:column; gap:8px; }
@@ -1039,8 +1043,8 @@ html.page-calendario{
 .page-calendario .sw-hito{ background:var(--c-hito); }
 .page-calendario .sw-cultural{ background:var(--c-cultural); }
 .page-calendario .sw-evaluacion{ background:var(--c-evaluacion); }
-.page-calendario .sw-reunion{ background:var(--c-reunion); }
-.page-calendario .sw-evento{ background:var(--c-evento); }
+.page-calendario .sw-examen{ background:var(--c-examen); }
+.page-calendario .sw-tarea{ background:var(--c-tarea); }
 .page-calendario p.vacio{ color:var(--muted); }
 
 
