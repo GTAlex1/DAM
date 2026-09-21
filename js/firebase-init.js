@@ -21,12 +21,17 @@
 // 8. Edita la lista ASIGNATURAS del módulo (más abajo) con tus asignaturas.
 // 9. El módulo tiene dos modos según los atributos de #firebase-apuntes
 //    (ver el comentario del módulo): página de asignatura y vista general.
+// 10. El registro es abierto: cualquiera puede crear cuenta desde el modal de
+//    acceso (#modal-auth). Eso NO da permisos de gestión: solo AUTHORIZED_UID
+//    (aquí) y esPropietario() (rules.firebase) pueden escribir orden y apuntes.
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
   getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
   signOut,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
@@ -71,8 +76,71 @@ export function watchAuth(callback) {
   onAuthStateChanged(auth, callback);
 }
 
-export async function login(email, password) {
+/* ---------- Acceso: «usuario o correo» ---------- */
+// Firebase Auth exige un email. Los alumnos que se registraron con un simple
+// nombre de usuario (Entornos de Desarrollo, horario) tienen internamente un
+// correo ficticio <usuario>@alumnos.dam-notes.local que nunca se muestra.
+// Si lo escrito lleva «@» se usa tal cual (correo real, p. ej. el admin); si no,
+// se convierte igual que antes, para no romper las cuentas ya creadas.
+const DOMINIO_USUARIO = "alumnos.dam-notes.local";
+
+function identificadorAEmail(bruto) {
+  const v = (bruto || "").trim();
+  if (v.includes("@")) return v.toLowerCase();
+  const u = v.toLowerCase().replace(/[^a-z0-9._-]/g, "");
+  return u ? `${u}@${DOMINIO_USUARIO}` : null;
+}
+
+/** Nombre que se enseña en el header: displayName, o el correo real, o el usuario. */
+export function nombreVisible(user) {
+  if (!user) return "";
+  if (user.displayName) return user.displayName;
+  const email = user.email || "";
+  return email.endsWith(`@${DOMINIO_USUARIO}`) ? email.split("@")[0] : email;
+}
+
+function mensajeErrorAuth(code) {
+  const m = {
+    "auth/invalid-email": "Usuario o correo no válido (un usuario solo admite letras, números, puntos, guiones y guiones bajos).",
+    "auth/user-not-found": "No existe ninguna cuenta con esos datos.",
+    "auth/wrong-password": "Contraseña incorrecta.",
+    "auth/invalid-credential": "Usuario o contraseña incorrectos.",
+    "auth/email-already-in-use": "Ese usuario o correo ya tiene cuenta. Prueba a iniciar sesión.",
+    "auth/weak-password": "La contraseña necesita al menos 6 caracteres.",
+    "auth/too-many-requests": "Demasiados intentos. Espera un momento y vuelve a probar.",
+    "auth/network-request-failed": "Sin conexión. Revisa tu red e inténtalo de nuevo.",
+    "auth/user-disabled": "Esta cuenta está deshabilitada.",
+    "auth/operation-not-allowed": "El acceso con correo y contraseña no está activado en Firebase.",
+  };
+  return m[code] || "Algo ha fallado. Inténtalo de nuevo.";
+}
+
+function errorAuth(code) {
+  return Object.assign(new Error(code), { code });
+}
+
+/** Inicia sesión. `identificador` es un correo o un nombre de usuario. */
+export async function login(identificador, password) {
+  const email = identificadorAEmail(identificador);
+  if (!email) throw errorAuth("auth/invalid-email");
   await signInWithEmailAndPassword(auth, email, password);
+}
+
+/** Crea una cuenta (abierta a cualquiera) y deja la sesión iniciada. */
+export async function register(identificador, password) {
+  const bruto = (identificador || "").trim();
+  const email = identificadorAEmail(bruto);
+  if (!email) throw errorAuth("auth/invalid-email");
+  const cred = await createUserWithEmailAndPassword(auth, email, password);
+  // Con nombre de usuario (sin «@») se guarda tal cual lo escribió el alumno.
+  if (!bruto.includes("@")) {
+    try {
+      await updateProfile(cred.user, { displayName: bruto });
+    } catch (e) {
+      console.warn("No se pudo guardar el nombre de usuario:", e);
+    }
+  }
+  return cred.user;
 }
 
 export async function logout() {
@@ -95,6 +163,197 @@ export async function saveOrderForPath(pathKey, orderedNames) {
   await setDoc(ORDER_DOC, { [pathKey]: orderedNames }, { merge: true });
 }
 
+
+/* ==========================================================================
+   MÓDULO DE ACCESO  (modal unificado de inicio de sesión / registro)
+
+   Único punto de entrada a la cuenta en todas las páginas. Cada página incluye
+   el mismo marcado:
+
+     #auth-header       contenedor del header (data-estado: cargando|anonimo|sesion)
+     #btn-auth-trigger  botón «Acceder» (visible solo SIN sesión)
+     #auth-user         icono + nombre + #btn-auth-logout (visible solo CON sesión)
+     #modal-auth        diálogo con las pestañas «Iniciar sesión» / «Crear cuenta»
+
+   Si una página no incluye ese marcado, este bloque no hace nada.
+   ========================================================================== */
+
+function initAuthUI() {
+  const modal = document.getElementById("modal-auth");
+  const trigger = document.getElementById("btn-auth-trigger");
+  if (!modal || !trigger || modal.dataset.authInit) return;
+  modal.dataset.authInit = "1";
+
+  // Dentro de un iframe (p. ej. una nota cargada por la app) manda el header de
+  // la página contenedora: aquí no se duplica el acceso.
+  if (window.self !== window.top) {
+    document.documentElement.classList.add("auth-embebido");
+    return;
+  }
+
+  const header = document.getElementById("auth-header");
+  const boxUser = document.getElementById("auth-user");
+  const nombreEl = document.getElementById("auth-user-name");
+  const rolEl = document.getElementById("auth-user-rol");
+  const btnLogout = document.getElementById("btn-auth-logout");
+  const form = modal.querySelector("#form-auth");
+  const campoUsuario = modal.querySelector("#auth-email");
+  const campoPass = modal.querySelector("#auth-password");
+  const campoPass2 = modal.querySelector("#auth-password2");
+  const errorEl = modal.querySelector("#auth-error");
+  const submit = modal.querySelector("#auth-submit");
+  const tabs = [...modal.querySelectorAll("[data-auth-tab]")];
+  const soloRegistro = [...modal.querySelectorAll('[data-auth-solo="registro"]')];
+
+  let modo = "login"; // "login" | "registro"
+  let enviando = false;
+
+  const mostrarError = (msg) => {
+    errorEl.textContent = msg;
+    errorEl.hidden = !msg;
+  };
+
+  function setModo(nuevo) {
+    modo = nuevo;
+    const reg = modo === "registro";
+    for (const t of tabs) {
+      const activa = t.dataset.authTab === modo;
+      t.classList.toggle("is-active", activa);
+      t.setAttribute("aria-selected", String(activa));
+    }
+    form.setAttribute("aria-labelledby", reg ? "tab-registro" : "tab-login");
+    for (const n of soloRegistro) n.hidden = !reg;
+    campoPass2.required = reg;
+    campoPass.autocomplete = reg ? "new-password" : "current-password";
+    submit.textContent = reg ? "Crear cuenta" : "Entrar";
+    mostrarError("");
+  }
+
+  function abrir(modoInicial = "login") {
+    setModo(modoInicial);
+    modal.hidden = false;
+    document.documentElement.classList.add("auth-bloqueo");
+    campoUsuario.focus();
+  }
+
+  function cerrar() {
+    if (modal.hidden) return;
+    modal.hidden = true;
+    document.documentElement.classList.remove("auth-bloqueo");
+    form.reset();
+    mostrarError("");
+    (trigger.hidden ? btnLogout : trigger).focus();
+  }
+
+  /** Mantiene el foco del teclado dentro del diálogo mientras está abierto. */
+  function trampaFoco(e) {
+    const f = [...modal.querySelectorAll("button, input")].filter(
+      (n) => !n.disabled && n.getClientRects().length > 0
+    );
+    if (!f.length) return;
+    const primero = f[0];
+    const ultimo = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === primero) {
+      e.preventDefault();
+      ultimo.focus();
+    } else if (!e.shiftKey && document.activeElement === ultimo) {
+      e.preventDefault();
+      primero.focus();
+    }
+  }
+
+  trigger.addEventListener("click", () => abrir("login"));
+  modal.addEventListener("click", (e) => {
+    if (e.target.closest("[data-auth-cerrar]")) cerrar();
+  });
+  for (const t of tabs) {
+    t.addEventListener("click", () => {
+      setModo(t.dataset.authTab);
+      campoUsuario.focus();
+    });
+  }
+  // En fase de captura y con stopPropagation: así el Esc que cierra el modal no
+  // llega también a los atajos globales de la página (p. ej. «cerrar pestaña»).
+  document.addEventListener(
+    "keydown",
+    (e) => {
+      if (modal.hidden) return;
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        cerrar();
+      } else if (e.key === "Tab") {
+        trampaFoco(e);
+      }
+    },
+    true
+  );
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (enviando) return;
+    const usuario = campoUsuario.value.trim();
+    const pass = campoPass.value;
+    if (!usuario) return mostrarError("Escribe tu usuario o correo.");
+    if (!pass) return mostrarError("Escribe la contraseña.");
+    if (modo === "registro") {
+      if (pass.length < 6) return mostrarError("La contraseña necesita al menos 6 caracteres.");
+      if (pass !== campoPass2.value) return mostrarError("Las contraseñas no coinciden.");
+    }
+
+    enviando = true;
+    submit.disabled = true;
+    mostrarError("");
+    try {
+      if (modo === "registro") await register(usuario, pass);
+      else await login(usuario, pass);
+      cerrar();
+      pintar(auth.currentUser); // refresca el nombre tras updateProfile()
+    } catch (err) {
+      console.warn("Acceso fallido:", err?.code || err);
+      mostrarError(mensajeErrorAuth(err?.code));
+    } finally {
+      enviando = false;
+      submit.disabled = false;
+    }
+  });
+
+  btnLogout.addEventListener("click", async () => {
+    try {
+      await logout();
+    } catch (err) {
+      console.warn("No se pudo cerrar sesión:", err);
+    }
+  });
+
+  /** Sin sesión: botón «Acceder». Con sesión: icono + nombre + «Cerrar sesión». */
+  function pintar(user) {
+    trigger.hidden = !!user;
+    boxUser.hidden = !user;
+    if (header) header.dataset.estado = user ? "sesion" : "anonimo";
+    if (!user) {
+      nombreEl.textContent = "";
+      rolEl.hidden = true;
+      boxUser.removeAttribute("title");
+      return;
+    }
+    const nombre = nombreVisible(user);
+    nombreEl.textContent = nombre;
+    boxUser.title = nombre;
+    rolEl.hidden = !isAuthorized(user);
+  }
+
+  watchAuth((user) => {
+    pintar(user);
+    if (user && !modal.hidden) cerrar(); // p. ej. sesión iniciada desde otra pestaña
+  });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initAuthUI);
+} else {
+  initAuthUI();
+}
 
 /* ==========================================================================
    MÓDULO DE APUNTES  (archivos en Cloudinary + metadatos en Firestore)
@@ -336,20 +595,10 @@ function initApuntes(root) {
   root.innerHTML = `
     <div class="fbap-head">
       <h2 class="fbap-title" data-fbap="titulo"></h2>
-      <button type="button" class="fbap-btn fbap-btn-quiet" data-fbap="auth" hidden>Iniciar sesión</button>
     </div>
     <p class="fbap-hint">${
       general ? "Archivos PDF y HTML organizados por asignatura." : "Archivos PDF y HTML de esta asignatura."
     }</p>
-
-    <form class="fbap-panel" data-fbap="login" hidden>
-      <div class="fbap-row">
-        <input class="fbap-input" type="email" name="email" placeholder="Email" autocomplete="username" required aria-label="Email">
-        <input class="fbap-input" type="password" name="password" placeholder="Contraseña" autocomplete="current-password" required aria-label="Contraseña">
-        <button type="submit" class="fbap-btn fbap-btn-primary">Entrar</button>
-      </div>
-      <p class="fbap-status" data-fbap="login-msg" role="status"></p>
-    </form>
 
     <p class="fbap-panel fbap-noperm" data-fbap="noperm" hidden>Esta cuenta no tiene permiso para gestionar archivos.</p>
     ${formularioSubida}
@@ -361,9 +610,6 @@ function initApuntes(root) {
 
   const $ = (name) => root.querySelector(`[data-fbap="${name}"]`);
   const titulo = $("titulo");
-  const btnAuth = $("auth");
-  const formLogin = $("login");
-  const msgLogin = $("login-msg");
   const avisoSinPermiso = $("noperm");
   const formSubida = $("upload"); // null en el modo de asignatura
   const msgGestion = $("gestion-msg");
@@ -390,7 +636,6 @@ function initApuntes(root) {
   /* --- Estado --- */
   let user = null;
   let autorizado = false; // solo la cuenta AUTHORIZED_UID gestiona archivos
-  let loginAbierto = false;
   let items = [];
   let ocupado = false;
   let foco = null; // { id, accion } para devolver el foco tras repintar
@@ -398,9 +643,6 @@ function initApuntes(root) {
   /* --- Sesión --- */
   function pintarSesion() {
     autorizado = isAuthorized(user);
-    btnAuth.hidden = false;
-    btnAuth.textContent = user ? "Cerrar sesión" : "Iniciar sesión";
-    formLogin.hidden = !!user || !loginAbierto;
     avisoSinPermiso.hidden = !(user && !autorizado);
     if (formSubida) formSubida.hidden = !autorizado;
     if (!autorizado) setMsg(msgGestion, "");
@@ -412,30 +654,7 @@ function initApuntes(root) {
     pintarSesion();
   });
 
-  btnAuth.addEventListener("click", async () => {
-    if (user) {
-      await logout();
-    } else {
-      loginAbierto = !loginAbierto;
-      pintarSesion();
-      if (loginAbierto) formLogin.elements.email.focus();
-    }
-  });
-
-  formLogin.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setMsg(msgLogin, "Entrando…");
-    try {
-      await login(formLogin.elements.email.value.trim(), formLogin.elements.password.value);
-      formLogin.reset();
-      setMsg(msgLogin, "");
-      loginAbierto = false;
-      pintarSesion();
-    } catch (err) {
-      console.warn("Login fallido:", err);
-      setMsg(msgLogin, "Email o contraseña incorrectos.", "err");
-    }
-  });
+  // El inicio de sesión vive en el modal global (#modal-auth): ver MÓDULO DE ACCESO.
 
   /* --- Subida (solo vista general) --- */
   if (formSubida) {

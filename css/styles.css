@@ -138,7 +138,7 @@ html.page-index,
 }
 .titlebar-left{ display:flex; align-items:center; gap:6px; width:180px; flex-shrink:0; }
 .titlebar-center{ flex:1; text-align:center; opacity:.75; }
-.titlebar-right{ width:180px; flex-shrink:0; display:flex; justify-content:flex-end; }
+.titlebar-right{ min-width:180px; flex-shrink:0; margin-left:auto; display:flex; align-items:center; justify-content:flex-end; }
 .vscode-logo{ flex-shrink:0; }
 
 /* ---------- Workbench layout ---------- */
@@ -170,7 +170,6 @@ html.page-index,
   border-left:2px solid var(--accent-blue);
 }
 .activity-icon:hover{ color:var(--activitybar-fg); }
-.activity-icon#account-icon.active{ color:var(--accent-strong); }
 .activity-spacer{ flex:1; }
 
 /* ---------- Sidebar ---------- */
@@ -475,8 +474,8 @@ html.page-index,
 
 .editor-content.loading .note{ opacity:.3; }
 
-/* ---------- Account popover & Settings popover (comparten estilo) ---------- */
-.account-popover, .settings-popover{
+/* ---------- Settings popover ---------- */
+.settings-popover{
   position:fixed;
   background:var(--surface-1);
   border:1px solid var(--divider);
@@ -486,36 +485,161 @@ html.page-index,
   z-index:50;
   font-size:13px;
   color:var(--text-normal);
+  left:56px; bottom:40px; width:250px;
 }
-.account-popover{ left:56px; bottom:40px; width:240px; }
-.settings-popover{ left:56px; bottom:40px; width:250px; }
-.account-title{ font-weight:600; font-size:13px; margin-bottom:6px; color:var(--text-strong); }
-.account-hint{ font-size:12px; color:var(--text-muted); margin:0 0 10px; line-height:1.4; }
-.account-popover input{
-  width:100%;
-  box-sizing:border-box;
-  background:var(--surface-3);
-  border:1px solid var(--divider);
-  color:var(--text-strong);
-  font-size:12.5px;
-  padding:6px 8px;
-  margin-bottom:8px;
-  border-radius:3px;
-  font-family:var(--font-ui);
+
+/* ==========================================================================
+   ACCESO UNIFICADO  (header + modal #modal-auth)
+   Mismo marcado en todas las páginas (ver firebase-init.js → MÓDULO DE ACCESO).
+   Todos los selectores llevan el prefijo .auth-header / .auth-modal para pesar
+   más que las reglas de página (.page-xxx h2, p, button…). Las variables de la
+   app se usan con un valor oscuro de reserva, así el bloque funciona tal cual
+   también en páginas que no las definen (p. ej. entornos-desarrollo.html).
+   ========================================================================== */
+.auth-header,
+.auth-modal{
+  --auth-panel:  var(--surface-1, #252526);
+  --auth-input:  var(--surface-3, #3c3c3c);
+  --auth-line:   var(--divider, #5a5a5a);
+  --auth-soft:   var(--border-strong, #333333);
+  --auth-hover:  var(--hover-bg, #2a2d2e);
+  --auth-fg:     var(--text-normal, #cccccc);
+  --auth-strong: var(--text-strong, #ffffff);
+  --auth-muted:  var(--text-muted, #8a8a8a);
+  --auth-accent: var(--accent-blue, #4fc1ff);
+  --auth-ok:     var(--accent-strong, #4ec9b0);
+  --auth-danger: var(--danger, #f48771);
+  --auth-action: #0e639c;
+  --auth-action-hover: #1177bb;
+  --auth-font:   var(--font-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif);
 }
-.account-popover input:focus{ outline:1px solid var(--accent-blue); border-color:var(--accent-blue); }
-.account-popover button{
-  width:100%;
-  background:#0e639c;
-  color:#fff;
-  border:none;
-  padding:7px 0;
-  border-radius:3px;
-  font-size:12.5px;
-  cursor:pointer;
+
+/* ---------- Header: botón «Acceder» / usuario con sesión ---------- */
+.auth-header{
+  display:flex; align-items:center; gap:6px;
+  font-family:var(--auth-font); font-size:12px; line-height:1; color:var(--auth-fg);
 }
-.account-popover button:hover{ background:#1177bb; }
-.account-error{ margin-top:8px; font-size:11.5px; color:var(--danger); }
+.auth-header[data-estado="cargando"]{ visibility:hidden; }  /* evita el parpadeo «Acceder» → usuario */
+.auth-header [hidden]{ display:none !important; }
+.auth-header .auth-trigger,
+.auth-header .auth-logout{
+  appearance:none; display:inline-flex; align-items:center; gap:6px;
+  height:22px; margin:0; padding:0 8px;
+  background:transparent; border:1px solid transparent; border-radius:3px;
+  color:inherit; font:inherit; white-space:nowrap; cursor:pointer;
+}
+.auth-header .auth-trigger{ border-color:var(--auth-line); }
+.auth-header .auth-trigger:hover,
+.auth-header .auth-logout:hover{ background:var(--auth-hover); color:var(--auth-strong); }
+.auth-header .auth-trigger:focus-visible,
+.auth-header .auth-logout:focus-visible{ outline:1px solid var(--auth-accent); outline-offset:1px; }
+.auth-header .auth-icon-solo{ display:none; }
+.auth-header .auth-user{ display:inline-flex; align-items:center; gap:6px; min-width:0; }
+.auth-header .auth-user-icon{
+  display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+  width:18px; height:18px; border-radius:50%;
+  background:var(--auth-ok); color:#123b34;
+}
+.auth-header .auth-user-name{
+  max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  color:var(--auth-strong);
+}
+.auth-header .auth-user-rol{
+  padding:2px 6px; border-radius:8px;
+  background:var(--auth-ok); color:#1e1e1e; font-size:10px; font-weight:600;
+}
+
+/* Variante para páginas sin barra superior propia (apuntes, horario, calendario…) */
+.auth-header--flotante{
+  position:fixed; top:10px; right:14px; z-index:95;
+  max-width:calc(100vw - 28px); padding:3px;
+  background:var(--auth-panel); border:1px solid var(--auth-soft); border-radius:6px;
+  box-shadow:0 2px 10px rgba(0,0,0,.4);
+}
+.auth-header--flotante .auth-trigger{ border-color:transparent; }  /* ya lo enmarca el contenedor */
+/* Dentro de un iframe manda el header de la página contenedora: aquí no se duplica. */
+.auth-embebido .auth-header{ display:none !important; }
+
+/* ---------- Modal de acceso ---------- */
+html.auth-bloqueo,
+html.auth-bloqueo body{ overflow:hidden; }
+.auth-modal{
+  position:fixed; inset:0; z-index:200;
+  display:flex; align-items:center; justify-content:center; padding:16px;
+  font-family:var(--auth-font); font-size:13px; line-height:1.4; color:var(--auth-fg); text-align:left;
+}
+.auth-modal[hidden],
+.auth-modal [hidden]{ display:none !important; }
+.auth-modal .auth-backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.6); }
+.auth-modal .auth-card{
+  position:relative; width:100%; max-width:360px; max-height:100%; overflow:auto;
+  padding:22px 22px 20px;
+  background:var(--auth-panel); border:1px solid var(--auth-line); border-radius:6px;
+  box-shadow:0 12px 40px rgba(0,0,0,.6);
+}
+.auth-modal .auth-close{
+  position:absolute; top:8px; right:8px; width:26px; height:26px; margin:0; padding:0;
+  display:flex; align-items:center; justify-content:center;
+  background:none; border:0; border-radius:3px;
+  color:var(--auth-muted); font:18px/1 var(--auth-font); cursor:pointer;
+}
+.auth-modal .auth-close:hover{ background:var(--auth-hover); color:var(--auth-strong); }
+.auth-modal .auth-close:focus-visible{ outline:1px solid var(--auth-accent); }
+.auth-modal .auth-title{
+  margin:0 0 14px; padding:0 28px 0 0;
+  font:600 15px/1.3 var(--auth-font); color:var(--auth-strong);
+}
+
+/* Pestañas «Iniciar sesión» / «Crear cuenta» */
+.auth-modal .auth-tabs{ display:flex; margin:0 0 16px; border-bottom:1px solid var(--auth-soft); }
+.auth-modal .auth-tab{
+  flex:1 1 0; margin:0 0 -1px; padding:8px 4px;
+  background:none; border:0; border-bottom:2px solid transparent; border-radius:0;
+  color:var(--auth-muted); font:500 13px/1.3 var(--auth-font); cursor:pointer;
+}
+.auth-modal .auth-tab:hover{ color:var(--auth-fg); }
+.auth-modal .auth-tab.is-active{ color:var(--auth-strong); border-bottom-color:var(--auth-accent); }
+.auth-modal .auth-tab:focus-visible{ outline:1px solid var(--auth-accent); outline-offset:-2px; }
+
+/* Formulario */
+.auth-modal .auth-form{ margin:0; padding:0; }
+.auth-modal .auth-field{ display:block; margin:0 0 12px; }
+.auth-modal .auth-field > span{ display:block; margin:0 0 4px; font-size:12px; color:var(--auth-muted); }
+.auth-modal .auth-input{
+  display:block; width:100%; height:auto; margin:0; padding:8px 10px;
+  background:var(--auth-input); border:1px solid var(--auth-line); border-radius:3px;
+  color:var(--auth-strong); font:13px/1.4 var(--auth-font); box-shadow:none;
+}
+.auth-modal .auth-input:focus{ outline:none; border-color:var(--auth-accent); box-shadow:0 0 0 1px var(--auth-accent); }
+.auth-modal .auth-hint{ margin:-4px 0 12px; font-size:11.5px; line-height:1.4; color:var(--auth-muted); }
+.auth-modal .auth-error{
+  margin:0 0 12px; padding:7px 10px;
+  background:rgba(244,135,113,.12); border-left:3px solid var(--auth-danger);
+  color:var(--auth-danger); font-size:12px; line-height:1.4;
+}
+.auth-modal .auth-submit{
+  display:block; width:100%; margin:0; padding:9px 0;
+  background:var(--auth-action); border:0; border-radius:3px;
+  color:#fff; font:600 13px/1.2 var(--auth-font); cursor:pointer;
+}
+.auth-modal .auth-submit:hover{ background:var(--auth-action-hover); }
+.auth-modal .auth-submit:focus-visible{ outline:1px solid var(--auth-accent); outline-offset:2px; }
+.auth-modal .auth-submit:disabled{ opacity:.6; cursor:progress; }
+
+/* ---------- Responsive del acceso ---------- */
+@media (max-width:900px){
+  .auth-header--flotante .auth-label,
+  .auth-header--flotante .auth-user-name,
+  .auth-header--flotante .auth-user-rol{ display:none; }
+  .auth-header--flotante .auth-icon-solo{ display:inline-block; }
+}
+@media (max-width:480px){
+  .auth-header .auth-user-name{ max-width:96px; }
+  .auth-header .auth-user-rol,
+  .auth-header .auth-logout .auth-label{ display:none; }
+  .auth-header .auth-icon-solo{ display:inline-block; }
+  .auth-modal .auth-card{ padding:18px 16px; }
+}
 
 /* ---------- Panel de ajustes ---------- */
 .settings-row{ margin-bottom:14px; }
@@ -607,6 +731,8 @@ html.page-index{
 /* ---------- Responsive ---------- */
 @media (max-width: 760px){
   .titlebar-left span, .titlebar-center{ display:none; }
+  .titlebar-left{ width:auto; }
+  .titlebar-right{ min-width:0; }
   .sidebar{ position:absolute; z-index:20; height:calc(100vh - 30px - 22px); box-shadow:2px 0 8px rgba(0,0,0,.4); }
   .note{ padding:0 16px; }
 }
@@ -808,43 +934,9 @@ html.page-horario{
 
 /* ---------- Scrollbar oscura (el iframe tiene su propio documento) ---------- */
 
-/* ---------- Widget de cuenta (login / registro) ---------- */
-.page-horario #cuentaBtn{
-  position:fixed; right:18px; bottom:18px; z-index:95;
-  width:40px; height:40px; border-radius:50%;
-  background:#252526; border:1px solid #333;
-  display:flex; align-items:center; justify-content:center;
-  font-size:18px; cursor:pointer; user-select:none;
-}
-.page-horario #cuentaBtn.logueado{ border-color:#4ec9b0; box-shadow:0 0 0 2px rgba(78,201,176,0.3); }
-.page-horario #cuentaBtn:hover{ background:#2a2a2a; }
-.page-horario #cuentaPop{
-  position:fixed; right:18px; bottom:66px; z-index:95;
-  width:250px; background:#252526; border:1px solid #333;
-  padding:14px; font-family:-apple-system,"Segoe UI",Arial,sans-serif; font-size:13px; color:var(--fg);
-  box-shadow:0 6px 20px rgba(0,0,0,.4);
-}
-.page-horario .cuenta-tit{ font-family:"Cascadia Code",Consolas,monospace; font-weight:700; font-size:12.5px; margin:0 0 6px; color:#fff; }
-.page-horario .cuenta-mail{ font-size:12.5px; color:var(--muted); margin:0 0 4px; word-break:break-all; }
-.page-horario .cuenta-estado{ font-size:12px; color:var(--muted); line-height:1.5; margin:0 0 10px; }
-.page-horario #cuentaPop input{
-  width:100%; box-sizing:border-box; background:#2d2d2d; border:1px solid #444;
-  color:#fff; font:13px/1.4 -apple-system,"Segoe UI",Arial,sans-serif; padding:6px 8px; margin-bottom:7px;
-}
-.page-horario #cuentaPop input:focus-visible{ outline:2px solid #4fc1ff; }
-.page-horario .cuenta-botones{ display:flex; gap:7px; }
-.page-horario .cuenta-botones .b{
-  flex:1 1 0; padding:6px 0; font-size:12px; text-align:center;
-  background:#0e639c; color:#fff; border:none; border-radius:3px; cursor:pointer;
-}
-.page-horario .cuenta-botones .b:hover{ background:#1177bb; }
-.page-horario .cuenta-botones .b.sec{ background:#3a3a3a; }
-.page-horario .cuenta-botones .b.sec:hover{ background:#464646; }
-.page-horario .cuenta-error{ color:#f48771; font-size:11.5px; margin:8px 0 0; }
-
 /* ---------- Botón de modo edición (convalidadas) ---------- */
 .page-horario #gradBtn{
-  position:fixed; right:18px; bottom:66px; z-index:94;
+  position:fixed; right:18px; bottom:18px; z-index:94;
   width:40px; height:40px; border-radius:50%;
   background:#252526; border:1px solid #333;
   display:flex; align-items:center; justify-content:center;

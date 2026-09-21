@@ -373,33 +373,161 @@ html{ scrollbar-width: thin; scrollbar-color: #4f4f4f var(--papel); }
 ::-webkit-scrollbar-thumb{ background:#4f4f4f; border-radius:6px; border:3px solid var(--papel); }
 ::-webkit-scrollbar-thumb:hover{ background:#6f6f6f; }
 
-/* ---------- Widget de cuenta (login / registro) ---------- */
-#cuentaBtn{
-  position:fixed; right:18px; bottom:18px; z-index:95;
-  width:40px; height:40px; border-radius:50%;
-  background:var(--lienzo); border:1px solid var(--regla);
+/* ==========================================================================
+   ACCESO UNIFICADO  (header + modal #modal-auth)
+   Mismo marcado en todas las páginas (ver firebase-init.js → MÓDULO DE ACCESO).
+   Todos los selectores llevan el prefijo .auth-header / .auth-modal para pesar
+   más que las reglas de página (.page-xxx h2, p, button…). Las variables de la
+   app se usan con un valor oscuro de reserva, así el bloque funciona tal cual
+   también en páginas que no las definen (p. ej. entornos-desarrollo.html).
+   ========================================================================== */
+.auth-header,
+.auth-modal{
+  --auth-panel:  var(--surface-1, #252526);
+  --auth-input:  var(--surface-3, #3c3c3c);
+  --auth-line:   var(--divider, #5a5a5a);
+  --auth-soft:   var(--border-strong, #333333);
+  --auth-hover:  var(--hover-bg, #2a2d2e);
+  --auth-fg:     var(--text-normal, #cccccc);
+  --auth-strong: var(--text-strong, #ffffff);
+  --auth-muted:  var(--text-muted, #8a8a8a);
+  --auth-accent: var(--accent-blue, #4fc1ff);
+  --auth-ok:     var(--accent-strong, #4ec9b0);
+  --auth-danger: var(--danger, #f48771);
+  --auth-action: #0e639c;
+  --auth-action-hover: #1177bb;
+  --auth-font:   var(--font-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif);
+}
+
+/* ---------- Header: botón «Acceder» / usuario con sesión ---------- */
+.auth-header{
+  display:flex; align-items:center; gap:6px;
+  font-family:var(--auth-font); font-size:12px; line-height:1; color:var(--auth-fg);
+}
+.auth-header[data-estado="cargando"]{ visibility:hidden; }  /* evita el parpadeo «Acceder» → usuario */
+.auth-header [hidden]{ display:none !important; }
+.auth-header .auth-trigger,
+.auth-header .auth-logout{
+  appearance:none; display:inline-flex; align-items:center; gap:6px;
+  height:22px; margin:0; padding:0 8px;
+  background:transparent; border:1px solid transparent; border-radius:3px;
+  color:inherit; font:inherit; white-space:nowrap; cursor:pointer;
+}
+.auth-header .auth-trigger{ border-color:var(--auth-line); }
+.auth-header .auth-trigger:hover,
+.auth-header .auth-logout:hover{ background:var(--auth-hover); color:var(--auth-strong); }
+.auth-header .auth-trigger:focus-visible,
+.auth-header .auth-logout:focus-visible{ outline:1px solid var(--auth-accent); outline-offset:1px; }
+.auth-header .auth-icon-solo{ display:none; }
+.auth-header .auth-user{ display:inline-flex; align-items:center; gap:6px; min-width:0; }
+.auth-header .auth-user-icon{
+  display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+  width:18px; height:18px; border-radius:50%;
+  background:var(--auth-ok); color:#123b34;
+}
+.auth-header .auth-user-name{
+  max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  color:var(--auth-strong);
+}
+.auth-header .auth-user-rol{
+  padding:2px 6px; border-radius:8px;
+  background:var(--auth-ok); color:#1e1e1e; font-size:10px; font-weight:600;
+}
+
+/* Variante para páginas sin barra superior propia (apuntes, horario, calendario…) */
+.auth-header--flotante{
+  position:fixed; top:10px; right:14px; z-index:95;
+  max-width:calc(100vw - 28px); padding:3px;
+  background:var(--auth-panel); border:1px solid var(--auth-soft); border-radius:6px;
+  box-shadow:0 2px 10px rgba(0,0,0,.4);
+}
+.auth-header--flotante .auth-trigger{ border-color:transparent; }  /* ya lo enmarca el contenedor */
+/* Dentro de un iframe manda el header de la página contenedora: aquí no se duplica. */
+.auth-embebido .auth-header{ display:none !important; }
+
+/* ---------- Modal de acceso ---------- */
+html.auth-bloqueo,
+html.auth-bloqueo body{ overflow:hidden; }
+.auth-modal{
+  position:fixed; inset:0; z-index:200;
+  display:flex; align-items:center; justify-content:center; padding:16px;
+  font-family:var(--auth-font); font-size:13px; line-height:1.4; color:var(--auth-fg); text-align:left;
+}
+.auth-modal[hidden],
+.auth-modal [hidden]{ display:none !important; }
+.auth-modal .auth-backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.6); }
+.auth-modal .auth-card{
+  position:relative; width:100%; max-width:360px; max-height:100%; overflow:auto;
+  padding:22px 22px 20px;
+  background:var(--auth-panel); border:1px solid var(--auth-line); border-radius:6px;
+  box-shadow:0 12px 40px rgba(0,0,0,.6);
+}
+.auth-modal .auth-close{
+  position:absolute; top:8px; right:8px; width:26px; height:26px; margin:0; padding:0;
   display:flex; align-items:center; justify-content:center;
-  font-size:18px; cursor:pointer; user-select:none;
+  background:none; border:0; border-radius:3px;
+  color:var(--auth-muted); font:18px/1 var(--auth-font); cursor:pointer;
 }
-#cuentaBtn.logueado{ border-color:var(--ok); box-shadow:0 0 0 2px color-mix(in srgb,var(--ok) 30%,transparent); }
-#cuentaBtn:hover{ background:var(--papel-2); }
-#cuentaPop{
-  position:fixed; right:18px; bottom:66px; z-index:95;
-  width:250px; background:var(--lienzo); border:1px solid var(--regla);
-  padding:14px; font-family:var(--sans); font-size:13px; color:var(--tinta);
-  box-shadow:0 6px 20px rgba(0,0,0,.4);
+.auth-modal .auth-close:hover{ background:var(--auth-hover); color:var(--auth-strong); }
+.auth-modal .auth-close:focus-visible{ outline:1px solid var(--auth-accent); }
+.auth-modal .auth-title{
+  margin:0 0 14px; padding:0 28px 0 0;
+  font:600 15px/1.3 var(--auth-font); color:var(--auth-strong);
 }
-.cuenta-tit{ font-family:var(--mono); font-weight:700; font-size:12.5px; margin:0 0 6px; color:var(--tinta); }
-.cuenta-mail{ font-size:12.5px; color:var(--apagado); margin:0 0 4px; word-break:break-all; }
-.cuenta-estado{ font-size:12px; color:var(--apagado); line-height:1.5; margin:0 0 10px; }
-#cuentaPop input{
-  width:100%; box-sizing:border-box; background:var(--papel-2); border:1px solid var(--regla);
-  color:var(--tinta); font:13px/1.4 var(--sans); padding:6px 8px; margin-bottom:7px;
+
+/* Pestañas «Iniciar sesión» / «Crear cuenta» */
+.auth-modal .auth-tabs{ display:flex; margin:0 0 16px; border-bottom:1px solid var(--auth-soft); }
+.auth-modal .auth-tab{
+  flex:1 1 0; margin:0 0 -1px; padding:8px 4px;
+  background:none; border:0; border-bottom:2px solid transparent; border-radius:0;
+  color:var(--auth-muted); font:500 13px/1.3 var(--auth-font); cursor:pointer;
 }
-#cuentaPop input:focus-visible{ outline:2px solid var(--enlace); }
-.cuenta-botones{ display:flex; gap:7px; }
-.cuenta-botones .b{ flex:1 1 0; padding:6px 0; font-size:12px; text-align:center; }
-.cuenta-error{ color:var(--mal); font-size:11.5px; margin:8px 0 0; }
+.auth-modal .auth-tab:hover{ color:var(--auth-fg); }
+.auth-modal .auth-tab.is-active{ color:var(--auth-strong); border-bottom-color:var(--auth-accent); }
+.auth-modal .auth-tab:focus-visible{ outline:1px solid var(--auth-accent); outline-offset:-2px; }
+
+/* Formulario */
+.auth-modal .auth-form{ margin:0; padding:0; }
+.auth-modal .auth-field{ display:block; margin:0 0 12px; }
+.auth-modal .auth-field > span{ display:block; margin:0 0 4px; font-size:12px; color:var(--auth-muted); }
+.auth-modal .auth-input{
+  display:block; width:100%; height:auto; margin:0; padding:8px 10px;
+  background:var(--auth-input); border:1px solid var(--auth-line); border-radius:3px;
+  color:var(--auth-strong); font:13px/1.4 var(--auth-font); box-shadow:none;
+}
+.auth-modal .auth-input:focus{ outline:none; border-color:var(--auth-accent); box-shadow:0 0 0 1px var(--auth-accent); }
+.auth-modal .auth-hint{ margin:-4px 0 12px; font-size:11.5px; line-height:1.4; color:var(--auth-muted); }
+.auth-modal .auth-error{
+  margin:0 0 12px; padding:7px 10px;
+  background:rgba(244,135,113,.12); border-left:3px solid var(--auth-danger);
+  color:var(--auth-danger); font-size:12px; line-height:1.4;
+}
+.auth-modal .auth-submit{
+  display:block; width:100%; margin:0; padding:9px 0;
+  background:var(--auth-action); border:0; border-radius:3px;
+  color:#fff; font:600 13px/1.2 var(--auth-font); cursor:pointer;
+}
+.auth-modal .auth-submit:hover{ background:var(--auth-action-hover); }
+.auth-modal .auth-submit:focus-visible{ outline:1px solid var(--auth-accent); outline-offset:2px; }
+.auth-modal .auth-submit:disabled{ opacity:.6; cursor:progress; }
+
+/* ---------- Responsive del acceso ---------- */
+@media (max-width:900px){
+  .auth-header--flotante .auth-label,
+  .auth-header--flotante .auth-user-name,
+  .auth-header--flotante .auth-user-rol{ display:none; }
+  .auth-header--flotante .auth-icon-solo{ display:inline-block; }
+}
+@media (max-width:480px){
+  .auth-header .auth-user-name{ max-width:96px; }
+  .auth-header .auth-user-rol,
+  .auth-header .auth-logout .auth-label{ display:none; }
+  .auth-header .auth-icon-solo{ display:inline-block; }
+  .auth-modal .auth-card{ padding:18px 16px; }
+}
+
+/* Cabecera móvil: deja sitio al header de acceso (flotante, arriba a la derecha). */
+@media (max-width:900px){ #barra{padding-right:112px} }
 </style>
 </head>
 <body>
@@ -414,25 +542,48 @@ html{ scrollbar-width: thin; scrollbar-color: #4f4f4f var(--papel); }
 <div id="lienzo" aria-hidden="true"></div>
 <div id="tostadas" aria-live="polite"></div>
 
-<!-- Widget de cuenta: guardado de progreso en la nube (Firebase) -->
-<div id="cuentaBtn" title="Cuenta">👤</div>
-<div id="cuentaPop" hidden>
-  <div id="cuentaLogueado" hidden>
-    <p class="cuenta-tit">Sesión iniciada</p>
-    <p class="cuenta-mail" id="cuentaMail"></p>
-    <p class="cuenta-estado" id="cuentaEstado">Tu progreso se guarda solo, en la nube.</p>
-    <button class="b sec" id="cuentaSalir">Cerrar sesión</button>
+<!-- Acceso unificado: header flotante + modal (lo gestiona firebase-init.js) -->
+<div class="auth-header auth-header--flotante" id="auth-header" data-estado="cargando">
+  <button type="button" class="auth-trigger" id="btn-auth-trigger" aria-haspopup="dialog" aria-controls="modal-auth" aria-label="Acceder / Mi cuenta">
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z"/></svg>
+    <span class="auth-label">Acceder</span>
+  </button>
+  <div class="auth-user" id="auth-user" hidden>
+    <span class="auth-user-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12" focusable="false"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z"/></svg></span>
+    <span class="auth-user-name" id="auth-user-name"></span>
+    <span class="auth-user-rol" id="auth-user-rol" hidden>admin</span>
+    <button type="button" class="auth-logout" id="btn-auth-logout" aria-label="Cerrar sesión">
+      <svg class="auth-icon-solo" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+      <span class="auth-label">Cerrar sesión</span>
+    </button>
   </div>
-  <div id="cuentaAnon">
-    <p class="cuenta-tit">Guarda tu progreso</p>
-    <p class="cuenta-estado">Sin sesión, lo marcado como hecho se pierde al recargar. Inicia sesión o crea una cuenta para que se guarde solo.</p>
-    <input type="text" id="cuentaEmail" placeholder="usuario" autocapitalize="off" autocomplete="username">
-    <input type="password" id="cuentaPass" placeholder="contraseña">
-    <div class="cuenta-botones">
-      <button class="b" id="cuentaEntrar">Entrar</button>
-      <button class="b sec" id="cuentaCrear">Crear cuenta</button>
+</div>
+<div class="auth-modal" id="modal-auth" role="dialog" aria-modal="true" aria-labelledby="auth-title" hidden>
+  <div class="auth-backdrop" data-auth-cerrar></div>
+  <div class="auth-card">
+    <button type="button" class="auth-close" data-auth-cerrar aria-label="Cerrar">&times;</button>
+    <div class="auth-title" id="auth-title">Acceso a tu cuenta</div>
+    <div class="auth-tabs" role="tablist" aria-label="Tipo de acceso">
+      <button type="button" class="auth-tab is-active" id="tab-login" role="tab" aria-selected="true" aria-controls="form-auth" data-auth-tab="login">Iniciar sesión</button>
+      <button type="button" class="auth-tab" id="tab-registro" role="tab" aria-selected="false" aria-controls="form-auth" data-auth-tab="registro">Crear cuenta</button>
     </div>
-    <p class="cuenta-error" id="cuentaError" hidden></p>
+    <form class="auth-form" id="form-auth" role="tabpanel" aria-labelledby="tab-login" novalidate>
+      <label class="auth-field">
+        <span>Usuario o correo</span>
+        <input class="auth-input" type="text" id="auth-email" name="email" autocomplete="username" autocapitalize="off" spellcheck="false" required>
+      </label>
+      <label class="auth-field">
+        <span>Contraseña</span>
+        <input class="auth-input" type="password" id="auth-password" name="password" autocomplete="current-password" required>
+      </label>
+      <label class="auth-field" data-auth-solo="registro" hidden>
+        <span>Repite la contraseña</span>
+        <input class="auth-input" type="password" id="auth-password2" name="password2" autocomplete="new-password">
+      </label>
+      <p class="auth-hint" data-auth-solo="registro" hidden>Mínimo 6 caracteres. Con tu cuenta se guarda tu progreso en la nube.</p>
+      <p class="auth-error" id="auth-error" role="alert" hidden></p>
+      <button type="submit" class="auth-submit" id="auth-submit">Entrar</button>
+    </form>
   </div>
 </div>
 <script>
@@ -2008,31 +2159,25 @@ $('#btnMenu').addEventListener('click', () => {
 </script>
 <script type="module">
 /* ============================================================
-   CUENTA (Firebase): login / registro / progreso en la nube.
-   Cualquiera puede crearse una cuenta desde aquí mismo; cada
-   usuario solo puede leer y escribir su propio progreso.
+   CUENTA: progreso en la nube.
+   El acceso (header, modal, login y registro) ya NO vive aquí: lo gestiona
+   firebase-init.js igual que en el resto de páginas. Este módulo solo escucha
+   la sesión para cargar y guardar el progreso del usuario.
+   Cualquiera puede crearse una cuenta; cada usuario solo puede leer y
+   escribir su propio progreso (ver rules.firebase).
    ============================================================ */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import {
-  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
-  createUserWithEmailAndPassword, signOut, updateProfile
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCOU5RrEN0LA_cvnOXexBUJAxC8Md2NvE8",
-  authDomain: "damm-29df1.firebaseapp.com",
-  projectId: "damm-29df1",
-  storageBucket: "damm-29df1.firebasestorage.app",
-  messagingSenderId: "44798070440",
-  appId: "1:44798070440:web:e6a1ff169820c4a9ff3c9d",
-};
+// ⚠️ Ajusta la ruta si este archivo no está a dos niveles de js/ (como horario.html).
+// Si no carga, la página funciona igual pero sin cuenta (progreso solo local).
+let fb = null;
+try { fb = await import('../../js/firebase-init.js'); }
+catch (e) { console.warn('No se pudo cargar firebase-init.js; la cuenta no estará disponible.', e); }
 
-const fbApp = initializeApp(firebaseConfig);
-const auth = getAuth(fbApp);
-const db = getFirestore(fbApp);
+// Misma app de Firebase que usa firebase-init.js (no se inicializa otra).
+const db = fb ? getFirestore(fb.auth.app) : null;
 
 // APP.sello identifica este curso/app concreto. Así, si algún día tienes
 // más apps como esta del mismo profesor compartiendo este mismo proyecto
@@ -2057,104 +2202,28 @@ window.__cuenta = {
   }
 };
 
-/* ---------- Widget de cuenta ---------- */
-const btn = document.getElementById('cuentaBtn');
-const pop = document.getElementById('cuentaPop');
-const vistaLogueado = document.getElementById('cuentaLogueado');
-const vistaAnon = document.getElementById('cuentaAnon');
-const mailEl = document.getElementById('cuentaMail');
-const emailInput = document.getElementById('cuentaEmail');
-const passInput = document.getElementById('cuentaPass');
-const errorEl = document.getElementById('cuentaError');
-
-btn.addEventListener('click', () => { pop.hidden = !pop.hidden; });
-document.addEventListener('click', (e) => {
-  if (!pop.hidden && !pop.contains(e.target) && !btn.contains(e.target)) pop.hidden = true;
-});
-
-function limpiarError() { errorEl.hidden = true; }
-function mostrarError(msg) { errorEl.textContent = msg; errorEl.hidden = false; }
-
-// Firebase Auth necesita un "email" internamente, pero el alumno solo ve y
-// escribe un nombre de usuario. Lo convertimos a un correo ficticio interno
-// que nunca se muestra ni se usa para enviar nada.
-const DOMINIO_USUARIO = 'alumnos.dam-notes.local';
-function usuarioAEmail(bruto) {
-  const u = bruto.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '');
-  return u ? `${u}@${DOMINIO_USUARIO}` : null;
-}
-function nombreDeUsuario(user) {
-  if (user.displayName) return user.displayName;
-  return (user.email || '').split('@')[0];
-}
-
-function mapErrorAuth(codigo) {
-  const m = {
-    'auth/invalid-email': 'Ese nombre de usuario no es válido (usa solo letras, números, puntos, guiones o guiones bajos).',
-    'auth/user-not-found': 'No existe ninguna cuenta con ese usuario.',
-    'auth/wrong-password': 'Contraseña incorrecta.',
-    'auth/invalid-credential': 'Usuario o contraseña incorrectos.',
-    'auth/email-already-in-use': 'Ese nombre de usuario ya está en uso. Prueba a iniciar sesión, o elige otro.',
-    'auth/weak-password': 'La contraseña necesita al menos 6 caracteres.',
-  };
-  return m[codigo] || 'Algo ha fallado. Inténtalo de nuevo.';
-}
-
-document.getElementById('cuentaEntrar').addEventListener('click', async () => {
-  limpiarError();
-  const email = usuarioAEmail(emailInput.value);
-  if (!email) { mostrarError('Escribe un nombre de usuario.'); return; }
-  try { await signInWithEmailAndPassword(auth, email, passInput.value); }
-  catch (e) { mostrarError(mapErrorAuth(e.code)); }
-});
-
-document.getElementById('cuentaCrear').addEventListener('click', async () => {
-  limpiarError();
-  const usuario = emailInput.value.trim();
-  const email = usuarioAEmail(usuario);
-  if (!email) { mostrarError('Escribe un nombre de usuario.'); return; }
-  if (passInput.value.length < 6) { mostrarError('La contraseña necesita al menos 6 caracteres.'); return; }
-  try {
-    const cred = await createUserWithEmailAndPassword(auth, email, passInput.value);
-    await updateProfile(cred.user, { displayName: usuario });
-  } catch (e) { mostrarError(mapErrorAuth(e.code)); }
-});
-
-document.getElementById('cuentaSalir').addEventListener('click', () => { signOut(auth); });
-
-function pintaCuenta(user) {
-  if (user) {
-    btn.classList.add('logueado');
-    vistaLogueado.hidden = false;
-    vistaAnon.hidden = true;
-    mailEl.textContent = nombreDeUsuario(user);
-  } else {
-    btn.classList.remove('logueado');
-    vistaLogueado.hidden = true;
-    vistaAnon.hidden = false;
-    emailInput.value = ''; passInput.value = '';
-  }
-}
-
 /* ---------- Coordinación con el motor (carga/pintaRail/pinta) ---------- */
 let resolverAuthListo;
 const authListo = new Promise(res => { resolverAuthListo = res; });
 let primerEvento = true;
 
-onAuthStateChanged(auth, async (user) => {
-  window.__cuenta.usuario = user;
-  pintaCuenta(user);
-  if (primerEvento) {
-    primerEvento = false;
-    resolverAuthListo();
-  } else {
-    // Cambio de sesión durante el uso (login/logout a mitad de sesión):
-    // recarga el progreso que toque y repinta.
-    await carga();
-    pintaRail();
-    pinta();
-  }
-});
+if (fb) {
+  fb.watchAuth(async (user) => {
+    window.__cuenta.usuario = user;
+    if (primerEvento) {
+      primerEvento = false;
+      resolverAuthListo();
+    } else {
+      // Cambio de sesión durante el uso (login/logout a mitad de sesión):
+      // recarga el progreso que toque y repinta.
+      await carga();
+      pintaRail();
+      pinta();
+    }
+  });
+} else {
+  resolverAuthListo(); // sin firebase-init.js: se pinta igualmente, sin cuenta
+}
 
 (async function () {
   await window.__cursoListo;
