@@ -1057,6 +1057,45 @@ html.page-horario{
 }
 .page-calendario .cal-modal-pie{ display:flex; justify-content:flex-end; gap:8px; }
 
+/* Ámbito del evento: «Clase» (global, lo ve todo el mundo) o «Personal» (solo su dueño) */
+.page-calendario .cal-ambito{
+  display:inline-block; flex-shrink:0; white-space:nowrap;
+  font-size:10.5px; line-height:1; letter-spacing:.2px; padding:3px 8px; border-radius:999px; border:1px solid;
+}
+.page-calendario .cal-ambito--global{ color:#4fc1ff; border-color:rgba(79,193,255,.45); background:rgba(79,193,255,.10); }
+.page-calendario .cal-ambito--personal{ color:#dcdcaa; border-color:rgba(220,220,170,.4); background:rgba(220,220,170,.09); }
+
+/* Aviso del modal: quién verá el evento */
+.page-calendario .cal-ambito-aviso{
+  margin:0; padding:8px 10px; border-radius:6px; font-size:12.5px; line-height:1.5;
+  color:var(--muted); background:#1e1e1e; border:1px solid var(--border);
+}
+.page-calendario .cal-ambito-aviso:empty{ display:none; }
+.page-calendario .cal-ambito-aviso[data-ambito="global"]{ color:#4fc1ff; border-color:rgba(79,193,255,.4); background:rgba(79,193,255,.08); }
+.page-calendario .cal-ambito-aviso[data-ambito="personal"]{ color:#dcdcaa; border-color:rgba(220,220,170,.35); background:rgba(220,220,170,.07); }
+
+/* Confirmación de borrado */
+.page-calendario dialog.cal-modal--pequeno{ width:min(430px, calc(100% - 24px)); }
+.page-calendario .cal-confirm-texto{ margin:0; font-size:13.5px; line-height:1.5; overflow-wrap:anywhere; }
+.page-calendario .cal-confirm-aviso{ font-size:12.5px; color:var(--muted); }
+.page-calendario .cal-btn-peligro-solido{ background:#f48771; border-color:#f48771; color:#2b0f09; font-weight:600; }
+.page-calendario .cal-btn-peligro-solido:hover:not(:disabled){ background:#f7a08f; border-color:#f7a08f; }
+.page-calendario .cal-btn-peligro-solido:focus-visible{ outline:2px solid #f7a08f; outline-offset:2px; }
+
+/* Título + etiqueta de ámbito en una misma línea (detalle del día y lista de exámenes) */
+.page-calendario .detalle .item-linea,
+.page-calendario .examen-item .e-linea{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; min-width:0; }
+
+/* Ficha resaltada un momento al llegar desde «Próximos exámenes» */
+.page-calendario .detalle .item.destacado{ border-radius:6px; animation:cal-destacar 2s ease-out; }
+@keyframes cal-destacar{
+  0%, 55%{ outline:2px solid var(--today-accent); outline-offset:5px; }
+  100%{ outline:2px solid transparent; outline-offset:5px; }
+}
+@media (prefers-reduced-motion:reduce){
+  .page-calendario .detalle .item.destacado{ animation:none; outline:2px solid var(--today-accent); outline-offset:5px; }
+}
+
 /* ---------- Scrollbar oscura (el iframe tiene su propio documento) ---------- */
 
 /* ---------- Botón de modo edición (convalidadas) ---------- */
@@ -1160,6 +1199,9 @@ html.page-calendario{
 .page-calendario .dot-examen{ background:var(--c-examen); }
 .page-calendario .dot-tarea{ background:var(--c-tarea); }
 .page-calendario .dot-tarea.hecha{ opacity:.35; }
+/* Punto hueco = evento personal (solo lo ve su dueño) */
+.page-calendario .dot-examen.personal{ background:transparent; box-shadow:inset 0 0 0 1.5px var(--c-examen); }
+.page-calendario .dot-tarea.personal{ background:transparent; box-shadow:inset 0 0 0 1.5px var(--c-tarea); }
 
 .page-calendario .cal-day .etiqueta-mini{
   font-size:9px; color:#fff; line-height:1.15; opacity:.85;
@@ -1230,6 +1272,9 @@ html.page-calendario{
 .page-calendario .examen-item .e-cuenta{ font-size:11.5px; color:var(--muted); flex-shrink:0; }
 .page-calendario .examen-item .e-cuenta.pronto{ color:var(--c-examen); font-weight:600; }
 .page-calendario .examen-item .e-label{ overflow-wrap:anywhere; }
+.page-calendario .examen-item[role="button"]{ cursor:pointer; transition:background .15s, border-color .15s; }
+.page-calendario .examen-item[role="button"]:hover{ background:#2f2f2f; border-color:#4a4a4a; border-left-color:var(--c-examen); }
+.page-calendario .examen-item[role="button"]:focus-visible{ outline:2px solid var(--today-accent); outline-offset:2px; }
 
 /* ---------- Próximos festivos ---------- */
 .page-calendario .festivos-list{ display:flex; flex-direction:column; gap:8px; }
@@ -1274,6 +1319,7 @@ html.page-calendario{
 .page-calendario .sw-evaluacion{ background:var(--c-evaluacion); }
 .page-calendario .sw-examen{ background:var(--c-examen); }
 .page-calendario .sw-tarea{ background:var(--c-tarea); }
+.page-calendario .leyenda .sw-personal{ width:8px; height:8px; border-radius:50%; background:transparent; box-shadow:inset 0 0 0 1.5px var(--muted); }
 .page-calendario p.vacio{ color:var(--muted); }
 .page-calendario p.vacio-error{ color:#f48771; }
 

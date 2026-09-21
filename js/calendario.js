@@ -6,9 +6,13 @@
 //   · getFirestore(auth.app)          → la MISMA instancia de Firestore de la app.
 //
 // Colecciones de Firestore (reglas en firestore.rules):
-//   calendario_eventos/{id}  Exámenes y tareas compartidos por toda la clase.
-//                            Los lee cualquiera; los crea cualquier usuario con
-//                            sesión; solo los edita/borra su autor o el admin.
+//   calendario_eventos/{id}  Exámenes y tareas. Cada documento tiene un ÁMBITO:
+//                              · 'global'   → lo crea el admin; lo ve TODO el mundo
+//                                             (también sin sesión).
+//                              · 'personal' → lo crea un alumno con su usuario_uid;
+//                                             solo lo ve él.
+//                            Editar/borrar: su dueño (usuario_uid) o, si es global,
+//                            el admin. Se leen con DOS consultas (ver más abajo).
 //   calendario_hechas/{uid}  { hechas: { [idTarea]: true } }. Tareas que ha
 //                            marcado cada usuario: privado, solo lo lee/escribe él.
 //                            Sin sesión, las marcas se guardan en localStorage.
@@ -20,7 +24,7 @@
 import { auth, watchAuth, isAuthorized } from './firebase-init.js?v=3';
 import {
   getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc,
-  deleteField, onSnapshot, serverTimestamp,
+  deleteField, onSnapshot, query, where, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
 const db = getFirestore(auth.app);
@@ -153,18 +157,19 @@ let errorEventos = null;
 
 function normalizarEvento(id, d) {
   if (!d || (d.tipo !== 'examen' && d.tipo !== 'tarea') || !claveValida(d.fecha)) return null;
+  if (d.ambito !== 'global' && d.ambito !== 'personal') return null; // p. ej. documentos antiguos sin ámbito
   const asignatura = String(d.asignatura ?? '').trim();
   const titulo = String(d.titulo ?? '').trim();
   if (!titulo) return null;
   return {
-    id, dinamico: true, tipo: d.tipo,
+    id, dinamico: true, tipo: d.tipo, ambito: d.ambito,
     fechaClave: d.fecha, ini: fechaDesdeClave(d.fecha),
     asignatura, titulo,
     label: asignatura ? `${asignatura} — ${titulo}` : titulo,
     hora: typeof d.hora === 'string' ? d.hora : '',
     lugar: typeof d.lugar === 'string' ? d.lugar : '',
     temario: typeof d.temario === 'string' ? d.temario : '',
-    creado_por: typeof d.creado_por === 'string' ? d.creado_por : '',
+    usuario_uid: typeof d.usuario_uid === 'string' ? d.usuario_uid : '',
   };
 }
 
@@ -187,7 +192,12 @@ function eventosDelDia(fecha) {
 let user = null;          // usuario de Firebase o null
 let hechas = new Set();   // ids de tareas marcadas por el usuario actual
 
-const puedeGestionar = e => !!user && !!e.dinamico && (e.creado_por === user.uid || isAuthorized(user));
+// Editar/borrar: el dueño del evento o, si el evento es global, el admin.
+// (Solo controla qué botones se ven; el permiso real lo aplican las reglas de Firestore.)
+const puedeGestionar = e => !!user && !!e.dinamico &&
+  (e.usuario_uid === user.uid || (e.ambito === 'global' && isAuthorized(user)));
+// Ámbito con el que se guarda un evento nuevo: el admin publica para toda la clase; el alumno, para sí mismo.
+const ambitoNuevo = () => (isAuthorized(user) ? 'global' : 'personal');
 const embebido = () => document.documentElement.classList.contains('auth-embebido');
 
 function leerHechasLocal() {
@@ -223,6 +233,7 @@ const msgEl = $('msgCal');
 const btnNuevo = $('btnNuevoEvento');
 const avisoSesion = $('avisoSesion');
 const btnAcceder = $('btnAcceder');
+const leyendaPersonal = $('leyendaPersonal');
 
 // ---------- Mensajes (fuera del panel de detalle, que se repinta a menudo) ----------
 let temporizadorMsg = 0;
@@ -272,9 +283,9 @@ function pintaMes() {
 
     const etiquetaMini = tipoFondo
       ? `<div class="etiqueta-mini">${esc(evs.find(e => e.tipo === tipoFondo).label)}</div>` : '';
-    // Las tareas que TÚ has completado se pintan atenuadas (clase "hecha")
+    // Punto hueco = evento personal. Las tareas que TÚ has completado se pintan atenuadas (clase "hecha")
     const dots = otros.slice(0, 4).map(e =>
-      `<span class="cal-dot dot-${e.tipo}${e.tipo === 'tarea' && hechas.has(e.id) ? ' hecha' : ''}"></span>`
+      `<span class="cal-dot dot-${e.tipo}${e.ambito === 'personal' ? ' personal' : ''}${e.tipo === 'tarea' && hechas.has(e.id) ? ' hecha' : ''}"></span>`
     ).join('');
 
     html += `<div class="${clases.join(' ')}" data-fecha="${claveFecha(fecha)}">
@@ -300,6 +311,15 @@ function campo(etiqueta, valor) {
   return valor ? `<span><span class="meta-k">${etiqueta}</span>${esc(valor)}</span>` : '';
 }
 
+// Etiqueta de ámbito. Solo se enseña con sesión iniciada: sin sesión todo lo que se ve es de
+// la clase y la etiqueta no aportaría nada.
+function htmlInsignia(e) {
+  if (!user || !e.dinamico) return '';
+  return e.ambito === 'global'
+    ? '<span class="cal-ambito cal-ambito--global" title="Evento de la clase: lo ven todos los alumnos">Clase</span>'
+    : '<span class="cal-ambito cal-ambito--personal" title="Evento personal: solo lo ves tú">Personal</span>';
+}
+
 function htmlAcciones(e) {
   if (!puedeGestionar(e)) return '';
   const id = esc(e.id);
@@ -314,8 +334,8 @@ function htmlItemDetalle(e) {
 
   if (e.tipo === 'examen') {
     const meta = campo('Hora', e.hora) + campo('Lugar', e.lugar);
-    return `<div class="item">${sw}<div class="item-cuerpo">
-      <div class="item-titulo">${esc(e.label)}</div>
+    return `<div class="item" data-evid="${esc(e.id)}">${sw}<div class="item-cuerpo">
+      <div class="item-linea"><span class="item-titulo">${esc(e.label)}</span>${htmlInsignia(e)}</div>
       ${meta ? `<div class="item-meta">${meta}</div>` : ''}
       ${e.temario ? `<div class="item-explicacion"><span class="meta-k">Temario</span>${esc(e.temario)}</div>` : ''}
     </div>${htmlAcciones(e)}</div>`;
@@ -323,13 +343,15 @@ function htmlItemDetalle(e) {
 
   if (e.tipo === 'tarea') {
     const hecha = hechas.has(e.id);
-    return `<div class="item${hecha ? ' item-hecha' : ''}">${sw}<div class="item-cuerpo">
-      <label class="tarea-check"><input type="checkbox" data-hecha="${esc(e.id)}"${hecha ? ' checked' : ''}><span class="tarea-label">${esc(e.label)}</span></label>
+    return `<div class="item${hecha ? ' item-hecha' : ''}" data-evid="${esc(e.id)}">${sw}<div class="item-cuerpo">
+      <div class="item-linea">
+        <label class="tarea-check"><input type="checkbox" data-hecha="${esc(e.id)}"${hecha ? ' checked' : ''}><span class="tarea-label">${esc(e.label)}</span></label>${htmlInsignia(e)}
+      </div>
     </div>${htmlAcciones(e)}</div>`;
   }
 
   const estrella = e.propia ? '<span class="estrella" title="Tu evaluación">★</span>' : '';
-  return `<div class="item">${sw}<div class="item-cuerpo">${esc(e.label)}${estrella}</div></div>`;
+  return `<div class="item"><span class="sw sw-${e.tipo}"></span><div class="item-cuerpo">${esc(e.label)}${estrella}</div></div>`;
 }
 
 function pintaDetalle() {
@@ -344,45 +366,19 @@ function pintaDetalle() {
 }
 
 // Un único par de listeners (delegación) para todo el panel: sobrevive a los repintados.
-let temporizadorEliminar = 0;
 detalleEl.addEventListener('click', e => {
   const btn = e.target.closest('button[data-accion]');
   if (!btn) return;
   if (btn.dataset.accion === 'anadir') return abrirModal({ fecha: claveFecha(fechaSeleccionada) });
   const ev = eventosDin.find(x => x.id === btn.dataset.id);
-  if (!ev) return;
+  if (!ev || !puedeGestionar(ev)) return;
   if (btn.dataset.accion === 'editar') return abrirModal({ evento: ev });
-  if (btn.dataset.accion === 'eliminar') return eliminarEvento(btn, ev);
+  if (btn.dataset.accion === 'eliminar') return pedirEliminar(ev);
 });
 detalleEl.addEventListener('change', e => {
   const cb = e.target.closest('input[data-hecha]');
   if (cb) marcarTarea(cb.dataset.hecha, cb.checked, cb);
 });
-
-// «Eliminar» pide una segunda pulsación de confirmación (4 s) antes de borrar.
-async function eliminarEvento(btn, ev) {
-  if (btn.dataset.confirmar !== '1') {
-    btn.dataset.confirmar = '1';
-    btn.textContent = '¿Seguro?';
-    clearTimeout(temporizadorEliminar);
-    temporizadorEliminar = setTimeout(() => {
-      if (btn.isConnected) { delete btn.dataset.confirmar; btn.textContent = 'Eliminar'; }
-    }, 4000);
-    return;
-  }
-  clearTimeout(temporizadorEliminar);
-  btn.disabled = true;
-  try {
-    await deleteDoc(doc(db, COL_EVENTOS, ev.id));
-    mostrarMsg(ev.tipo === 'examen' ? 'Examen eliminado.' : 'Tarea eliminada.');
-  } catch (err) {
-    console.error('Error al eliminar el evento:', err);
-    btn.disabled = false;
-    delete btn.dataset.confirmar;
-    btn.textContent = 'Eliminar';
-    mostrarMsg(mensajeError(err, 'eliminar el evento'), 'err');
-  }
-}
 
 // ---------- Check de tareas (por usuario) ----------
 // Con sesión → Firestore (calendario_hechas/{uid}): se sincroniza entre móvil y
@@ -454,6 +450,7 @@ function pintaExamenes() {
       : 'No se pudieron cargar los exámenes. Comprueba tu conexión y recarga la página.'}</p>`;
     return;
   }
+  // eventosDin ya mezcla los exámenes de la clase (globales) y los personales del usuario con sesión.
   const inicioHoy = inicioDeHoy();
   const proximos = eventosDin
     .filter(e => e.tipo === 'examen' && e.ini >= inicioHoy)
@@ -462,10 +459,10 @@ function pintaExamenes() {
   examenesListEl.innerHTML = proximos.map(e => {
     const meta = [e.hora, e.lugar].filter(Boolean).join(' · ');
     const c = textoCuenta(e);
-    return `<div class="examen-item">
+    return `<div class="examen-item" role="button" tabindex="0" data-evid="${esc(e.id)}" title="Ver el detalle${puedeGestionar(e) ? ', editarlo o eliminarlo' : ''}">
       <span class="e-fecha">${formatoCorto(e.ini)}</span>
       <span class="e-info">
-        <span class="e-label">${esc(e.label)}</span>
+        <span class="e-linea"><span class="e-label">${esc(e.label)}</span>${htmlInsignia(e)}</span>
         ${meta ? `<span class="e-meta">${esc(meta)}</span>` : ''}
       </span>
       <span class="e-cuenta${c.n <= 7 ? ' pronto' : ''}">${c.texto}</span>
@@ -473,33 +470,97 @@ function pintaExamenes() {
   }).join('') || `<p class="vacio">No hay exámenes próximos anotados.</p>`;
 }
 
+// Pulsar un examen de la lista lleva al día en el calendario y resalta su ficha, que es
+// donde están los botones de Editar y Eliminar (si el usuario puede gestionarlo).
+function irAEvento(id) {
+  const ev = eventosDin.find(x => x.id === id);
+  if (!ev) return;
+  const i = mesesCurso.findIndex(m => m.year === ev.ini.getFullYear() && m.month === ev.ini.getMonth());
+  if (i !== -1) idxMes = i;
+  fechaSeleccionada = ev.ini;
+  pintaMes(); pintaDetalle();
+  detalleEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const ficha = detalleEl.querySelector(`.item[data-evid="${CSS.escape(id)}"]`);
+  if (ficha) {
+    ficha.classList.add('destacado');
+    setTimeout(() => ficha.classList.remove('destacado'), 2000);
+  }
+}
+examenesListEl.addEventListener('click', e => {
+  const it = e.target.closest('.examen-item[data-evid]');
+  if (it) irAEvento(it.dataset.evid);
+});
+examenesListEl.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const it = e.target.closest('.examen-item[data-evid]');
+  if (!it) return;
+  e.preventDefault();
+  irAEvento(it.dataset.evid);
+});
+
 // ---------- Lectura en tiempo real de los eventos ----------
-let cancelarEventos = null;
-function iniciarEscuchaEventos() {
-  if (cancelarEventos) cancelarEventos();
+// Firestore no filtra por reglas: una consulta solo se acepta si ELLA MISMA garantiza que todo lo
+// que devuelve se puede leer. Por eso son dos consultas independientes:
+//   · ambito == 'global'      → los eventos de la clase; se leen incluso sin sesión.
+//   · usuario_uid == mi uid   → mis eventos (personales); solo con sesión.
+// Las dos filtran por un único campo con igualdad, así que no hace falta crear índices compuestos.
+// Un evento del admin (global) sale en las dos consultas: al juntarlas se deduplica por id.
+const fuenteEventos = { global: new Map(), personal: new Map() };
+let cancelarGlobal = null;
+let cancelarPersonal = null;
+
+function mapaDesdeSnapshot(snap) {
+  const m = new Map();
+  snap.forEach(d => {
+    const ev = normalizarEvento(d.id, d.data());
+    if (ev) m.set(d.id, ev);
+  });
+  return m;
+}
+
+function reconstruirEventos() {
+  const porId = new Map([...fuenteEventos.global, ...fuenteEventos.personal]);
+  eventosDin = [...porId.values()];
+  porFecha = new Map();
+  for (const ev of eventosDin) {
+    if (!porFecha.has(ev.fechaClave)) porFecha.set(ev.fechaClave, []);
+    porFecha.get(ev.fechaClave).push(ev);
+  }
+  pintaMes(); pintaDetalle(); pintaExamenes();
+}
+
+function iniciarEscuchaGlobal() {
+  if (cancelarGlobal) cancelarGlobal();
   estadoEventos = 'cargando';
+  errorEventos = null;
   pintaExamenes();
-  cancelarEventos = onSnapshot(collection(db, COL_EVENTOS), snap => {
-    // Se lee la colección entera (son pocas decenas de documentos) y se filtra en
-    // cliente: así no hace falta crear ningún índice compuesto en la consola.
-    eventosDin = [];
-    porFecha = new Map();
-    snap.forEach(d => {
-      const ev = normalizarEvento(d.id, d.data());
-      if (!ev) return;
-      eventosDin.push(ev);
-      if (!porFecha.has(ev.fechaClave)) porFecha.set(ev.fechaClave, []);
-      porFecha.get(ev.fechaClave).push(ev);
-    });
+  cancelarGlobal = onSnapshot(query(collection(db, COL_EVENTOS), where('ambito', '==', 'global')), snap => {
+    fuenteEventos.global = mapaDesdeSnapshot(snap);
     estadoEventos = 'ok';
     errorEventos = null;
-    pintaMes(); pintaDetalle(); pintaExamenes();
+    reconstruirEventos();
   }, err => {
-    console.error('Error al leer los eventos del calendario:', err);
-    eventosDin = []; porFecha = new Map();
+    console.error('Error al leer los eventos de la clase:', err);
+    fuenteEventos.global = new Map();
     estadoEventos = 'error';
     errorEventos = err;
-    pintaMes(); pintaDetalle(); pintaExamenes();
+    reconstruirEventos();
+  });
+}
+
+// Se (re)arranca al iniciar o cerrar sesión, o al cambiar de cuenta.
+function iniciarEscuchaPersonal() {
+  if (cancelarPersonal) { cancelarPersonal(); cancelarPersonal = null; }
+  fuenteEventos.personal = new Map();
+  if (!user) { reconstruirEventos(); return; }
+  cancelarPersonal = onSnapshot(query(collection(db, COL_EVENTOS), where('usuario_uid', '==', user.uid)), snap => {
+    fuenteEventos.personal = mapaDesdeSnapshot(snap);
+    reconstruirEventos();
+  }, err => {
+    console.error('Error al leer tus eventos personales:', err);
+    fuenteEventos.personal = new Map();
+    reconstruirEventos();
+    mostrarMsg(mensajeError(err, 'leer tus eventos personales'), 'err');
   });
 }
 
@@ -510,6 +571,7 @@ const campos = form.elements;
 const selAsig = campos.asignatura;
 const campoOtra = $('campoOtra');
 const errorEl = $('errorEvento');
+const avisoAmbito = $('avisoAmbito');
 const btnGuardar = $('btnGuardarEvento');
 let editando = null;   // evento que se está editando (null = creando uno nuevo)
 let guardando = false;
@@ -540,6 +602,7 @@ function mostrarErrorForm(texto) { errorEl.textContent = texto; errorEl.hidden =
 
 function abrirModal({ fecha, evento } = {}) {
   if (!user) { mostrarMsg('Inicia sesión para añadir o editar exámenes y tareas.', 'err'); return; }
+  if (evento && !puedeGestionar(evento)) return;
   editando = evento || null;
   form.reset();
   mostrarErrorForm('');
@@ -550,6 +613,13 @@ function abrirModal({ fecha, evento } = {}) {
     ? (evento.tipo === 'examen' ? 'Editar examen' : 'Editar tarea')
     : 'Añadir evento';
   btnGuardar.textContent = 'Guardar';
+
+  // Deja claro quién verá el evento: el admin publica para toda la clase; el alumno, solo para sí.
+  const ambito = evento ? evento.ambito : ambitoNuevo();
+  avisoAmbito.dataset.ambito = ambito;
+  avisoAmbito.textContent = ambito === 'global'
+    ? 'Evento de la clase: lo verán todos los alumnos.'
+    : 'Evento personal: solo lo verás tú.';
 
   if (evento) {
     campos.fecha.value = evento.fechaClave;
@@ -572,11 +642,14 @@ function abrirModal({ fecha, evento } = {}) {
 
 // Cerrar con la X / Cancelar, o pulsando fuera del cuadro (sin que arrastrar para
 // seleccionar texto y soltar fuera lo cierre por accidente).
-let pulsadoFuera = false;
-modal.addEventListener('mousedown', e => { pulsadoFuera = e.target === modal; });
-modal.addEventListener('click', e => {
-  if (e.target.closest('[data-cerrar]') || (e.target === modal && pulsadoFuera)) modal.close();
-});
+function cerrarAlPulsarFuera(dlg) {
+  let pulsadoFuera = false;
+  dlg.addEventListener('mousedown', e => { pulsadoFuera = e.target === dlg; });
+  dlg.addEventListener('click', e => {
+    if (e.target.closest('[data-cerrar]') || (e.target === dlg && pulsadoFuera)) dlg.close();
+  });
+}
+cerrarAlPulsarFuera(modal);
 
 function leerFormulario() {
   const tipo = tipoActual();
@@ -620,13 +693,15 @@ form.addEventListener('submit', async e => {
   mostrarErrorForm('');
   try {
     if (editando) {
-      // El tipo, el autor y la fecha de creación no cambian nunca (lo exigen las reglas).
+      // El tipo, el ámbito, el dueño y la fecha de creación no cambian nunca (lo exigen las reglas).
       const { tipo, ...editables } = datos;
       await updateDoc(doc(db, COL_EVENTOS, editando.id), editables);
     } else {
+      // ambito + usuario_uid deciden quién lo ve (ver firestore.rules). Nunca se cambian al editar.
       await addDoc(collection(db, COL_EVENTOS), {
         ...datos,
-        creado_por: user.uid,
+        ambito: ambitoNuevo(),
+        usuario_uid: user.uid,
         creado: serverTimestamp(),
       });
     }
@@ -648,6 +723,51 @@ form.addEventListener('submit', async e => {
   }
 });
 
+// ---------- Confirmación previa al eliminar ----------
+const modalEliminar = $('modalEliminar');
+const btnConfirmarEliminar = $('btnConfirmarEliminar');
+const errorEliminar = $('errorEliminar');
+let eventoAEliminar = null;
+let borrando = false;
+cerrarAlPulsarFuera(modalEliminar);
+modalEliminar.addEventListener('close', () => { eventoAEliminar = null; });
+
+function pedirEliminar(ev) {
+  if (!puedeGestionar(ev)) return;
+  eventoAEliminar = ev;
+  $('eliminarTipo').textContent = ev.tipo === 'examen' ? 'este examen' : 'esta tarea';
+  $('eliminarTitulo').textContent = ev.label;
+  $('eliminarAviso').textContent = (ev.ambito === 'global'
+    ? 'Es un evento de la clase: dejará de verse para todos los alumnos. '
+    : '') + 'Esta acción no se puede deshacer.';
+  errorEliminar.hidden = true;
+  modalEliminar.showModal();
+}
+
+btnConfirmarEliminar.addEventListener('click', async () => {
+  const ev = eventoAEliminar;
+  if (!ev || borrando) return;
+  borrando = true;
+  btnConfirmarEliminar.disabled = true;
+  btnConfirmarEliminar.textContent = 'Eliminando…';
+  errorEliminar.hidden = true;
+  try {
+    await deleteDoc(doc(db, COL_EVENTOS, ev.id));
+    modalEliminar.close();
+    mostrarMsg(ev.tipo === 'examen' ? 'Examen eliminado.' : 'Tarea eliminada.');
+    // Quita también su marca de «hecha» para no acumular ids huérfanos (mejor esfuerzo).
+    if (ev.tipo === 'tarea' && user && hechas.has(ev.id)) guardarHecha(ev.id, false).catch(() => {});
+  } catch (err) {
+    console.error('Error al eliminar el evento:', err);
+    errorEliminar.textContent = mensajeError(err, 'eliminar el evento');
+    errorEliminar.hidden = false;
+  } finally {
+    borrando = false;
+    btnConfirmarEliminar.disabled = false;
+    btnConfirmarEliminar.textContent = 'Eliminar';
+  }
+});
+
 btnNuevo.addEventListener('click', () => abrirModal({ fecha: claveFecha(fechaSeleccionada) }));
 // Abre el modal de acceso de firebase-init.js (no existe si la página va embebida en un iframe).
 btnAcceder.addEventListener('click', () => $('btn-auth-trigger')?.click());
@@ -660,8 +780,12 @@ btnSiguiente.addEventListener('click', () => { if (idxMes < mesesCurso.length - 
 function actualizarInterfazSesion() {
   btnNuevo.hidden = !user;
   avisoSesion.hidden = !!user;
+  leyendaPersonal.hidden = !user;
   btnAcceder.hidden = embebido() || !$('btn-auth-trigger');
-  if (!user && modal.open) modal.close(); // cerraron sesión (p. ej. en otra pestaña) con el modal abierto
+  if (!user) { // cerraron sesión (p. ej. en otra pestaña) con algún diálogo abierto
+    if (modal.open) modal.close();
+    if (modalEliminar.open) modalEliminar.close();
+  }
 }
 
 let primeraVez = true;
@@ -669,10 +793,10 @@ watchAuth(u => {
   const cambio = (u?.uid ?? null) !== (user?.uid ?? null);
   user = u || null;
   actualizarInterfazSesion();
-  if (primeraVez || cambio) cargarHechas();
-  // La lectura arranca cuando ya se conoce la sesión (así también funcionaría si algún
-  // día las reglas exigen estar autenticado) y se reintenta si un intento anterior falló.
-  if (primeraVez || estadoEventos === 'error') iniciarEscuchaEventos();
+  if (primeraVez || cambio) { cargarHechas(); iniciarEscuchaPersonal(); }
+  // Los eventos de la clase se leen desde que se conoce la sesión y se reintentan si un
+  // intento anterior falló; los personales se reenganchan cada vez que cambia el usuario.
+  if (primeraVez || estadoEventos === 'error') iniciarEscuchaGlobal();
   primeraVez = false;
   pintaMes(); pintaDetalle(); // muestra u oculta los botones de añadir/editar y las marcas del usuario
 });

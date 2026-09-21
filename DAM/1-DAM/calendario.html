@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Calendario Escolar 2026-2027</title>
-<link rel="stylesheet" href="../../css/styles.css?v=8">
+<link rel="stylesheet" href="../../css/styles.css?v=9">
 </head>
 <body>
 
@@ -30,7 +30,7 @@
 
 <div class="cal-toolbar">
   <p class="cal-aviso" id="avisoSesion" hidden>
-    Inicia sesión para añadir o editar exámenes y tareas. Sin sesión, las tareas que marques se guardan solo en este navegador.
+    Ahora ves los exámenes y tareas de la clase. Inicia sesión para crear los tuyos (solo los verás tú). Sin sesión, las tareas que marques se guardan solo en este navegador.
     <button type="button" class="cal-enlace" id="btnAcceder">Acceder</button>
   </p>
   <button type="button" class="cal-btn cal-btn-primario" id="btnNuevoEvento" hidden>+ Añadir examen o tarea</button>
@@ -55,6 +55,7 @@
   <span><span class="sw sw-evaluacion"></span>Evaluación / notas</span>
   <span><span class="sw sw-examen"></span>Examen</span>
   <span><span class="sw sw-tarea"></span>Tarea</span>
+  <span id="leyendaPersonal" hidden><span class="sw sw-personal"></span>Punto hueco: evento personal (solo tú)</span>
 </div>
 
 <div class="detalle" id="detalle"></div>
@@ -84,6 +85,8 @@
       <label class="cal-tipo-op cal-tipo-op--examen"><input type="radio" name="tipo" value="examen" checked><span>Examen</span></label>
       <label class="cal-tipo-op cal-tipo-op--tarea"><input type="radio" name="tipo" value="tarea"><span>Tarea</span></label>
     </div>
+
+    <p class="cal-ambito-aviso" id="avisoAmbito" role="note"></p>
 
     <div class="cal-campos">
       <label class="cal-campo">
@@ -125,6 +128,23 @@
   </form>
 </dialog>
 
+<!-- Confirmación previa al eliminar un examen o una tarea (lo gestiona calendario.js) -->
+<dialog class="cal-modal cal-modal--pequeno" id="modalEliminar" aria-labelledby="modalEliminarTitulo">
+  <div class="cal-form">
+    <div class="cal-modal-cab">
+      <h3 id="modalEliminarTitulo">¿Eliminar <span id="eliminarTipo">este evento</span>?</h3>
+      <button type="button" class="cal-modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+    </div>
+    <p class="cal-confirm-texto"><strong id="eliminarTitulo"></strong></p>
+    <p class="cal-confirm-texto cal-confirm-aviso" id="eliminarAviso"></p>
+    <p class="cal-error" id="errorEliminar" role="alert" hidden></p>
+    <div class="cal-modal-pie">
+      <button type="button" class="cal-btn" data-cerrar autofocus>Cancelar</button>
+      <button type="button" class="cal-btn cal-btn-peligro-solido" id="btnConfirmarEliminar">Eliminar</button>
+    </div>
+  </div>
+</dialog>
+
 <!-- Modal de acceso unificado (iniciar sesión / crear cuenta) -->
 <div class="auth-modal" id="modal-auth" role="dialog" aria-modal="true" aria-labelledby="auth-title" hidden>
   <div class="auth-backdrop" data-auth-cerrar></div>
@@ -156,7 +176,7 @@
 </div>
 
 <!-- calendario.js es un módulo que importa firebase-init.js (sesión + Firestore): no hace falta cargarlo aparte. -->
-<script type="module" src="../../js/calendario.js?v=1"></script>
+<script type="module" src="../../js/calendario.js?v=2"></script>
 
 </body>
 </html>
