@@ -1152,3 +1152,152 @@ html.page-introduccion{
 .page-introduccion .leyenda-exp .sw-var{ background:var(--green); }
 .page-introduccion .leyenda-exp .sw-op{ background:var(--fg); }
 
+
+/* ==========================================================================
+   6. MÓDULO DE APUNTES CON FIREBASE  (.fbap)
+   Se incrusta en cualquier página de asignatura con:
+     <div id="firebase-apuntes" class="fbap" data-asignatura="..."></div>
+   Está encapsulado: todo cuelga de .fbap y usa variables propias (--fbap-*),
+   así que se ve igual sin depender de las variables de cada página, y sus
+   selectores (.fbap .clase) pesan más que los de página (.page-xxx elemento)
+   para que no le afecten reglas como `.page-xxx h2`, `p`, `ul` o `li`.
+   ========================================================================== */
+.fbap{
+  --fbap-panel:#252526;
+  --fbap-input:#1a1a1a;
+  --fbap-raised:#2d2d2d;
+  --fbap-hover:#37373d;
+  --fbap-border:#333333;
+  --fbap-fg:#d4d4d4;
+  --fbap-strong:#ffffff;
+  --fbap-muted:#9a9a9a;
+  --fbap-accent:#4fc1ff;
+  --fbap-action:#007acc;
+  --fbap-action-hover:#0e8fe0;
+  --fbap-pdf:#ce9178;
+  --fbap-html:#569cd6;
+  --fbap-ok:#89d185;
+  --fbap-err:#f48771;
+  --fbap-mono:"Cascadia Code",Consolas,monospace;
+
+  margin:44px 0 0;
+  padding-top:16px;
+  border-top:2px solid var(--fbap-border);
+  color:var(--fbap-fg);
+  font-size:14px;
+  line-height:1.5;
+  text-align:left;
+}
+/* Si el JS no llega a pintar nada, el contenedor no deja ni el borde. */
+.fbap:empty{ display:none; }
+.fbap [hidden]{ display:none !important; }
+.fbap :focus-visible{ outline:2px solid var(--fbap-accent); outline-offset:2px; }
+
+/* ---------- Cabecera ---------- */
+.fbap .fbap-head{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.fbap h2.fbap-title{
+  margin:0; padding:0; border:0;
+  font-family:var(--fbap-mono); font-size:19px; font-weight:700; line-height:1.3;
+  color:var(--fbap-accent);
+}
+.fbap .fbap-hint{ margin:6px 0 0; font-size:12.5px; color:var(--fbap-muted); }
+
+/* ---------- Paneles (login y subida) ---------- */
+.fbap .fbap-panel{
+  margin:16px 0 0; padding:14px 18px;
+  background:var(--fbap-panel);
+  border:1px solid var(--fbap-border);
+  border-left:4px solid var(--fbap-accent);
+}
+.fbap .fbap-noperm{ font-size:13px; color:var(--fbap-muted); }
+.fbap .fbap-row{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+
+/* ---------- Campos ---------- */
+.fbap .fbap-input{
+  flex:1 1 200px; min-width:0;
+  padding:7px 10px;
+  font:inherit; font-size:13px; color:var(--fbap-fg);
+  background:var(--fbap-input);
+  border:1px solid var(--fbap-border);
+  border-radius:3px;
+}
+.fbap .fbap-input::placeholder{ color:var(--fbap-muted); }
+.fbap .fbap-file{ flex-basis:260px; padding:5px 8px; }
+.fbap .fbap-file::file-selector-button{
+  margin-right:10px; padding:4px 12px;
+  font:inherit; font-size:13px; color:var(--fbap-strong);
+  background:var(--fbap-raised);
+  border:1px solid var(--fbap-border);
+  border-radius:3px;
+  cursor:pointer;
+}
+.fbap .fbap-file::file-selector-button:hover{ background:var(--fbap-hover); }
+
+/* ---------- Botones (button y a) ---------- */
+.fbap .fbap-btn,
+.fbap a.fbap-btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:6px 14px;
+  font:inherit; font-size:13px; line-height:1.4; text-decoration:none;
+  color:var(--fbap-strong);
+  background:var(--fbap-raised);
+  border:1px solid var(--fbap-border);
+  border-radius:3px;
+  cursor:pointer;
+}
+.fbap .fbap-btn:hover,
+.fbap a.fbap-btn:hover{ background:var(--fbap-hover); color:var(--fbap-strong); }
+.fbap .fbap-btn-primary,
+.fbap a.fbap-btn-primary{ background:var(--fbap-action); border-color:var(--fbap-action); }
+.fbap .fbap-btn-primary:hover,
+.fbap a.fbap-btn-primary:hover{ background:var(--fbap-action-hover); }
+.fbap .fbap-btn-quiet{ padding-left:0; padding-right:0; background:none; border-color:transparent; color:var(--fbap-muted); font-size:12.5px; }
+.fbap .fbap-btn-quiet:hover{ background:none; color:var(--fbap-strong); }
+.fbap .fbap-btn:disabled{ opacity:.55; cursor:not-allowed; }
+
+/* ---------- Progreso y mensajes ---------- */
+/* Barra indeterminada: fetch no informa del porcentaje de subida. */
+.fbap .fbap-progress{ position:relative; height:6px; margin-top:12px; overflow:hidden; background:var(--fbap-input); border-radius:3px; }
+.fbap .fbap-progress-bar{
+  position:absolute; top:0; bottom:0; left:0; width:35%;
+  background:var(--fbap-action); border-radius:3px;
+  animation:fbap-subiendo 1.1s ease-in-out infinite;
+}
+@keyframes fbap-subiendo{ from{ transform:translateX(-100%); } to{ transform:translateX(290%); } }
+.fbap .fbap-status{ margin:10px 0 0; font-size:12.5px; color:var(--fbap-muted); }
+.fbap .fbap-status:empty{ display:none; }
+.fbap .fbap-status[data-tipo="ok"]{ color:var(--fbap-ok); }
+.fbap .fbap-status[data-tipo="err"]{ color:var(--fbap-err); }
+
+/* ---------- Lista de archivos ---------- */
+.fbap ul.fbap-list{ display:flex; flex-direction:column; gap:8px; margin:16px 0 0; padding:0; list-style:none; }
+.fbap li.fbap-item{
+  display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:14px;
+  margin:0; padding:10px 14px;
+  background:var(--fbap-panel);
+  border:1px solid var(--fbap-border);
+  border-left:4px solid var(--fbap-accent);
+}
+/* El color del borde y de la etiqueta indica el tipo de archivo. */
+.fbap li.fbap-item--pdf{ border-left-color:var(--fbap-pdf); }
+.fbap li.fbap-item--html{ border-left-color:var(--fbap-html); }
+.fbap .fbap-badge{
+  min-width:46px; padding:2px 8px;
+  font-family:var(--fbap-mono); font-size:11px; text-align:center;
+  border:1px solid currentColor; border-radius:3px;
+}
+.fbap .fbap-item--pdf .fbap-badge{ color:var(--fbap-pdf); }
+.fbap .fbap-item--html .fbap-badge{ color:var(--fbap-html); }
+.fbap .fbap-info{ min-width:0; }
+.fbap .fbap-name{ display:block; font-size:14px; color:var(--fbap-strong); overflow-wrap:anywhere; }
+.fbap .fbap-meta{ display:block; margin-top:1px; font-size:12px; color:var(--fbap-muted); }
+.fbap .fbap-actions{ display:flex; gap:8px; }
+.fbap .fbap-empty{ margin:16px 0 0; font-size:13px; font-style:italic; color:var(--fbap-muted); }
+
+@media (max-width:700px){
+  .fbap li.fbap-item{ grid-template-columns:auto minmax(0,1fr); }
+  .fbap .fbap-actions{ grid-column:1 / -1; }
+}
+@media (prefers-reduced-motion:reduce){
+  .fbap .fbap-progress-bar{ animation:none; width:100%; opacity:.6; }
+}
