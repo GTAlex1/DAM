@@ -138,7 +138,7 @@ html.page-index,
 }
 .titlebar-left{ display:flex; align-items:center; gap:6px; width:180px; flex-shrink:0; }
 .titlebar-center{ flex:1; text-align:center; opacity:.75; }
-.titlebar-right{ min-width:180px; flex-shrink:0; margin-left:auto; display:flex; align-items:center; justify-content:flex-end; }
+.titlebar-right{ width:180px; flex-shrink:0; display:flex; justify-content:flex-end; }
 .vscode-logo{ flex-shrink:0; }
 
 /* ---------- Workbench layout ---------- */
@@ -641,6 +641,40 @@ html.auth-bloqueo body{ overflow:hidden; }
   .auth-modal .auth-card{ padding:18px 16px; }
 }
 
+/* ---------- Acceso en la barra de actividad (solo index.html) ---------- */
+/* Columna de iconos de 48 px, como el icono de cuenta de VS Code. Usa los colores de
+   la propia barra (siempre oscura, también con el tema claro), no los del panel. Va al
+   final del bloque de acceso para ganar en orden a las reglas de las otras variantes. */
+.auth-header--actividad{
+  display:flex; flex-direction:column; align-items:center; gap:0;
+  width:100%; font-size:inherit; line-height:normal;
+  color:var(--activitybar-inactive);
+}
+.auth-header--actividad .auth-trigger,
+.auth-header--actividad .auth-logout{
+  display:flex; align-items:center; justify-content:center; gap:0;
+  width:48px; height:48px; margin:0; padding:0;
+  background:none; border:none; border-left:2px solid transparent; border-radius:0;
+  color:var(--activitybar-inactive); cursor:pointer;
+}
+.auth-header--actividad .auth-trigger:hover,
+.auth-header--actividad .auth-logout:hover{ background:none; color:var(--activitybar-fg); }
+.auth-header--actividad .auth-trigger:focus-visible,
+.auth-header--actividad .auth-logout:focus-visible{ outline:1px solid var(--accent-blue); outline-offset:-4px; }
+.auth-header--actividad .auth-label{ display:none; }              /* solo icono; el nombre va en title/aria-label */
+.auth-header--actividad .auth-icon-solo{ display:block; }
+.auth-header--actividad .auth-user{ position:relative; display:flex; flex-direction:column; align-items:center; gap:0; width:48px; }
+.auth-header--actividad .auth-user-icon{ width:22px; height:22px; margin:13px 0; }   /* 13 + 22 + 13 = fila de 48 px */
+.auth-header--actividad .auth-user-name{                            /* solo para lectores de pantalla */
+  position:absolute; width:1px; height:1px; margin:-1px; padding:0; max-width:none;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+}
+.auth-header--actividad .auth-user-rol{                             /* «admin»: punto en la esquina del avatar */
+  position:absolute; top:9px; right:9px; display:block;
+  width:10px; height:10px; padding:0; border-radius:50%;
+  font-size:0; background:var(--folder-icon); box-shadow:0 0 0 2px var(--activitybar-bg);
+}
+
 /* ---------- Panel de ajustes ---------- */
 .settings-row{ margin-bottom:14px; }
 .settings-row:last-child{ margin-bottom:0; }
@@ -731,8 +765,6 @@ html.page-index{
 /* ---------- Responsive ---------- */
 @media (max-width: 760px){
   .titlebar-left span, .titlebar-center{ display:none; }
-  .titlebar-left{ width:auto; }
-  .titlebar-right{ min-width:0; }
   .sidebar{ position:absolute; z-index:20; height:calc(100vh - 30px - 22px); box-shadow:2px 0 8px rgba(0,0,0,.4); }
   .note{ padding:0 16px; }
 }

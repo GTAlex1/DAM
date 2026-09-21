@@ -20,23 +20,7 @@
     <span>Code</span>
   </div>
   <div class="titlebar-center" id="titlebar-path">Apuntes DAM</div>
-  <div class="titlebar-right">
-    <div class="auth-header" id="auth-header" data-estado="cargando">
-      <button type="button" class="auth-trigger" id="btn-auth-trigger" aria-haspopup="dialog" aria-controls="modal-auth" aria-label="Acceder / Mi cuenta">
-        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z"/></svg>
-        <span class="auth-label">Acceder</span>
-      </button>
-      <div class="auth-user" id="auth-user" hidden>
-        <span class="auth-user-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12" focusable="false"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z"/></svg></span>
-        <span class="auth-user-name" id="auth-user-name"></span>
-        <span class="auth-user-rol" id="auth-user-rol" hidden>admin</span>
-        <button type="button" class="auth-logout" id="btn-auth-logout" aria-label="Cerrar sesión">
-          <svg class="auth-icon-solo" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
-          <span class="auth-label">Cerrar sesión</span>
-        </button>
-      </div>
-    </div>
-  </div>
+  <div class="titlebar-right"></div>
 </div>
 
 <div class="workbench">
@@ -53,6 +37,22 @@
       <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.3 6.1 20.6l1.4-6.6-5-4.6 6.6-.7L12 2.5z"/></svg>
     </button>
     <div class="activity-spacer"></div>
+    <!-- Acceso: icono de cuenta (sin sesión) / avatar + cerrar sesión (con sesión) -->
+    <div class="auth-header auth-header--actividad" id="auth-header" data-estado="cargando">
+      <button type="button" class="auth-trigger" id="btn-auth-trigger" aria-haspopup="dialog" aria-controls="modal-auth" title="Acceder / Mi cuenta" aria-label="Acceder / Mi cuenta">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z"/></svg>
+        <span class="auth-label">Acceder</span>
+      </button>
+      <div class="auth-user" id="auth-user" hidden>
+        <span class="auth-user-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" focusable="false"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z"/></svg></span>
+        <span class="auth-user-name" id="auth-user-name"></span>
+        <span class="auth-user-rol" id="auth-user-rol" title="Administrador" hidden>admin</span>
+        <button type="button" class="auth-logout" id="btn-auth-logout" title="Cerrar sesión" aria-label="Cerrar sesión">
+          <svg class="auth-icon-solo" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+          <span class="auth-label">Cerrar sesión</span>
+        </button>
+      </div>
+    </div>
     <button class="activity-icon" id="settings-icon" title="Ajustes" aria-label="Ajustes">
       <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M19.4 13a7.8 7.8 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.9 7.9 0 0 0-1.7-1L15 3h-4l-.3 2.9a7.9 7.9 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.8 7.8 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.9 7.9 0 0 0 1.7 1L11 21h4l.3-2.9a7.9 7.9 0 0 0 1.7-1l2.5 1 2-3.5L19.4 13zM13 15.5A3.5 3.5 0 1 1 16.5 12 3.5 3.5 0 0 1 13 15.5z"/></svg>
     </button>
