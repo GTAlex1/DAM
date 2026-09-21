@@ -1154,13 +1154,14 @@ html.page-introduccion{
 
 
 /* ==========================================================================
-   6. MÓDULO DE APUNTES CON FIREBASE  (.fbap)
-   Se incrusta en cualquier página de asignatura con:
-     <div id="firebase-apuntes" class="fbap" data-asignatura="..."></div>
+   6. MÓDULO DE APUNTES  (.fbap)
+   Gestor de archivos (Cloudinary + Firestore). Dos usos del mismo contenedor:
+     <div id="firebase-apuntes" class="fbap" data-asignatura="..."></div>   página de asignatura
+     <div id="firebase-apuntes" class="fbap" data-modo="general"></div>     vista general de DAM
    Está encapsulado: todo cuelga de .fbap y usa variables propias (--fbap-*),
    así que se ve igual sin depender de las variables de cada página, y sus
    selectores (.fbap .clase) pesan más que los de página (.page-xxx elemento)
-   para que no le afecten reglas como `.page-xxx h2`, `p`, `ul` o `li`.
+   para que no le afecten reglas como `.page-xxx h2`, `h3`, `p`, `ul` o `li`.
    ========================================================================== */
 .fbap{
   --fbap-panel:#252526;
@@ -1172,6 +1173,7 @@ html.page-introduccion{
   --fbap-strong:#ffffff;
   --fbap-muted:#9a9a9a;
   --fbap-accent:#4fc1ff;
+  --fbap-group:#9cdcfe;
   --fbap-action:#007acc;
   --fbap-action-hover:#0e8fe0;
   --fbap-pdf:#ce9178;
@@ -1184,6 +1186,7 @@ html.page-introduccion{
   padding-top:16px;
   border-top:2px solid var(--fbap-border);
   color:var(--fbap-fg);
+  color-scheme:dark;               /* desplegables y selector de archivos en oscuro */
   font-size:14px;
   line-height:1.5;
   text-align:left;
@@ -1233,6 +1236,11 @@ html.page-introduccion{
 }
 .fbap .fbap-file::file-selector-button:hover{ background:var(--fbap-hover); }
 
+/* Selector de asignatura de destino (subida) */
+.fbap .fbap-field{ display:flex; align-items:center; gap:8px; flex:0 1 auto; }
+.fbap .fbap-label{ font-size:12.5px; color:var(--fbap-muted); white-space:nowrap; }
+.fbap select.fbap-select{ flex:0 1 220px; cursor:pointer; }
+
 /* ---------- Botones (button y a) ---------- */
 .fbap .fbap-btn,
 .fbap a.fbap-btn{
@@ -1253,7 +1261,8 @@ html.page-introduccion{
 .fbap a.fbap-btn-primary:hover{ background:var(--fbap-action-hover); }
 .fbap .fbap-btn-quiet{ padding-left:0; padding-right:0; background:none; border-color:transparent; color:var(--fbap-muted); font-size:12.5px; }
 .fbap .fbap-btn-quiet:hover{ background:none; color:var(--fbap-strong); }
-.fbap .fbap-btn:disabled{ opacity:.55; cursor:not-allowed; }
+.fbap .fbap-btn:disabled{ opacity:.4; cursor:not-allowed; }
+.fbap .fbap-btn:disabled:hover{ background:var(--fbap-raised); }
 
 /* ---------- Progreso y mensajes ---------- */
 /* Barra indeterminada: fetch no informa del porcentaje de subida. */
@@ -1269,8 +1278,24 @@ html.page-introduccion{
 .fbap .fbap-status[data-tipo="ok"]{ color:var(--fbap-ok); }
 .fbap .fbap-status[data-tipo="err"]{ color:var(--fbap-err); }
 
+/* ---------- Grupos por asignatura (vista general) ---------- */
+.fbap .fbap-grupos{ margin-top:16px; }
+.fbap .fbap-group + .fbap-group{ margin-top:28px; }
+.fbap h3.fbap-group-title{
+  display:flex; align-items:center; gap:8px;
+  margin:0 0 10px; padding:0; border:0;
+  font-family:var(--fbap-mono); font-size:15px; font-weight:600; line-height:1.4;
+  color:var(--fbap-group);
+}
+.fbap .fbap-count{
+  min-width:22px; padding:0 6px;
+  font-size:11px; font-weight:400; line-height:18px; text-align:center;
+  color:var(--fbap-muted);
+  border:1px solid var(--fbap-border); border-radius:9px;
+}
+
 /* ---------- Lista de archivos ---------- */
-.fbap ul.fbap-list{ display:flex; flex-direction:column; gap:8px; margin:16px 0 0; padding:0; list-style:none; }
+.fbap ul.fbap-list{ display:flex; flex-direction:column; gap:8px; margin:0; padding:0; list-style:none; }
 .fbap li.fbap-item{
   display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:14px;
   margin:0; padding:10px 14px;
@@ -1294,9 +1319,32 @@ html.page-introduccion{
 .fbap .fbap-actions{ display:flex; gap:8px; }
 .fbap .fbap-empty{ margin:16px 0 0; font-size:13px; font-style:italic; color:var(--fbap-muted); }
 
+/* ---------- Controles de gestión (solo con sesión autorizada) ---------- */
+/* Segunda fila de cada archivo, alineada con el nombre: subir/bajar posición y mover a otra asignatura. */
+.fbap .fbap-manage{
+  grid-column:2 / -1;
+  display:flex; align-items:center; flex-wrap:wrap; gap:8px;
+  margin-top:2px; padding-top:10px;
+  border-top:1px solid var(--fbap-border);
+}
+.fbap .fbap-icon-btn{ width:30px; height:30px; padding:0; }
+.fbap .fbap-icon-btn svg{ display:block; }
+.fbap .fbap-pos{
+  min-width:34px;
+  font-family:var(--fbap-mono); font-size:12px; text-align:center;
+  color:var(--fbap-muted);
+}
+.fbap select.fbap-move{ flex:0 1 210px; margin-left:auto; padding:5px 8px; font-size:12.5px; cursor:pointer; }
+/* Mientras se guarda un cambio, los controles quedan atenuados y sin respuesta. */
+.fbap.fbap-ocupado .fbap-manage{ opacity:.55; pointer-events:none; }
+
 @media (max-width:700px){
   .fbap li.fbap-item{ grid-template-columns:auto minmax(0,1fr); }
-  .fbap .fbap-actions{ grid-column:1 / -1; }
+  .fbap .fbap-actions,
+  .fbap .fbap-manage{ grid-column:1 / -1; }
+  .fbap .fbap-field{ flex:1 1 100%; }
+  .fbap select.fbap-select{ flex:1 1 auto; }
+  .fbap select.fbap-move{ flex:1 1 140px; margin-left:0; }
 }
 @media (prefers-reduced-motion:reduce){
   .fbap .fbap-progress-bar{ animation:none; width:100%; opacity:.6; }
