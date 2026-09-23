@@ -1,4 +1,4 @@
-import { isAuthorized, watchAuth, loadOrder, saveOrderForPath, crearPanelSubida, crearControlModal } from './firebase-init.js?v=4';
+import { isAuthorized, watchAuth, loadOrder, saveOrderForPath, crearPanelSubida, crearControlModal } from './firebase-init.js?v=5';
 import { fetchGithubTree } from './github-source.js?v=2';
 
 // ---------- Config ----------

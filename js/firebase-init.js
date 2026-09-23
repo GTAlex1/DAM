@@ -27,9 +27,12 @@
 //    árbol y mover/reordenar/eliminar apuntes.
 //
 // PERFILES Y ROLES (módulos «CUENTA» y «GESTIÓN DE USUARIOS», más abajo):
-// 11. Cada usuario tiene un documento usuarios/{uid} {nombre, email, ...} que se
-//    crea solo la primera vez que inicia sesión con esta versión. Es lo que lista
-//    el panel de administración (el SDK web no puede listar Firebase Auth).
+// 11. Cada usuario tiene un documento usuarios/{uid} {uid, nombre, email, esAdmin, ...}
+//    que se crea/actualiza al registrarse Y en cada inicio de sesión (login() y
+//    onAuthStateChanged). Así las cuentas antiguas quedan registradas en cuanto vuelven
+//    a entrar. Es lo que lista el panel de administración (el SDK web no puede listar
+//    Firebase Auth). `esAdmin` es un reflejo de solo lectura de roles/{uid}: las reglas
+//    solo dejan escribirlo con el valor real.
 // 12. El «Admin inferior» es un documento roles/{uid} {adminInferior: true} que
 //    solo el Admin Principal (AUTHORIZED_UID) puede crear o borrar. Su ÚNICO efecto
 //    es publicar/editar exámenes y tareas GLOBALES del calendario (ver rules).
@@ -134,7 +137,14 @@ function errorAuth(code) {
 export async function login(identificador, password) {
   const email = identificadorAEmail(identificador);
   if (!email) throw errorAuth("auth/invalid-email");
-  await signInWithEmailAndPassword(auth, email, password);
+  const cred = await signInWithEmailAndPassword(auth, email, password);
+  // Crea/actualiza usuarios/{uid}: así las cuentas anteriores a esta versión quedan
+  // registradas en cuanto vuelven a entrar. Un fallo aquí no debe impedir el acceso.
+  try {
+    await sincronizarPerfil(cred.user);
+  } catch (e) {
+    console.warn("No se pudo sincronizar el perfil en Firestore:", e);
+  }
 }
 
 /** Crea una cuenta (abierta a cualquiera) y deja la sesión iniciada. */
@@ -188,8 +198,9 @@ export async function saveOrderForPath(pathKey, orderedNames) {
 
 /* ==========================================================================
    CUENTA: perfil (Firestore) y roles
-   - usuarios/{uid}  → { nombre, email, creado, actualizado }. Lo escribe cada usuario
-                       sobre SU documento; lo lee él y el Admin Principal.
+   - usuarios/{uid}  → { uid, nombre, email, esAdmin, creado, actualizado }. Lo escribe cada
+                       usuario sobre SU documento; lo lee él y el Admin Principal (que además
+                       puede actualizar `esAdmin` en cualquiera). `esAdmin` refleja roles/{uid}.
    - roles/{uid}     → { adminInferior: true }. Solo lo escribe el Admin Principal.
    ========================================================================== */
 const USUARIOS_COLECCION = "usuarios";
@@ -223,20 +234,61 @@ function formatearCorreo(email) {
 
 const limpiarNombre = (n) => (n || "").replace(/\s+/g, " ").trim();
 
-/** Crea usuarios/{uid} si no existe (no pisa un nombre ya guardado). */
-async function sincronizarPerfil(user, nombre) {
-  const ref = doc(db, USUARIOS_COLECCION, user.uid);
-  const snap = await getDoc(ref);
-  if (snap.exists()) return;
-  await setDoc(ref, {
-    nombre: limpiarNombre(nombre || nombreVisible(user)).slice(0, NOMBRE_MAX) || "Sin nombre",
-    email: (user.email || "").toLowerCase(),
-    creado: serverTimestamp(),
-    actualizado: serverTimestamp(),
-  });
+/** ¿Es admin (principal o inferior)? Valor real, calculado desde roles/{uid}. */
+async function calcularEsAdmin(user) {
+  return (await getRol(user, { forzar: true })) !== ROL.USUARIO;
 }
 
-// Cuentas anteriores a esta versión: su perfil se crea en el siguiente inicio de sesión.
+// Evita carreras: login() y onAuthStateChanged disparan la sincronización casi a la vez;
+// si las dos vieran «no existe» y crearan, la segunda sería un update inválido.
+const perfilesEnCurso = new Map(); // uid -> Promise
+
+/**
+ * Crea o actualiza usuarios/{uid} con { uid, nombre, email, esAdmin }.
+ * - Si no existe: lo crea (con `creado`).
+ * - Si existe: solo escribe lo que falta o ha cambiado (uid/email/esAdmin de cuentas
+ *   antiguas, nombre vacío). No pisa un nombre ya guardado.
+ */
+function sincronizarPerfil(user, nombre) {
+  if (!user) return Promise.resolve();
+  const enCurso = perfilesEnCurso.get(user.uid);
+  if (enCurso) return enCurso;
+  const p = escribirPerfil(user, nombre).finally(() => perfilesEnCurso.delete(user.uid));
+  perfilesEnCurso.set(user.uid, p);
+  return p;
+}
+
+async function escribirPerfil(user, nombre) {
+  const ref = doc(db, USUARIOS_COLECCION, user.uid);
+  const email = (user.email || "").toLowerCase();
+  const esAdmin = await calcularEsAdmin(user);
+  const nombreLimpio =
+    limpiarNombre(nombre || nombreVisible(user)).slice(0, NOMBRE_MAX) || "Sin nombre";
+
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      uid: user.uid,
+      nombre: nombreLimpio,
+      email,
+      esAdmin,
+      creado: serverTimestamp(),
+      actualizado: serverTimestamp(),
+    });
+    return;
+  }
+
+  const actual = snap.data();
+  const parche = {};
+  if (actual.uid !== user.uid) parche.uid = user.uid;
+  if (actual.email !== email) parche.email = email;
+  if (typeof actual.nombre !== "string" || !limpiarNombre(actual.nombre)) parche.nombre = nombreLimpio;
+  if (actual.esAdmin !== esAdmin) parche.esAdmin = esAdmin;
+  if (!Object.keys(parche).length) return; // ya está al día: sin escrituras innecesarias
+  await updateDoc(ref, { ...parche, actualizado: serverTimestamp() });
+}
+
+// Cada inicio de sesión (y cada recarga con la sesión ya guardada) deja el perfil al día.
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     cacheRol.clear();
@@ -255,13 +307,18 @@ export async function guardarNombrePerfil(nombreBruto) {
     throw errorAuth("perfil/nombre-invalido");
   }
   const ref = doc(db, USUARIOS_COLECCION, user.uid);
+  const email = (user.email || "").toLowerCase();
+  const esAdmin = await calcularEsAdmin(user);
   const snap = await getDoc(ref);
   if (snap.exists()) {
-    await updateDoc(ref, { nombre, actualizado: serverTimestamp() });
+    // uid/email/esAdmin también se rellenan aquí por si el documento es de una cuenta antigua.
+    await updateDoc(ref, { nombre, uid: user.uid, email, esAdmin, actualizado: serverTimestamp() });
   } else {
     await setDoc(ref, {
+      uid: user.uid,
       nombre,
-      email: (user.email || "").toLowerCase(),
+      email,
+      esAdmin,
       creado: serverTimestamp(),
       actualizado: serverTimestamp(),
     });
@@ -295,9 +352,13 @@ export async function puedeGestionarCalendarioGlobal(user) {
   return (await getRol(user)) !== ROL.USUARIO;
 }
 
-/** Todos los usuarios registrados salvo el Admin Principal, con su estado de Admin inferior. */
+/**
+ * Todos los usuarios de la colección `usuarios` salvo el Admin Principal (no se lista a sí
+ * mismo), con su estado de Admin inferior (roles/{uid}, que es la fuente de verdad).
+ */
 export async function listarUsuarios() {
-  if (!isAuthorized(auth.currentUser)) throw errorAuth("permission-denied");
+  const yo = auth.currentUser;
+  if (!isAuthorized(yo)) throw errorAuth("permission-denied");
   const [usuarios, roles] = await Promise.all([
     getDocs(collection(db, USUARIOS_COLECCION)),
     getDocs(collection(db, ROLES_COLECCION)),
@@ -308,10 +369,10 @@ export async function listarUsuarios() {
   });
   const lista = [];
   usuarios.forEach((d) => {
-    if (d.id === AUTHORIZED_UID) return;
+    if (d.id === AUTHORIZED_UID || d.id === yo.uid) return; // el Admin Principal no se lista
     const x = d.data();
     lista.push({
-      uid: d.id,
+      uid: d.id, // el id del documento es el uid (no nos fiamos del campo, que puede faltar)
       nombre: typeof x.nombre === "string" ? x.nombre : "",
       email: typeof x.email === "string" ? x.email : "",
       adminInferior: inferiores.has(d.id),
@@ -320,16 +381,24 @@ export async function listarUsuarios() {
   return lista.sort((a, b) => (a.nombre || a.email).localeCompare(b.nombre || b.email, "es"));
 }
 
-/** Concede (true) o revoca (false) el rol de Admin inferior. Solo el Admin Principal. */
+/**
+ * Concede (true) o revoca (false) el rol de Admin inferior. Solo el Admin Principal.
+ * En un único batch: roles/{uid} (fuente de verdad que usan las reglas) y el reflejo
+ * usuarios/{uid}.esAdmin, para que ambos no puedan quedar desincronizados.
+ */
 export async function fijarAdminInferior(uid, activo) {
   const yo = auth.currentUser;
   if (!isAuthorized(yo) || !uid || uid === AUTHORIZED_UID) throw errorAuth("permission-denied");
-  const ref = doc(db, ROLES_COLECCION, uid);
+  const refRol = doc(db, ROLES_COLECCION, uid);
+  const refUsuario = doc(db, USUARIOS_COLECCION, uid);
+  const batch = writeBatch(db);
   if (activo) {
-    await setDoc(ref, { adminInferior: true, asignado_por: yo.uid, actualizado: serverTimestamp() });
+    batch.set(refRol, { adminInferior: true, asignado_por: yo.uid, actualizado: serverTimestamp() });
   } else {
-    await deleteDoc(ref);
+    batch.delete(refRol);
   }
+  batch.update(refUsuario, { esAdmin: !!activo, actualizado: serverTimestamp() });
+  await batch.commit();
 }
 
 
@@ -754,8 +823,12 @@ function initUsuariosUI() {
 
   function pintar() {
     const q = filtro.value.trim().toLowerCase();
+    const yo = auth.currentUser?.uid;
     const visibles = usuarios.filter(
-      (u) => !q || u.nombre.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+      (u) =>
+        u.uid !== yo && // el Admin Principal no se lista a sí mismo
+        u.uid !== AUTHORIZED_UID &&
+        (!q || u.nombre.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))
     );
     lista.replaceChildren();
     if (!visibles.length) {
@@ -765,7 +838,7 @@ function initUsuariosUI() {
           "usr-vacio",
           usuarios.length
             ? "Ningún usuario coincide con el filtro."
-            : "Aún no hay otros usuarios. Cada usuario aparece aquí la primera vez que inicia sesión con esta versión de la web."
+            : "Aún no hay otros usuarios registrados. Cada usuario aparece aquí al crear su cuenta o la próxima vez que inicie sesión."
         )
       );
     } else {
@@ -789,8 +862,8 @@ function initUsuariosUI() {
       cuentaEl.textContent = "";
       mostrarError(
         err?.code === "permission-denied"
-          ? "Firestore denegó la lectura. Publica las reglas nuevas (firestore.rules)."
-          : "No se pudo cargar la lista de usuarios."
+          ? "Firestore denegó la lectura. Publica las reglas nuevas (firestore.rules) y comprueba que AUTHORIZED_UID es tu UID."
+          : `No se pudo cargar la lista de usuarios${err?.code ? ` (${err.code})` : ""}.`
       );
     } finally {
       cargando = false;
