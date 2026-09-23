@@ -64,54 +64,6 @@
   --font-mono: "Cascadia Code", "SF Mono", Consolas, "Courier New", monospace;
 }
 
-/* ---------- Tema claro ---------- */
-:root[data-theme="light"]{
-  --titlebar-bg:#dddddd;
-  --activitybar-bg:#2c2c2c;
-  --activitybar-fg:#ffffff;
-  --activitybar-inactive:#b0b0b0;
-  --sidebar-bg:#f3f3f3;
-  --sidebar-fg:#3b3b3b;
-  --sidebar-header-fg:#6f6f6f;
-  --editor-bg:#ffffff;
-  --editor-fg:#1e1e1e;
-  --tab-active-bg:#ffffff;
-  --tab-inactive-bg:#ececec;
-  --tab-border:#e2e2e2;
-  --statusbar-bg:#007acc;
-  --statusbar-fg:#ffffff;
-  --hover-bg:#e8e8e8;
-  --selected-bg:#dbe6f5;
-  --folder-icon:#b98a3a;
-  --scrollbar:#c2c2c2;
-  --border:#e2e2e2;
-  --border-soft:#e2e2e2;
-  --border-strong:#d0d0d0;
-  --divider:#c2c2c2;
-
-  --text-strong:#1a1a1a;
-  --text-normal:#3b3b3b;
-  --text-muted:#6b6b6b;
-  --text-faint:#8a8a8a;
-  --danger:#c22c2c;
-
-  --surface-1:#f3f3f3;
-  --surface-2:#eaeaea;
-  --surface-3:#e2e2e2;
-
-  --note-h2:#0a5a8a;
-  --note-h3:#0a5a8a;
-  --note-code-fg:#a1260d;
-  --note-link:#0a5a8a;
-  --mark-bg:#fff0a8;
-  --mark-fg:#5a4300;
-}
-
-/* ---------- Acentos (color de "elemento activo" en toda la interfaz) ---------- */
-:root[data-accent="green"] { --accent-blue:#2fae83; }
-:root[data-accent="purple"]{ --accent-blue:#a074e8; }
-:root[data-accent="pink"]  { --accent-blue:#e0609e; }
-
 /* Compartido por TODAS las páginas que cargan este archivo. */
 *{ box-sizing:border-box; }
 
@@ -214,6 +166,11 @@ html.page-index,
 
 /* ---------- Vistas de la sidebar (Explorador / Buscar / Favoritos) ---------- */
 .sidebar-view{ display:flex; flex-direction:column; height:100%; }
+/* Antes las tres vistas se veían a la vez: `display:flex` (regla del autor) le gana al
+   `display:none` que el navegador aplica al atributo [hidden], y los botones de la barra
+   de actividad no podían ocultar nada. Este refuerzo arregla ese caso y cualquier otro
+   elemento de la app que se oculte con [hidden]. */
+.page-index [hidden]{ display:none !important; }
 
 .search-box{ padding:8px 12px; display:flex; flex-direction:column; gap:6px; }
 .search-box input, .search-box select{
@@ -643,7 +600,7 @@ html.auth-bloqueo body{ overflow:hidden; }
 
 /* ---------- Acceso en la barra de actividad (solo index.html) ---------- */
 /* Columna de iconos de 48 px, como el icono de cuenta de VS Code. Usa los colores de
-   la propia barra (siempre oscura, también con el tema claro), no los del panel. Va al
+   la propia barra, no los del panel. Va al
    final del bloque de acceso para ganar en orden a las reglas de las otras variantes. */
 .auth-header--actividad{
   display:flex; flex-direction:column; align-items:center; gap:0;
@@ -664,7 +621,15 @@ html.auth-bloqueo body{ overflow:hidden; }
 .auth-header--actividad .auth-label{ display:none; }              /* solo icono; el nombre va en title/aria-label */
 .auth-header--actividad .auth-icon-solo{ display:block; }
 .auth-header--actividad .auth-user{ position:relative; display:flex; flex-direction:column; align-items:center; gap:0; width:48px; }
-.auth-header--actividad .auth-user-icon{ width:22px; height:22px; margin:13px 0; }   /* 13 + 22 + 13 = fila de 48 px */
+.auth-header--actividad .auth-perfil-btn{                            /* icono de cuenta → abre «Mi cuenta» */
+  position:relative; display:flex; align-items:center; justify-content:center;
+  width:48px; height:48px; margin:0; padding:0;
+  background:none; border:none; border-left:2px solid transparent; border-radius:0;
+  color:var(--activitybar-inactive); font:inherit; cursor:pointer;
+}
+.auth-header--actividad .auth-perfil-btn:hover{ color:var(--activitybar-fg); }
+.auth-header--actividad .auth-perfil-btn:focus-visible{ outline:1px solid var(--accent-blue); outline-offset:-4px; }
+.auth-header--actividad .auth-user-icon{ width:22px; height:22px; margin:0; }
 .auth-header--actividad .auth-user-name{                            /* solo para lectores de pantalla */
   position:absolute; width:1px; height:1px; margin:-1px; padding:0; max-width:none;
   overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
@@ -675,6 +640,81 @@ html.auth-bloqueo body{ overflow:hidden; }
   font-size:0; background:var(--folder-icon); box-shadow:0 0 0 2px var(--activitybar-bg);
 }
 
+/* ---------- Modales de cuenta: perfil, gestión de usuarios y subida ---------- */
+/* Reutilizan .auth-card / .auth-title / .auth-input / .auth-submit del modal de acceso. */
+.auth-modal .auth-card--ancha{ max-width:600px; }
+.auth-modal .auth-ok{
+  margin:0 0 12px; padding:7px 10px;
+  background:rgba(78,201,176,.12); border-left:3px solid var(--auth-ok);
+  color:var(--auth-ok); font-size:12px; line-height:1.4;
+}
+.auth-modal .perfil-meta{
+  display:grid; grid-template-columns:auto minmax(0,1fr); gap:6px 14px; align-items:center;
+  margin:0 0 16px; padding:10px 12px;
+  background:var(--auth-input); border:1px solid var(--auth-soft); border-radius:4px;
+}
+.auth-modal .perfil-meta dt{ margin:0; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--auth-muted); }
+.auth-modal .perfil-meta dd{ margin:0; min-width:0; overflow-wrap:anywhere; color:var(--auth-strong); }
+.auth-modal .perfil-rol{
+  display:inline-block; padding:2px 8px; border-radius:9px;
+  background:var(--auth-soft); color:var(--auth-strong); font-size:11px; font-weight:600;
+}
+.auth-modal .perfil-rol[data-rol="principal"]{ background:var(--auth-ok); color:#123b34; }
+.auth-modal .perfil-rol[data-rol="admin-inferior"]{ background:var(--folder-icon, #dcb67a); color:#3b2a08; }
+.auth-modal .auth-sep{ margin:18px 0 14px; border:0; border-top:1px solid var(--auth-soft); }
+.auth-modal .auth-btn{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%; margin:0 0 8px; padding:8px 0;
+  background:var(--auth-input); border:1px solid var(--auth-line); border-radius:3px;
+  color:var(--auth-fg); font:13px/1.2 var(--auth-font); cursor:pointer;
+}
+.auth-modal .auth-btn:hover{ background:var(--auth-hover); color:var(--auth-strong); }
+.auth-modal .auth-btn:focus-visible{ outline:1px solid var(--auth-accent); outline-offset:2px; }
+.auth-modal .auth-btn:disabled{ opacity:.6; cursor:progress; }
+.auth-modal .auth-btn--danger{ border-color:var(--auth-danger); color:var(--auth-danger); }
+.auth-modal .auth-btn--danger:hover{ background:rgba(244,135,113,.12); color:var(--auth-danger); }
+
+/* Gestión de usuarios (solo Admin Principal) */
+.auth-modal .usr-filtro{ margin:0 0 10px; }
+.auth-modal .usr-cuenta{ margin:0 0 8px; font-size:11.5px; color:var(--auth-muted); }
+.auth-modal .usr-lista{ margin:0; padding:0; list-style:none; max-height:52vh; overflow:auto; border:1px solid var(--auth-soft); border-radius:4px; }
+.auth-modal .usr-item{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:9px 12px; border-bottom:1px solid var(--auth-soft);
+}
+.auth-modal .usr-item:last-child{ border-bottom:0; }
+.auth-modal .usr-info{ min-width:0; }
+.auth-modal .usr-nombre{ display:block; color:var(--auth-strong); overflow-wrap:anywhere; }
+.auth-modal .usr-email{ display:block; font-size:11.5px; color:var(--auth-muted); overflow-wrap:anywhere; }
+.auth-modal .usr-vacio{ padding:16px 12px; font-size:12.5px; color:var(--auth-muted); }
+.auth-modal .usr-switch{ display:inline-flex; align-items:center; gap:8px; flex-shrink:0; cursor:pointer; font-size:12px; color:var(--auth-fg); }
+.auth-modal .usr-switch input{ position:absolute; opacity:0; width:1px; height:1px; }
+.auth-modal .usr-switch-ui{
+  position:relative; width:34px; height:18px; border-radius:9px;
+  background:var(--auth-line); transition:background .15s;
+}
+.auth-modal .usr-switch-ui::after{
+  content:""; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%;
+  background:#fff; transition:transform .15s;
+}
+.auth-modal .usr-switch input:checked + .usr-switch-ui{ background:var(--auth-ok); }
+.auth-modal .usr-switch input:checked + .usr-switch-ui::after{ transform:translateX(16px); }
+.auth-modal .usr-switch input:focus-visible + .usr-switch-ui{ outline:2px solid var(--auth-accent); outline-offset:2px; }
+.auth-modal .usr-switch input:disabled + .usr-switch-ui{ opacity:.5; }
+@media (max-width:480px){
+  .auth-modal .usr-item{ flex-direction:column; align-items:flex-start; }
+}
+
+/* Botón «Subir archivo» del explorador (solo con sesión iniciada) */
+.sidebar-upload{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:calc(100% - 16px); margin:6px 8px 8px; padding:7px 10px;
+  background:#0e639c; color:#fff; border:0; border-radius:3px;
+  font:600 12.5px/1.2 var(--font-ui); cursor:pointer;
+}
+.sidebar-upload:hover{ background:#1177bb; }
+.sidebar-upload:focus-visible{ outline:1px solid var(--accent-blue); outline-offset:2px; }
+
 /* ---------- Panel de ajustes ---------- */
 .settings-row{ margin-bottom:14px; }
 .settings-row:last-child{ margin-bottom:0; }
@@ -682,26 +722,6 @@ html.auth-bloqueo body{ overflow:hidden; }
   display:block; font-size:11px; text-transform:uppercase; letter-spacing:.4px;
   color:var(--text-muted); margin-bottom:6px;
 }
-.theme-toggle{ display:flex; gap:6px; }
-.theme-toggle button{
-  flex:1; padding:6px 0; font-size:12px; border-radius:3px; cursor:pointer;
-  background:var(--surface-3); border:1px solid var(--divider); color:var(--text-normal);
-}
-.theme-toggle button.active{ background:var(--accent-blue); color:#fff; border-color:var(--accent-blue); }
-
-.accent-swatches{ display:flex; gap:8px; }
-.accent-swatch{
-  width:22px; height:22px; border-radius:50%; cursor:pointer;
-  border:2px solid transparent;
-}
-.accent-swatch.active{ border-color:var(--text-strong); }
-
-/* Los colores de los círculos (antes style="background:..." en index.html) */
-.accent-swatch[data-accent=""]{ background:#0098ff; }
-.accent-swatch[data-accent="green"]{ background:#2fae83; }
-.accent-swatch[data-accent="purple"]{ background:#a074e8; }
-.accent-swatch[data-accent="pink"]{ background:#e0609e; }
-
 .fontsize-control{ display:flex; align-items:center; gap:10px; }
 .fontsize-control button{
   width:26px; height:26px; border-radius:3px; cursor:pointer; font-size:14px;
@@ -1595,7 +1615,7 @@ html.page-introduccion{
 .fbap .fbap-actions{ display:flex; gap:8px; }
 .fbap .fbap-empty{ margin:16px 0 0; font-size:13px; font-style:italic; color:var(--fbap-muted); }
 
-/* ---------- Controles de gestión (solo con sesión autorizada) ---------- */
+/* ---------- Controles de gestión (solo Admin Principal) ---------- */
 /* Segunda fila de cada archivo, alineada con el nombre: subir/bajar posición y mover a otra asignatura. */
 .fbap .fbap-manage{
   grid-column:2 / -1;
@@ -1613,6 +1633,16 @@ html.page-introduccion{
 .fbap select.fbap-move{ flex:0 1 210px; margin-left:auto; padding:5px 8px; font-size:12.5px; cursor:pointer; }
 /* Mientras se guarda un cambio, los controles quedan atenuados y sin respuesta. */
 .fbap.fbap-ocupado .fbap-manage{ opacity:.55; pointer-events:none; }
+
+/* ---------- Panel de subida (todas las asignaturas, cualquier usuario con sesión) ---------- */
+.fbap .fbap-upload-title{ display:flex; align-items:center; gap:8px; margin:0 0 10px; font-size:14px; font-weight:600; color:var(--fbap-strong); }
+.fbap .fbap-upload-dest{ font-size:13px; color:var(--fbap-fg); }
+.fbap .fbap-upload-dest strong{ color:var(--fbap-accent); }
+.fbap .fbap-btn--danger{ color:var(--fbap-err); border-color:var(--fbap-err); }
+.fbap .fbap-btn--danger:hover{ background:rgba(244,135,113,.12); color:var(--fbap-err); }
+/* Dentro del modal de index.html no hace falta el borde ni el margen de página. */
+.fbap.fbap--modal{ margin:0; padding:0; border-top:0; }
+.fbap.fbap--modal .fbap-panel{ margin-top:0; }
 
 @media (max-width:700px){
   .fbap li.fbap-item{ grid-template-columns:auto minmax(0,1fr); }

@@ -1,4 +1,4 @@
-import { isAuthorized, watchAuth, loadOrder, saveOrderForPath } from './firebase-init.js?v=3';
+import { isAuthorized, watchAuth, loadOrder, saveOrderForPath, crearPanelSubida, crearControlModal } from './firebase-init.js?v=4';
 import { fetchGithubTree } from './github-source.js?v=2';
 
 // ---------- Config ----------
@@ -95,6 +95,9 @@ async function cargarArbol() {
       return;
     }
     buildTree();
+    // Si el usuario ya abrió Favoritos o Buscar antes de que llegara el árbol, se completan ahora.
+    if (vistaActual === 'favoritos') renderFavoritos();
+    if (vistaActual === 'search') iniciarIndiceBusqueda();
   } catch (err) {
     showTreeError(err);
   }
@@ -668,52 +671,63 @@ document.addEventListener('keydown', (e) => {
 // El acceso (botón del header, modal de login/registro) vive en firebase-init.js.
 // Aquí solo se reacciona a la sesión: cualquiera puede registrarse, pero el modo
 // edición (arrastrar carpetas y archivos) es solo de la cuenta autorizada.
+const btnSubirArchivo = document.getElementById('btn-subir-archivo');
+const modalSubida = document.getElementById('modal-subida');
+const subidaMount = document.getElementById('subida-mount');
+let panelSubidaMontado = false;
+
+const controlSubida = crearControlModal(modalSubida, {
+  focoInicial: () => subidaMount.querySelector('input:not([hidden]), select, button'),
+  alCerrar: () => btnSubirArchivo.focus(),
+});
+
+btnSubirArchivo.addEventListener('click', () => {
+  // El panel (formulario + aviso sin sesión) se crea la primera vez que se abre.
+  if (!panelSubidaMontado) {
+    subidaMount.appendChild(crearPanelSubida(null));
+    panelSubidaMontado = true;
+  }
+  controlSubida.abrir();
+});
+
 watchAuth((user) => {
   const authorized = isAuthorized(user);
   editMode = authorized;
   editBadgeEl.toggleAttribute('hidden', !authorized);
 
+  // «Subir archivo» (Cloudinary): visible para cualquier usuario con sesión.
+  btnSubirArchivo.hidden = !user;
+  if (!user) controlSubida.cerrar();
+
   if (root) buildTree(); // re-render para mostrar/ocultar los "grips" de arrastre
 });
 
-// ---------- Ajustes (tema, acento, tamaño de letra, fuente, Zen, recargar) ----------
+// ---------- Ajustes (tamaño de letra, Zen, recargar) ----------
+// La web es siempre oscura y con la fuente por defecto (--font-mono en styles.css): ya no hay
+// selector de tema, de acento ni de fuente. Los valores antiguos que hubiera en localStorage se ignoran.
 const CLAVE_AJUSTES = 'damNotesAjustes';
-let ajustes = { theme: 'dark', accent: '', fontsize: 100, fontfamily: 'cascadia', zen: false };
-try { Object.assign(ajustes, JSON.parse(localStorage.getItem(CLAVE_AJUSTES) || '{}')); } catch (e) { }
+let ajustes = { fontsize: 100, zen: false };
+try {
+  const guardados = JSON.parse(localStorage.getItem(CLAVE_AJUSTES) || '{}');
+  if (Number.isFinite(guardados.fontsize)) ajustes.fontsize = Math.min(150, Math.max(80, guardados.fontsize));
+  ajustes.zen = !!guardados.zen;
+} catch (e) { }
 
 function guardarAjustes() {
   try { localStorage.setItem(CLAVE_AJUSTES, JSON.stringify(ajustes)); } catch (e) { }
 }
 
-const FUENTES = {
-  cascadia: `"Cascadia Code", "SF Mono", Consolas, "Courier New", monospace`,
-  fira: `"Fira Code", "Cascadia Code", Consolas, monospace`,
-  jetbrains: `"JetBrains Mono", "Cascadia Code", Consolas, monospace`,
-};
-
 const settingsIcon = document.getElementById('settings-icon');
 const settingsPopover = document.getElementById('settings-popover');
-const themeDarkBtn = document.getElementById('theme-dark');
-const themeLightBtn = document.getElementById('theme-light');
-const accentSwatches = document.querySelectorAll('.accent-swatch');
 const fontsizeMenos = document.getElementById('fontsize-menos');
 const fontsizeMas = document.getElementById('fontsize-mas');
 const fontsizeValor = document.getElementById('fontsize-valor');
-const fontfamilySelect = document.getElementById('fontfamily-select');
 const zenToggleBtn = document.getElementById('zen-toggle');
 const reloadTreeBtn = document.getElementById('reload-tree');
 
 function aplicarAjustes() {
-  document.documentElement.setAttribute('data-theme', ajustes.theme === 'light' ? 'light' : '');
-  document.documentElement.setAttribute('data-accent', ajustes.accent || '');
   document.documentElement.style.setProperty('--note-scale', ajustes.fontsize / 100);
-  document.documentElement.style.setProperty('--font-mono', FUENTES[ajustes.fontfamily] || FUENTES.cascadia);
-
-  themeDarkBtn.classList.toggle('active', ajustes.theme !== 'light');
-  themeLightBtn.classList.toggle('active', ajustes.theme === 'light');
-  accentSwatches.forEach(s => s.classList.toggle('active', (s.dataset.accent || '') === (ajustes.accent || '')));
   fontsizeValor.textContent = ajustes.fontsize + '%';
-  fontfamilySelect.value = ajustes.fontfamily;
 
   aplicarZen(ajustes.zen);
 }
@@ -727,24 +741,12 @@ document.addEventListener('click', (e) => {
   }
 });
 
-themeDarkBtn.addEventListener('click', () => { ajustes.theme = 'dark'; guardarAjustes(); aplicarAjustes(); });
-themeLightBtn.addEventListener('click', () => { ajustes.theme = 'light'; guardarAjustes(); aplicarAjustes(); });
-
-accentSwatches.forEach(sw => {
-  sw.addEventListener('click', () => { ajustes.accent = sw.dataset.accent || ''; guardarAjustes(); aplicarAjustes(); });
-});
-
 fontsizeMenos.addEventListener('click', () => {
   ajustes.fontsize = Math.max(80, ajustes.fontsize - 10);
   guardarAjustes(); aplicarAjustes();
 });
 fontsizeMas.addEventListener('click', () => {
   ajustes.fontsize = Math.min(150, ajustes.fontsize + 10);
-  guardarAjustes(); aplicarAjustes();
-});
-
-fontfamilySelect.addEventListener('change', () => {
-  ajustes.fontfamily = fontfamilySelect.value;
   guardarAjustes(); aplicarAjustes();
 });
 

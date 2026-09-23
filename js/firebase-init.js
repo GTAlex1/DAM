@@ -23,7 +23,17 @@
 //    (ver el comentario del módulo): página de asignatura y vista general.
 // 10. El registro es abierto: cualquiera puede crear cuenta desde el modal de
 //    acceso (#modal-auth). Eso NO da permisos de gestión: solo AUTHORIZED_UID
-//    (aquí) y esPropietario() (rules.firebase) pueden escribir orden y apuntes.
+//    (aquí) y esPropietario() (firestore.rules) pueden escribir el orden del
+//    árbol y mover/reordenar/eliminar apuntes.
+//
+// PERFILES Y ROLES (módulos «CUENTA» y «GESTIÓN DE USUARIOS», más abajo):
+// 11. Cada usuario tiene un documento usuarios/{uid} {nombre, email, ...} que se
+//    crea solo la primera vez que inicia sesión con esta versión. Es lo que lista
+//    el panel de administración (el SDK web no puede listar Firebase Auth).
+// 12. El «Admin inferior» es un documento roles/{uid} {adminInferior: true} que
+//    solo el Admin Principal (AUTHORIZED_UID) puede crear o borrar. Su ÚNICO efecto
+//    es publicar/editar exámenes y tareas GLOBALES del calendario (ver rules).
+//    calendario.js debe usar puedeGestionarCalendarioGlobal(user), exportada aquí.
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
@@ -46,6 +56,7 @@ import {
   addDoc,
   getDocs,
   updateDoc,
+  deleteDoc,
   writeBatch,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -127,20 +138,31 @@ export async function login(identificador, password) {
 }
 
 /** Crea una cuenta (abierta a cualquiera) y deja la sesión iniciada. */
+let registrando = false; // evita que el observador de sesión cree el perfil antes de tener el nombre
 export async function register(identificador, password) {
   const bruto = (identificador || "").trim();
   const email = identificadorAEmail(bruto);
   if (!email) throw errorAuth("auth/invalid-email");
-  const cred = await createUserWithEmailAndPassword(auth, email, password);
-  // Con nombre de usuario (sin «@») se guarda tal cual lo escribió el alumno.
-  if (!bruto.includes("@")) {
-    try {
-      await updateProfile(cred.user, { displayName: bruto });
-    } catch (e) {
-      console.warn("No se pudo guardar el nombre de usuario:", e);
+  registrando = true;
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    // Con nombre de usuario (sin «@») se guarda tal cual lo escribió el alumno.
+    if (!bruto.includes("@")) {
+      try {
+        await updateProfile(cred.user, { displayName: bruto });
+      } catch (e) {
+        console.warn("No se pudo guardar el nombre de usuario:", e);
+      }
     }
+    try {
+      await sincronizarPerfil(cred.user);
+    } catch (e) {
+      console.warn("No se pudo crear el perfil en Firestore:", e);
+    }
+    return cred.user;
+  } finally {
+    registrando = false;
   }
-  return cred.user;
 }
 
 export async function logout() {
@@ -165,6 +187,153 @@ export async function saveOrderForPath(pathKey, orderedNames) {
 
 
 /* ==========================================================================
+   CUENTA: perfil (Firestore) y roles
+   - usuarios/{uid}  → { nombre, email, creado, actualizado }. Lo escribe cada usuario
+                       sobre SU documento; lo lee él y el Admin Principal.
+   - roles/{uid}     → { adminInferior: true }. Solo lo escribe el Admin Principal.
+   ========================================================================== */
+const USUARIOS_COLECCION = "usuarios";
+const ROLES_COLECCION = "roles";
+const NOMBRE_MIN = 2;
+const NOMBRE_MAX = 60;
+
+export const ROL = Object.freeze({
+  PRINCIPAL: "principal",
+  INFERIOR: "admin-inferior",
+  USUARIO: "usuario",
+});
+const ETIQUETA_ROL = {
+  [ROL.PRINCIPAL]: "Admin Principal",
+  [ROL.INFERIOR]: "Admin inferior",
+  [ROL.USUARIO]: "Estudiante",
+};
+
+const cacheRol = new Map(); // uid -> ROL.* (se vacía al cerrar sesión)
+
+/** Correo tal como se enseña: las cuentas «por usuario» no tienen correo real. */
+export function correoVisible(user) {
+  return formatearCorreo(user?.email || "");
+}
+function formatearCorreo(email) {
+  if (!email) return "—";
+  return email.endsWith(`@${DOMINIO_USUARIO}`)
+    ? `${email.split("@")[0]} (cuenta por usuario, sin correo)`
+    : email;
+}
+
+const limpiarNombre = (n) => (n || "").replace(/\s+/g, " ").trim();
+
+/** Crea usuarios/{uid} si no existe (no pisa un nombre ya guardado). */
+async function sincronizarPerfil(user, nombre) {
+  const ref = doc(db, USUARIOS_COLECCION, user.uid);
+  const snap = await getDoc(ref);
+  if (snap.exists()) return;
+  await setDoc(ref, {
+    nombre: limpiarNombre(nombre || nombreVisible(user)).slice(0, NOMBRE_MAX) || "Sin nombre",
+    email: (user.email || "").toLowerCase(),
+    creado: serverTimestamp(),
+    actualizado: serverTimestamp(),
+  });
+}
+
+// Cuentas anteriores a esta versión: su perfil se crea en el siguiente inicio de sesión.
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    cacheRol.clear();
+    return;
+  }
+  if (registrando) return; // register() lo hace cuando ya tiene el nombre
+  sincronizarPerfil(user).catch((e) => console.warn("No se pudo sincronizar el perfil:", e));
+});
+
+/** Guarda el nombre en Firestore y en Firebase Auth (displayName). Devuelve el nombre limpio. */
+export async function guardarNombrePerfil(nombreBruto) {
+  const user = auth.currentUser;
+  if (!user) throw errorAuth("auth/requires-recent-login");
+  const nombre = limpiarNombre(nombreBruto);
+  if (nombre.length < NOMBRE_MIN || nombre.length > NOMBRE_MAX) {
+    throw errorAuth("perfil/nombre-invalido");
+  }
+  const ref = doc(db, USUARIOS_COLECCION, user.uid);
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    await updateDoc(ref, { nombre, actualizado: serverTimestamp() });
+  } else {
+    await setDoc(ref, {
+      nombre,
+      email: (user.email || "").toLowerCase(),
+      creado: serverTimestamp(),
+      actualizado: serverTimestamp(),
+    });
+  }
+  await updateProfile(user, { displayName: nombre });
+  document.dispatchEvent(new CustomEvent("auth:perfil-actualizado"));
+  return nombre;
+}
+
+/** Rol del usuario: Admin Principal (UID fijo), Admin inferior (roles/{uid}) o Estudiante. */
+export async function getRol(user, { forzar = false } = {}) {
+  if (!user) return ROL.USUARIO;
+  if (isAuthorized(user)) return ROL.PRINCIPAL;
+  if (!forzar && cacheRol.has(user.uid)) return cacheRol.get(user.uid);
+  let rol = ROL.USUARIO;
+  try {
+    const snap = await getDoc(doc(db, ROLES_COLECCION, user.uid));
+    if (snap.exists() && snap.data().adminInferior === true) rol = ROL.INFERIOR;
+  } catch (e) {
+    console.warn("No se pudo leer el rol:", e);
+  }
+  cacheRol.set(user.uid, rol);
+  return rol;
+}
+
+/**
+ * ¿Puede publicar/editar exámenes y tareas GLOBALES del calendario?
+ * Admin Principal o Admin inferior. Es lo único para lo que sirve el Admin inferior.
+ */
+export async function puedeGestionarCalendarioGlobal(user) {
+  return (await getRol(user)) !== ROL.USUARIO;
+}
+
+/** Todos los usuarios registrados salvo el Admin Principal, con su estado de Admin inferior. */
+export async function listarUsuarios() {
+  if (!isAuthorized(auth.currentUser)) throw errorAuth("permission-denied");
+  const [usuarios, roles] = await Promise.all([
+    getDocs(collection(db, USUARIOS_COLECCION)),
+    getDocs(collection(db, ROLES_COLECCION)),
+  ]);
+  const inferiores = new Set();
+  roles.forEach((d) => {
+    if (d.data().adminInferior === true) inferiores.add(d.id);
+  });
+  const lista = [];
+  usuarios.forEach((d) => {
+    if (d.id === AUTHORIZED_UID) return;
+    const x = d.data();
+    lista.push({
+      uid: d.id,
+      nombre: typeof x.nombre === "string" ? x.nombre : "",
+      email: typeof x.email === "string" ? x.email : "",
+      adminInferior: inferiores.has(d.id),
+    });
+  });
+  return lista.sort((a, b) => (a.nombre || a.email).localeCompare(b.nombre || b.email, "es"));
+}
+
+/** Concede (true) o revoca (false) el rol de Admin inferior. Solo el Admin Principal. */
+export async function fijarAdminInferior(uid, activo) {
+  const yo = auth.currentUser;
+  if (!isAuthorized(yo) || !uid || uid === AUTHORIZED_UID) throw errorAuth("permission-denied");
+  const ref = doc(db, ROLES_COLECCION, uid);
+  if (activo) {
+    await setDoc(ref, { adminInferior: true, asignado_por: yo.uid, actualizado: serverTimestamp() });
+  } else {
+    await deleteDoc(ref);
+  }
+}
+
+
+/* ==========================================================================
    MÓDULO DE ACCESO  (modal unificado de inicio de sesión / registro)
 
    Único punto de entrada a la cuenta en todas las páginas. Cada página incluye
@@ -177,6 +346,66 @@ export async function saveOrderForPath(pathKey, orderedNames) {
 
    Si una página no incluye ese marcado, este bloque no hace nada.
    ========================================================================== */
+
+/**
+ * Comportamiento común de los modales (.auth-modal): abrir/cerrar, Esc, clic en el fondo
+ * (elementos con data-auth-cerrar) y foco atrapado. Exportado: app.js lo reutiliza.
+ */
+export function crearControlModal(modal, { focoInicial, alCerrar } = {}) {
+  const enfocables = () =>
+    [...modal.querySelectorAll("button, input, select, a[href]")].filter(
+      (n) => !n.disabled && n.getClientRects().length > 0
+    );
+
+  function abrir() {
+    modal.hidden = false;
+    document.documentElement.classList.add("auth-bloqueo");
+    const destino = typeof focoInicial === "function" ? focoInicial() : null;
+    (destino || enfocables()[0])?.focus();
+  }
+
+  function cerrar() {
+    if (modal.hidden) return;
+    modal.hidden = true;
+    if (!document.querySelector(".auth-modal:not([hidden])")) {
+      document.documentElement.classList.remove("auth-bloqueo");
+    }
+    if (typeof alCerrar === "function") alCerrar();
+  }
+
+  modal.addEventListener("click", (e) => {
+    if (e.target.closest("[data-auth-cerrar]")) cerrar();
+  });
+
+  // En fase de captura y con stopPropagation: así el Esc que cierra el modal no
+  // llega también a los atajos globales de la página (p. ej. «cerrar pestaña»).
+  document.addEventListener(
+    "keydown",
+    (e) => {
+      if (modal.hidden) return;
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        cerrar();
+      } else if (e.key === "Tab") {
+        const f = enfocables();
+        if (!f.length) return;
+        const primero = f[0];
+        const ultimo = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === primero) {
+          e.preventDefault();
+          ultimo.focus();
+        } else if (!e.shiftKey && document.activeElement === ultimo) {
+          e.preventDefault();
+          primero.focus();
+        }
+      }
+    },
+    true
+  );
+
+  return { abrir, cerrar, estaAbierto: () => !modal.hidden };
+}
 
 function initAuthUI() {
   const modal = document.getElementById("modal-auth");
@@ -195,6 +424,8 @@ function initAuthUI() {
   const boxUser = document.getElementById("auth-user");
   const nombreEl = document.getElementById("auth-user-name");
   const rolEl = document.getElementById("auth-user-rol");
+  // index.html: icono de perfil (abre «Mi cuenta»). Otras páginas: botón «Cerrar sesión» suelto.
+  const btnPerfil = document.getElementById("btn-perfil-trigger");
   const btnLogout = document.getElementById("btn-auth-logout");
   const form = modal.querySelector("#form-auth");
   const campoUsuario = modal.querySelector("#auth-email");
@@ -229,65 +460,28 @@ function initAuthUI() {
     mostrarError("");
   }
 
+  const control = crearControlModal(modal, {
+    focoInicial: () => campoUsuario,
+    alCerrar: () => {
+      form.reset();
+      mostrarError("");
+      (trigger.hidden ? btnPerfil || btnLogout || trigger : trigger).focus();
+    },
+  });
+  const cerrar = control.cerrar;
+
   function abrir(modoInicial = "login") {
     setModo(modoInicial);
-    modal.hidden = false;
-    document.documentElement.classList.add("auth-bloqueo");
-    campoUsuario.focus();
-  }
-
-  function cerrar() {
-    if (modal.hidden) return;
-    modal.hidden = true;
-    document.documentElement.classList.remove("auth-bloqueo");
-    form.reset();
-    mostrarError("");
-    (trigger.hidden ? btnLogout : trigger).focus();
-  }
-
-  /** Mantiene el foco del teclado dentro del diálogo mientras está abierto. */
-  function trampaFoco(e) {
-    const f = [...modal.querySelectorAll("button, input")].filter(
-      (n) => !n.disabled && n.getClientRects().length > 0
-    );
-    if (!f.length) return;
-    const primero = f[0];
-    const ultimo = f[f.length - 1];
-    if (e.shiftKey && document.activeElement === primero) {
-      e.preventDefault();
-      ultimo.focus();
-    } else if (!e.shiftKey && document.activeElement === ultimo) {
-      e.preventDefault();
-      primero.focus();
-    }
+    control.abrir();
   }
 
   trigger.addEventListener("click", () => abrir("login"));
-  modal.addEventListener("click", (e) => {
-    if (e.target.closest("[data-auth-cerrar]")) cerrar();
-  });
   for (const t of tabs) {
     t.addEventListener("click", () => {
       setModo(t.dataset.authTab);
       campoUsuario.focus();
     });
   }
-  // En fase de captura y con stopPropagation: así el Esc que cierra el modal no
-  // llega también a los atajos globales de la página (p. ej. «cerrar pestaña»).
-  document.addEventListener(
-    "keydown",
-    (e) => {
-      if (modal.hidden) return;
-      if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        cerrar();
-      } else if (e.key === "Tab") {
-        trampaFoco(e);
-      }
-    },
-    true
-  );
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -318,15 +512,17 @@ function initAuthUI() {
     }
   });
 
-  btnLogout.addEventListener("click", async () => {
-    try {
-      await logout();
-    } catch (err) {
-      console.warn("No se pudo cerrar sesión:", err);
-    }
-  });
+  if (btnLogout) {
+    btnLogout.addEventListener("click", async () => {
+      try {
+        await logout();
+      } catch (err) {
+        console.warn("No se pudo cerrar sesión:", err);
+      }
+    });
+  }
 
-  /** Sin sesión: botón «Acceder». Con sesión: icono + nombre + «Cerrar sesión». */
+  /** Sin sesión: botón «Acceder». Con sesión: icono/nombre de usuario. */
   function pintar(user) {
     trigger.hidden = !!user;
     boxUser.hidden = !user;
@@ -335,13 +531,25 @@ function initAuthUI() {
       nombreEl.textContent = "";
       rolEl.hidden = true;
       boxUser.removeAttribute("title");
+      if (btnPerfil) btnPerfil.title = "Mi cuenta";
       return;
     }
     const nombre = nombreVisible(user);
     nombreEl.textContent = nombre;
-    boxUser.title = nombre;
+    if (btnPerfil) btnPerfil.title = `Mi cuenta · ${nombre}`;
+    else boxUser.title = nombre;
+
     rolEl.hidden = !isAuthorized(user);
+    rolEl.textContent = "admin";
+    getRol(user).then((rol) => {
+      if (auth.currentUser?.uid !== user.uid) return;
+      rolEl.hidden = rol === ROL.USUARIO;
+      rolEl.textContent = rol === ROL.PRINCIPAL ? "admin" : "admin inf.";
+      rolEl.title = rol === ROL.PRINCIPAL ? "Administrador principal" : "Admin inferior";
+    });
   }
+
+  document.addEventListener("auth:perfil-actualizado", () => pintar(auth.currentUser));
 
   watchAuth((user) => {
     pintar(user);
@@ -349,10 +557,272 @@ function initAuthUI() {
   });
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initAuthUI);
-} else {
+/* ==========================================================================
+   MÓDULO «MI CUENTA»  (#modal-perfil, solo index.html)
+
+   Se abre con el icono de usuario de la barra de actividad (#btn-perfil-trigger).
+   Cambiar el nombre y «Cerrar sesión» viven aquí dentro; si el usuario es el Admin
+   Principal también aparece el botón que abre la gestión de usuarios.
+   ========================================================================== */
+
+let abrirPanelUsuarios = null; // lo define initUsuariosUI()
+
+function initPerfilUI() {
+  const modal = document.getElementById("modal-perfil");
+  const trigger = document.getElementById("btn-perfil-trigger");
+  if (!modal || !trigger || modal.dataset.perfilInit) return;
+  modal.dataset.perfilInit = "1";
+  if (window.self !== window.top) return;
+
+  const $ = (id) => modal.querySelector(`#${id}`);
+  const form = $("perfil-form");
+  const campo = $("perfil-nombre");
+  const errEl = $("perfil-error");
+  const okEl = $("perfil-ok");
+  const guardar = $("perfil-guardar");
+  const emailEl = $("perfil-email");
+  const rolEl = $("perfil-rol");
+  const btnUsuarios = $("btn-perfil-usuarios");
+  const btnLogout = $("btn-perfil-logout");
+  let guardando = false;
+
+  const msg = (tipo, texto = "") => {
+    errEl.hidden = !(tipo === "err" && texto);
+    okEl.hidden = !(tipo === "ok" && texto);
+    if (tipo === "err") errEl.textContent = texto;
+    if (tipo === "ok") okEl.textContent = texto;
+  };
+
+  const control = crearControlModal(modal, {
+    focoInicial: () => campo,
+    alCerrar: () => {
+      msg("");
+      trigger.focus();
+    },
+  });
+
+  function rellenar() {
+    const user = auth.currentUser;
+    if (!user) return;
+    campo.value = user.displayName || nombreVisible(user);
+    emailEl.textContent = correoVisible(user);
+    btnUsuarios.hidden = !isAuthorized(user);
+    const rolInicial = isAuthorized(user) ? ROL.PRINCIPAL : ROL.USUARIO;
+    rolEl.dataset.rol = rolInicial;
+    rolEl.textContent = ETIQUETA_ROL[rolInicial];
+    getRol(user).then((rol) => {
+      if (auth.currentUser?.uid !== user.uid) return;
+      rolEl.dataset.rol = rol;
+      rolEl.textContent = ETIQUETA_ROL[rol];
+    });
+  }
+
+  trigger.addEventListener("click", () => {
+    if (!auth.currentUser) return;
+    msg("");
+    rellenar();
+    control.abrir();
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (guardando) return;
+    guardando = true;
+    guardar.disabled = true;
+    msg("");
+    try {
+      campo.value = await guardarNombrePerfil(campo.value);
+      msg("ok", "Nombre guardado.");
+    } catch (err) {
+      console.warn("No se pudo guardar el nombre:", err?.code || err);
+      const texto =
+        err?.code === "perfil/nombre-invalido"
+          ? `El nombre debe tener entre ${NOMBRE_MIN} y ${NOMBRE_MAX} caracteres.`
+          : err?.code === "permission-denied"
+            ? "Firestore denegó el cambio. Comprueba que las reglas nuevas están publicadas."
+            : err?.code === "auth/network-request-failed" || err?.code === "unavailable"
+              ? "Sin conexión. Revisa tu red e inténtalo de nuevo."
+              : "No se pudo guardar el nombre. Inténtalo de nuevo.";
+      msg("err", texto);
+    } finally {
+      guardando = false;
+      guardar.disabled = false;
+    }
+  });
+
+  btnLogout.addEventListener("click", async () => {
+    btnLogout.disabled = true;
+    try {
+      await logout();
+      control.cerrar();
+    } catch (err) {
+      console.warn("No se pudo cerrar sesión:", err);
+      msg("err", "No se pudo cerrar sesión. Inténtalo de nuevo.");
+    } finally {
+      btnLogout.disabled = false;
+    }
+  });
+
+  btnUsuarios.addEventListener("click", () => {
+    if (!isAuthorized(auth.currentUser)) return;
+    control.cerrar();
+    if (abrirPanelUsuarios) abrirPanelUsuarios();
+  });
+
+  watchAuth((user) => {
+    if (!user && !modal.hidden) control.cerrar();
+    btnUsuarios.hidden = !isAuthorized(user);
+  });
+}
+
+/* ==========================================================================
+   MÓDULO «GESTIÓN DE USUARIOS»  (#modal-usuarios, solo Admin Principal)
+
+   Lista los usuarios de Firestore (colección usuarios, sin el Admin Principal) con un
+   conmutador para conceder/revocar «Admin inferior». Los nombres y correos los escribe
+   cada usuario: se pintan siempre con textContent, nunca como HTML.
+   ========================================================================== */
+
+function initUsuariosUI() {
+  const modal = document.getElementById("modal-usuarios");
+  if (!modal || modal.dataset.usuariosInit) return;
+  modal.dataset.usuariosInit = "1";
+  if (window.self !== window.top) return;
+
+  const filtro = modal.querySelector("#usuarios-filtro");
+  const errEl = modal.querySelector("#usuarios-error");
+  const cuentaEl = modal.querySelector("#usuarios-cuenta");
+  const lista = modal.querySelector("#usuarios-lista");
+  const btnRecargar = modal.querySelector("#usuarios-recargar");
+
+  let usuarios = [];
+  let cargando = false;
+
+  const control = crearControlModal(modal, { focoInicial: () => filtro });
+
+  const mostrarError = (texto = "") => {
+    errEl.textContent = texto;
+    errEl.hidden = !texto;
+  };
+
+  function pintarCuenta(visibles) {
+    const conRol = usuarios.filter((u) => u.adminInferior).length;
+    cuentaEl.textContent = `${visibles} de ${usuarios.length} usuarios · ${conRol} con Admin inferior`;
+  }
+
+  function crearFila(u) {
+    const li = el("li", "usr-item");
+
+    const info = el("div", "usr-info");
+    info.append(
+      el("span", "usr-nombre", u.nombre || "(sin nombre)"),
+      el("span", "usr-email", formatearCorreo(u.email))
+    );
+
+    const etiqueta = el("label", "usr-switch");
+    const input = el("input");
+    input.type = "checkbox";
+    input.setAttribute("role", "switch");
+    input.setAttribute("aria-label", `Admin inferior: ${u.nombre || u.email}`);
+    input.checked = u.adminInferior;
+    etiqueta.append(input, el("span", "usr-switch-ui"), el("span", "usr-switch-txt", "Admin inferior"));
+
+    input.addEventListener("change", async () => {
+      const activo = input.checked;
+      input.disabled = true;
+      mostrarError("");
+      try {
+        await fijarAdminInferior(u.uid, activo);
+        u.adminInferior = activo;
+        pintarCuenta(lista.children.length);
+      } catch (err) {
+        console.error("No se pudo cambiar el rol:", err);
+        input.checked = !activo;
+        mostrarError(
+          err?.code === "permission-denied"
+            ? "Firestore denegó el cambio. Comprueba que las reglas nuevas están publicadas."
+            : "No se pudo cambiar el rol. Inténtalo de nuevo."
+        );
+      } finally {
+        input.disabled = false;
+      }
+    });
+
+    li.append(info, etiqueta);
+    return li;
+  }
+
+  function pintar() {
+    const q = filtro.value.trim().toLowerCase();
+    const visibles = usuarios.filter(
+      (u) => !q || u.nombre.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    );
+    lista.replaceChildren();
+    if (!visibles.length) {
+      lista.append(
+        el(
+          "li",
+          "usr-vacio",
+          usuarios.length
+            ? "Ningún usuario coincide con el filtro."
+            : "Aún no hay otros usuarios. Cada usuario aparece aquí la primera vez que inicia sesión con esta versión de la web."
+        )
+      );
+    } else {
+      for (const u of visibles) lista.append(crearFila(u));
+    }
+    pintarCuenta(visibles.length);
+  }
+
+  async function cargar() {
+    if (cargando) return;
+    cargando = true;
+    btnRecargar.disabled = true;
+    mostrarError("");
+    cuentaEl.textContent = "Cargando usuarios…";
+    lista.replaceChildren();
+    try {
+      usuarios = await listarUsuarios();
+      pintar();
+    } catch (err) {
+      console.error("No se pudo cargar la lista de usuarios:", err);
+      cuentaEl.textContent = "";
+      mostrarError(
+        err?.code === "permission-denied"
+          ? "Firestore denegó la lectura. Publica las reglas nuevas (firestore.rules)."
+          : "No se pudo cargar la lista de usuarios."
+      );
+    } finally {
+      cargando = false;
+      btnRecargar.disabled = false;
+    }
+  }
+
+  filtro.addEventListener("input", pintar);
+  btnRecargar.addEventListener("click", cargar);
+
+  abrirPanelUsuarios = () => {
+    if (!isAuthorized(auth.currentUser)) return;
+    filtro.value = "";
+    control.abrir();
+    cargar();
+  };
+
+  watchAuth((user) => {
+    if (!isAuthorized(user) && !modal.hidden) control.cerrar();
+  });
+}
+
+function iniciarUIs() {
   initAuthUI();
+  initPerfilUI();
+  initUsuariosUI();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", iniciarUIs);
+} else {
+  iniciarUIs();
 }
 
 /* ==========================================================================
@@ -367,8 +837,10 @@ if (document.readyState === "loading") {
       "Sin clasificar") y muestra todas las asignaturas agrupadas.
         <div id="firebase-apuntes" class="fbap" data-modo="general"></div>
 
-   En ambos modos, quien haya iniciado sesión con la cuenta autorizada ve además
-   los controles para mover un archivo a otra asignatura y cambiar su posición.
+   En AMBOS modos, cualquier usuario con sesión ve el panel «Subir archivo» (en el modo de
+   asignatura el destino queda fijado a esa asignatura); sin sesión se muestra un aviso
+   con botón para iniciar sesión. Solo el Admin Principal ve además los controles para
+   mover un archivo a otra asignatura, cambiar su posición o eliminarlo de la lista.
    Los visitantes solo ven la lista.
 
    Cada documento de la colección "apuntes" guarda:
@@ -562,6 +1034,11 @@ async function moverApunte(id, destino) {
   });
 }
 
+/** Elimina el registro de un apunte (el archivo sigue en Cloudinary: no se puede borrar sin firma). */
+async function eliminarApunte(id) {
+  await deleteDoc(doc(db, APUNTES_COLECCION, id));
+}
+
 /* ---------- Interfaz ---------- */
 
 const ICONO_SUBIR =
@@ -569,28 +1046,132 @@ const ICONO_SUBIR =
 const ICONO_BAJAR =
   '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M3.5 6 8 10.5 12.5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
+/**
+ * Panel «Subir archivo» a Cloudinary, reutilizable: lo usa initApuntes() en las páginas
+ * de asignatura y en la vista general, y app.js dentro del modal de index.html.
+ * Con sesión muestra el formulario; sin sesión, un aviso con botón para iniciar sesión.
+ * @param {string|null} asignaturaFija  Si se indica, el destino queda fijado a esa asignatura.
+ */
+export function crearPanelSubida(asignaturaFija = null) {
+  const fija = asignaturaFija && !asignaturaFija.includes("/") ? asignaturaFija : null;
+  const wrap = el("div", "fbap-subida");
+
+  // --- Sin sesión ---
+  const anon = el("div", "fbap-panel");
+  anon.append(
+    el("p", "fbap-upload-title", "Subir archivos"),
+    el("p", "fbap-status", "Inicia sesión para subir apuntes en PDF o HTML.")
+  );
+  const btnLogin = el("button", "fbap-btn fbap-btn-primary", "Iniciar sesión");
+  btnLogin.type = "button";
+  btnLogin.style.marginTop = "10px";
+  btnLogin.addEventListener("click", () => document.getElementById("btn-auth-trigger")?.click());
+  anon.append(btnLogin);
+
+  // --- Con sesión ---
+  const form = el("form", "fbap-panel");
+  form.hidden = true;
+  const titulo = el("p", "fbap-upload-title");
+  titulo.innerHTML = ICONO_SUBIR;
+  titulo.append(document.createTextNode("Subir archivo (PDF o HTML)"));
+
+  const fila = el("div", "fbap-row");
+  let selectDestino = null;
+  if (fija) {
+    const destino = el("span", "fbap-upload-dest");
+    destino.append("Asignatura: ", el("strong", "", fija));
+    fila.append(destino);
+  } else {
+    const campo = el("label", "fbap-field");
+    campo.append(el("span", "fbap-label", "Subir a"));
+    selectDestino = el("select", "fbap-input fbap-select");
+    selectDestino.name = "asignatura";
+    for (const nombre of [SIN_CLASIFICAR, ...ASIGNATURAS]) selectDestino.append(new Option(nombre, nombre));
+    selectDestino.value = SIN_CLASIFICAR;
+    campo.append(selectDestino);
+    fila.append(campo);
+  }
+
+  const inputArchivo = el("input", "fbap-input fbap-file");
+  inputArchivo.type = "file";
+  inputArchivo.name = "archivo";
+  inputArchivo.accept = ".pdf,.html,application/pdf,text/html";
+  inputArchivo.required = true;
+  inputArchivo.setAttribute("aria-label", "Archivo PDF o HTML");
+
+  const btnSubir = el("button", "fbap-btn fbap-btn-primary", "Subir archivo");
+  btnSubir.type = "submit";
+  fila.append(inputArchivo, btnSubir);
+
+  const progreso = el("div", "fbap-progress");
+  progreso.hidden = true;
+  progreso.setAttribute("role", "progressbar");
+  progreso.setAttribute("aria-label", "Subiendo archivo");
+  progreso.append(el("div", "fbap-progress-bar"));
+
+  const textoBase = `Máximo ${MAX_MB} MB.` + (fija ? "" : ` Sin asignatura, el archivo queda en «${SIN_CLASIFICAR}».`);
+  const msg = el("p", "fbap-status", textoBase);
+  msg.setAttribute("role", "status");
+  const setMsg = (texto, tipo = "") => {
+    msg.textContent = texto;
+    msg.dataset.tipo = tipo; // "", "ok" o "err"
+  };
+
+  form.append(titulo, fila, progreso, msg);
+  wrap.append(anon, form);
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!auth.currentUser) return setMsg("Inicia sesión para subir archivos.", "err");
+    const file = inputArchivo.files[0];
+    if (!file) return setMsg("Elige un archivo.", "err");
+    if (!TIPOS_PERMITIDOS.includes(extensionDe(file.name))) {
+      return setMsg("Solo se admiten archivos .pdf y .html.", "err");
+    }
+    if (file.size > MAX_MB * 1024 * 1024) {
+      return setMsg(`El archivo supera el límite de ${MAX_MB} MB.`, "err");
+    }
+    const destino = fija || (selectDestino && selectDestino.value) || SIN_CLASIFICAR;
+
+    btnSubir.disabled = true;
+    progreso.hidden = false; // fetch no informa del porcentaje: barra indeterminada
+    setMsg("Subiendo…");
+    try {
+      const nombre = await subirApunte(destino, file);
+      inputArchivo.value = ""; // la asignatura elegida se conserva para subidas seguidas
+      setMsg(`Archivo subido a «${destino}»: ${nombre}`, "ok");
+    } catch (err) {
+      console.error("Error al subir el apunte:", err);
+      let texto = "No se pudo subir el archivo. Revisa la consola del navegador.";
+      if (err instanceof ErrorCloudinary) {
+        texto = `Cloudinary rechazó el archivo: ${err.message}`;
+      } else if (err?.code === "permission-denied") {
+        texto = "Cloudinary lo aceptó, pero Firestore denegó el registro. Comprueba que las reglas nuevas están publicadas.";
+      } else if (err?.name === "TimeoutError") {
+        texto = "La subida tardó demasiado. Inténtalo de nuevo.";
+      } else if (err instanceof TypeError) {
+        texto = "No se pudo conectar con Cloudinary. Revisa tu conexión.";
+      }
+      setMsg(texto, "err");
+    } finally {
+      btnSubir.disabled = false;
+      progreso.hidden = true;
+    }
+  });
+
+  watchAuth((user) => {
+    anon.hidden = !!user;
+    form.hidden = !user;
+    if (!user) setMsg(textoBase);
+  });
+
+  return wrap;
+}
+
 function initApuntes(root) {
   const asignaturaFija = (root.dataset.asignatura || "").trim();
   const general = !asignaturaFija && root.dataset.modo === "general";
   root.classList.add("fbap");
-
-  const formularioSubida = general
-    ? `
-    <form class="fbap-panel" data-fbap="upload" hidden>
-      <div class="fbap-row">
-        <label class="fbap-field">
-          <span class="fbap-label">Subir a</span>
-          <select class="fbap-input fbap-select" name="asignatura" data-fbap="destino"></select>
-        </label>
-        <input class="fbap-input fbap-file" type="file" name="archivo" accept=".pdf,.html,application/pdf,text/html" required aria-label="Archivo PDF o HTML">
-        <button type="submit" class="fbap-btn fbap-btn-primary" data-fbap="upload-btn">Subir archivo</button>
-      </div>
-      <div class="fbap-progress" data-fbap="progress" role="progressbar" aria-label="Subiendo archivo" hidden>
-        <div class="fbap-progress-bar"></div>
-      </div>
-      <p class="fbap-status" data-fbap="upload-msg" role="status">Máximo ${MAX_MB} MB. Sin asignatura, el archivo queda en «${SIN_CLASIFICAR}».</p>
-    </form>`
-    : "";
 
   root.innerHTML = `
     <div class="fbap-head">
@@ -600,8 +1181,7 @@ function initApuntes(root) {
       general ? "Archivos PDF y HTML organizados por asignatura." : "Archivos PDF y HTML de esta asignatura."
     }</p>
 
-    <p class="fbap-panel fbap-noperm" data-fbap="noperm" hidden>Esta cuenta no tiene permiso para gestionar archivos.</p>
-    ${formularioSubida}
+    <div data-fbap="subida"></div>
     <p class="fbap-status" data-fbap="gestion-msg" role="status"></p>
 
     <p class="fbap-empty" data-fbap="vacio">Cargando archivos…</p>
@@ -610,8 +1190,6 @@ function initApuntes(root) {
 
   const $ = (name) => root.querySelector(`[data-fbap="${name}"]`);
   const titulo = $("titulo");
-  const avisoSinPermiso = $("noperm");
-  const formSubida = $("upload"); // null en el modo de asignatura
   const msgGestion = $("gestion-msg");
   const vacio = $("vacio");
   const grupos = $("grupos");
@@ -630,12 +1208,15 @@ function initApuntes(root) {
   }
   titulo.textContent = general ? "Apuntes de DAM" : `Archivos de ${asignaturaFija}`;
 
+  // Panel de subida: visible para cualquier usuario con sesión, en ambos modos.
+  $("subida").replaceWith(crearPanelSubida(general ? null : asignaturaFija));
+
   /** Destinos posibles: la bandeja "Sin clasificar" y el catálogo de asignaturas. */
   const DESTINOS = [SIN_CLASIFICAR, ...ASIGNATURAS];
 
   /* --- Estado --- */
   let user = null;
-  let autorizado = false; // solo la cuenta AUTHORIZED_UID gestiona archivos
+  let autorizado = false; // solo el Admin Principal (AUTHORIZED_UID) gestiona archivos
   let items = [];
   let ocupado = false;
   let foco = null; // { id, accion } para devolver el foco tras repintar
@@ -643,8 +1224,6 @@ function initApuntes(root) {
   /* --- Sesión --- */
   function pintarSesion() {
     autorizado = isAuthorized(user);
-    avisoSinPermiso.hidden = !(user && !autorizado);
-    if (formSubida) formSubida.hidden = !autorizado;
     if (!autorizado) setMsg(msgGestion, "");
     pintarLista();
   }
@@ -655,61 +1234,6 @@ function initApuntes(root) {
   });
 
   // El inicio de sesión vive en el modal global (#modal-auth): ver MÓDULO DE ACCESO.
-
-  /* --- Subida (solo vista general) --- */
-  if (formSubida) {
-    const selectDestino = $("destino");
-    const btnSubir = $("upload-btn");
-    const msgSubida = $("upload-msg");
-    const progreso = $("progress");
-
-    for (const nombre of DESTINOS) selectDestino.append(new Option(nombre, nombre));
-    selectDestino.value = SIN_CLASIFICAR;
-
-    formSubida.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!isAuthorized(auth.currentUser)) {
-        return setMsg(msgSubida, "Inicia sesión con la cuenta autorizada para subir archivos.", "err");
-      }
-      const file = formSubida.elements.archivo.files[0];
-      if (!file) return setMsg(msgSubida, "Elige un archivo.", "err");
-
-      if (!TIPOS_PERMITIDOS.includes(extensionDe(file.name))) {
-        return setMsg(msgSubida, "Solo se admiten archivos .pdf y .html.", "err");
-      }
-      if (file.size > MAX_MB * 1024 * 1024) {
-        return setMsg(msgSubida, `El archivo supera el límite de ${MAX_MB} MB.`, "err");
-      }
-      const destino = DESTINOS.includes(selectDestino.value) ? selectDestino.value : SIN_CLASIFICAR;
-
-      btnSubir.disabled = true;
-      progreso.hidden = false; // fetch no informa del porcentaje: barra indeterminada
-      setMsg(msgSubida, "Subiendo…");
-
-      try {
-        const nombre = await subirApunte(destino, file);
-        // Solo vaciamos el archivo: la asignatura elegida se conserva para subidas seguidas.
-        formSubida.elements.archivo.value = "";
-        setMsg(msgSubida, `Archivo subido a «${destino}»: ${nombre}`, "ok");
-      } catch (err) {
-        console.error("Error al subir el apunte:", err);
-        let texto = "No se pudo subir el archivo. Revisa la consola del navegador.";
-        if (err instanceof ErrorCloudinary) {
-          texto = `Cloudinary rechazó el archivo: ${err.message}`;
-        } else if (err?.code === "permission-denied") {
-          texto = "Cloudinary lo aceptó, pero Firestore denegó el registro. Revisa la sesión y las reglas.";
-        } else if (err?.name === "TimeoutError") {
-          texto = "La subida tardó demasiado. Inténtalo de nuevo.";
-        } else if (err instanceof TypeError) {
-          texto = "No se pudo conectar con Cloudinary. Revisa tu conexión.";
-        }
-        setMsg(msgSubida, texto, "err");
-      } finally {
-        btnSubir.disabled = false;
-        progreso.hidden = true;
-      }
-    });
-  }
 
   /* --- Listado en tiempo real --- */
   function crearControles(it, posicion, total) {
@@ -743,7 +1267,13 @@ function initApuntes(root) {
     }
     mover.value = "";
 
-    gestion.append(btnSubirPos, btnBajarPos, pos, mover);
+    const btnEliminar = el("button", "fbap-btn fbap-btn--danger", "Eliminar");
+    btnEliminar.type = "button";
+    btnEliminar.dataset.accion = "eliminar";
+    btnEliminar.title = "Quitar de la lista";
+    btnEliminar.setAttribute("aria-label", `Eliminar ${it.nombre} de la lista`);
+
+    gestion.append(btnSubirPos, btnBajarPos, pos, mover, btnEliminar);
     return gestion;
   }
 
@@ -883,6 +1413,12 @@ function initApuntes(root) {
     if (!boton || ocupado || !autorizado) return;
     const it = items.find((x) => x.id === boton.closest("li")?.dataset.id);
     if (!it) return;
+    if (boton.dataset.accion === "eliminar") {
+      if (!confirm(`¿Quitar «${it.nombre}» de la lista?\n\nEl archivo seguirá en Cloudinary; solo desaparece de la web.`)) return;
+      foco = null;
+      await ejecutar(() => eliminarApunte(it.id), "Archivo eliminado de la lista.");
+      return;
+    }
     foco = { id: it.id, accion: boton.dataset.accion };
     await ejecutar(
       () => reordenarApunte(grupoDe(it.asignatura || SIN_CLASIFICAR), it.id, boton.dataset.accion === "subir" ? -1 : 1),
