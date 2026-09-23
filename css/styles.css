@@ -1625,3 +1625,69 @@ html.page-introduccion{
 @media (prefers-reduced-motion:reduce){
   .fbap .fbap-progress-bar{ animation:none; width:100%; opacity:.6; }
 }
+
+
+/* ==========================================================================
+   7. ejercicios-pseint.html  (.page-ejercicios-pseint)
+   Esta página también lleva la clase .page-introduccion en el <html>, así que
+   hereda gratis su tipografía, h1/h2, .caja, .grid, .card, code/pre y
+   .nota-pie. Aquí solo se añade lo nuevo: la tarjeta de cada ejercicio y los
+   botones/paneles de "Mostrar pista" y "Mostrar solución" que controla
+   js/ejercicios-pseint.js.
+   ========================================================================== */
+.page-ejercicios-pseint{
+  --accent-pista:#dcdcaa;
+  --accent-solucion:#4ec9b0;
+}
+
+/* Tarjeta de cada ejercicio */
+.page-ejercicios-pseint .ejercicio{
+  background:var(--panel); border:1px solid var(--border); border-radius:8px;
+  padding:20px 24px; margin:26px 0;
+}
+.page-ejercicios-pseint .ejercicio h2{
+  font-family:"Cascadia Code",Consolas,monospace; color:var(--h); font-size:18px;
+  margin:0 0 12px; border-top:0; padding-top:0;
+}
+.page-ejercicios-pseint .enunciado{ margin:0 0 4px; }
+
+/* Botones "Mostrar pista" / "Mostrar solución" */
+.page-ejercicios-pseint .ejercicio-acciones{ display:flex; flex-wrap:wrap; gap:10px; margin:16px 0 2px; }
+.page-ejercicios-pseint .btn-toggle{
+  display:inline-flex; align-items:center; gap:8px;
+  font:inherit; font-size:13px; font-weight:600; padding:8px 16px; border-radius:5px; cursor:pointer;
+  background:transparent; border:1px solid var(--border); color:var(--fg);
+  transition:background .12s, color .12s, border-color .12s;
+}
+.page-ejercicios-pseint .btn-toggle .icono-toggle{ font-size:11px; transition:transform .15s; opacity:.8; }
+.page-ejercicios-pseint .btn-toggle[aria-expanded="true"] .icono-toggle{ transform:rotate(-180deg); }
+
+.page-ejercicios-pseint .btn-pista{ border-color:var(--accent-pista); color:var(--accent-pista); }
+.page-ejercicios-pseint .btn-pista:hover{ background:rgba(220,220,170,.12); }
+.page-ejercicios-pseint .btn-pista.activo{ background:var(--accent-pista); color:#1e1e1e; }
+
+.page-ejercicios-pseint .btn-solucion{ border-color:var(--accent-solucion); color:var(--accent-solucion); }
+.page-ejercicios-pseint .btn-solucion:hover{ background:rgba(78,201,176,.12); }
+.page-ejercicios-pseint .btn-solucion.activo{ background:var(--accent-solucion); color:#123b34; }
+
+/* Paneles desplegables de pista / solución */
+.page-ejercicios-pseint .bloque-pista,
+.page-ejercicios-pseint .bloque-solucion{
+  margin-top:14px; padding:14px 18px; border-radius:6px; border:1px solid var(--border);
+  animation: ejFadeIn .15s ease-out;
+}
+.page-ejercicios-pseint .bloque-pista{ background:rgba(220,220,170,.07); border-left:4px solid var(--accent-pista); }
+.page-ejercicios-pseint .bloque-pista p{ margin:0; font-size:14px; }
+.page-ejercicios-pseint .bloque-solucion{ background:rgba(78,201,176,.05); border-left:4px solid var(--accent-solucion); }
+.page-ejercicios-pseint .bloque-solucion pre{ margin:12px 0 0; }
+.page-ejercicios-pseint .bloque-solucion .grid{ margin-top:0; }
+
+.page-ejercicios-pseint [hidden]{ display:none !important; }
+
+@keyframes ejFadeIn{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:none; } }
+
+@media (max-width:700px){
+  .page-ejercicios-pseint .ejercicio{ padding:16px 16px; }
+  .page-ejercicios-pseint .ejercicio-acciones{ flex-direction:column; }
+  .page-ejercicios-pseint .btn-toggle{ width:100%; justify-content:center; }
+}

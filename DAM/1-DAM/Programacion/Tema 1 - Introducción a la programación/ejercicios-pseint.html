@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="es" class="note-page page-introduccion page-ejercicios-pseint">
+<head>
+<meta charset="UTF-8">
+<title>Ejercicios PSeInt: Estructuras Secuencial y Selectiva</title>
+<link rel="stylesheet" href="../../css/styles.css">
+</head>
+<body>
+
+<h1>&lt;module&gt;Estructuras Secuencial y Selectiva&lt;/module&gt;</h1>
+<p class="subtitulo">17 Ejercicios interactivos con pista y solución</p>
+<p class="modulo">Programación · DAM 1º · Tema 2: Ejercicios Pseudocódigo (Estructuras Secuencial y Selectiva)</p>
+
+<div class="caja">
+  <p>Lee cada enunciado e intenta resolverlo tú mismo en PSeInt antes de pulsar los botones. <strong>Mostrar pista</strong> te da una idea de por dónde empezar sin dar la solución; <strong>Mostrar solución</strong> revela el pseudocódigo completo y su explicación.</p>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 1 — Valor absoluto de un número</h2>
+  <p class="enunciado">Leer un número y escribir el valor absoluto del mismo.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-1" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-1" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-1" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> piensa en el signo del número. Con una única estructura <code>Si-SiNo</code> puedes decidir si hay que cambiarle el signo o dejarlo tal cual.</p>
+  </div>
+  <div id="solucion-1" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>num</code> (número real introducido por teclado)</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>abs</code> (valor absoluto de <code>num</code>)</p></div>
+    </div>
+    <pre><code>Algoritmo ValorAbsoluto
+    Definir num, abs Como Real
+
+    Escribir "Introduce un número:"
+    Leer num
+
+    Si num &lt; 0 Entonces
+        abs &lt;- -num
+    SiNo
+        abs &lt;- num
+    FinSi
+
+    Escribir "El valor absoluto es: ", abs
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> es la estructura selectiva más simple. Si <code>num</code> es negativo, se invierte su signo con <code>-num</code>; si ya es positivo o cero, se deja igual. La condición <code>num &lt; 0</code> es el único punto de decisión del algoritmo.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 2 — Pulsaciones por cada 10 segundos de ejercicio</h2>
+  <p class="enunciado">Visualizar el número de pulsaciones que una persona debe tener por cada 10 segundos de ejercicio, si la fórmula es <code>Num.pulsación = (220 - edad) / 10</code>. La edad se pide por teclado.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-2" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-2" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-2" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> no hay ninguna decisión que tomar. Traduce la fórmula del enunciado directamente a una asignación, sin ningún <code>Si</code>.</p>
+  </div>
+  <div id="solucion-2" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>edad</code> (por teclado)</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>pulsaciones</code> (pulsaciones por 10 segundos)</p></div>
+    </div>
+    <pre><code>Algoritmo Pulsaciones
+    Definir edad Como Entero
+    Definir pulsaciones Como Real
+
+    Escribir "Introduce tu edad:"
+    Leer edad
+
+    pulsaciones &lt;- (220 - edad) / 10
+
+    Escribir "Pulsaciones recomendadas por cada 10 segundos: ", pulsaciones
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> ejercicio puramente <strong>secuencial</strong> (sin decisiones): se lee un dato, se aplica directamente la fórmula matemática dada en el enunciado y se muestra el resultado. Se usa <code>Real</code> para <code>pulsaciones</code> porque la división puede no ser exacta.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 3 — Hipotenusa de un triángulo rectángulo</h2>
+  <p class="enunciado">Calcula la hipotenusa de un triángulo rectángulo conocidas las longitudes de los catetos.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-3" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-3" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-3" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> recuerda el teorema de Pitágoras (<code>hip² = cat1² + cat2²</code>) y usa la función <code>SQRT()</code> de PSeInt para la raíz cuadrada.</p>
+  </div>
+  <div id="solucion-3" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>cat1</code>, <code>cat2</code> (longitudes de los catetos)</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>hip</code> (longitud de la hipotenusa)</p></div>
+    </div>
+    <pre><code>Algoritmo Hipotenusa
+    Definir cat1, cat2, hip Como Real
+
+    Escribir "Introduce el primer cateto:"
+    Leer cat1
+    Escribir "Introduce el segundo cateto:"
+    Leer cat2
+
+    hip &lt;- SQRT(cat1^2 + cat2^2)
+
+    Escribir "La hipotenusa mide: ", hip
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> aplica el <strong>teorema de Pitágoras</strong> usando la función predefinida <code>SQRT()</code>. No requiere estructura selectiva, es secuencial.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 4 — Porcentaje de hombres y mujeres</h2>
+  <p class="enunciado">Pedir por teclado el número de hombres y número de mujeres que hay en un grupo de estudiantes. Visualizar el porcentaje de hombres y mujeres del total.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-4" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-4" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-4" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> calcula primero el <code>total</code> de estudiantes (hombres + mujeres) y guárdalo en una variable; luego aplica una regla de tres a cada grupo.</p>
+  </div>
+  <div id="solucion-4" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>hombres</code>, <code>mujeres</code> (por teclado)</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>porcHombres</code>, <code>porcMujeres</code> (%)</p></div>
+    </div>
+    <pre><code>Algoritmo PorcentajeGenero
+    Definir hombres, mujeres, total Como Entero
+    Definir porcHombres, porcMujeres Como Real
+
+    Escribir "Número de hombres:"
+    Leer hombres
+    Escribir "Número de mujeres:"
+    Leer mujeres
+
+    total &lt;- hombres + mujeres
+    porcHombres &lt;- (hombres * 100) / total
+    porcMujeres &lt;- (mujeres * 100) / total
+
+    Escribir "Porcentaje de hombres: ", porcHombres, "%"
+    Escribir "Porcentaje de mujeres: ", porcMujeres, "%"
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> se calcula primero el <code>total</code> (variable intermedia) y después se aplica la regla de tres (<code>parte * 100 / total</code>) a cada grupo. Es un algoritmo secuencial, sin decisiones.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 5 — Incremento salarial del 25%</h2>
+  <p class="enunciado">Calcular el nuevo salario de un obrero si obtuvo un incremento del 25% sobre su salario anterior. (Su salario anterior se introduce por teclado.)</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-5" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-5" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-5" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> un incremento del 25% equivale a sumar al salario original el 25% de sí mismo: <code>salario + salario*0.25</code>.</p>
+  </div>
+  <div id="solucion-5" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>salarioAnterior</code> (por teclado)</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>nuevoSalario</code></p></div>
+    </div>
+    <pre><code>Algoritmo NuevoSalario
+    Definir salarioAnterior, nuevoSalario Como Real
+
+    Escribir "Introduce el salario anterior:"
+    Leer salarioAnterior
+
+    nuevoSalario &lt;- salarioAnterior + (salarioAnterior * 0.25)
+
+    Escribir "El nuevo salario es: ", nuevoSalario
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> el incremento del 25% se calcula multiplicando el salario por <code>0.25</code> y sumándolo al original. Equivale a multiplicar directamente por <code>1.25</code>, pero se deja explícito para mayor claridad.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 6 — Reparto de presupuesto hospitalario</h2>
+  <p class="enunciado">En un hospital existen tres áreas: Ginecología (40%), Traumatología (30%) y Pediatría (30%). Visualizar la cantidad de dinero que recibirá cada área, para el presupuesto que se introduzca por teclado.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-6" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-6" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-6" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> cada área recibe un porcentaje fijo del presupuesto total. Multiplica el presupuesto por <code>0.40</code>, <code>0.30</code> y <code>0.30</code> respectivamente; no hace falta ninguna decisión.</p>
+  </div>
+  <div id="solucion-6" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>presupuesto</code> (por teclado)</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>ginecologia</code>, <code>traumatologia</code>, <code>pediatria</code></p></div>
+    </div>
+    <pre><code>Algoritmo PresupuestoHospital
+    Definir presupuesto Como Real
+    Definir ginecologia, traumatologia, pediatria Como Real
+
+    Escribir "Introduce el presupuesto anual:"
+    Leer presupuesto
+
+    ginecologia &lt;- presupuesto * 0.40
+    traumatologia &lt;- presupuesto * 0.30
+    pediatria &lt;- presupuesto * 0.30
+
+    Escribir "Ginecología recibe: ", ginecologia
+    Escribir "Traumatología recibe: ", traumatologia
+    Escribir "Pediatría recibe: ", pediatria
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> cada área se calcula multiplicando el presupuesto total por su porcentaje correspondiente en forma decimal (<code>40% = 0.40</code>). No hace falta ninguna decisión porque los tres porcentajes son fijos.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 7 — Coste de una llamada telefónica</h2>
+  <p class="enunciado">Aceptar por teclado la duración de una llamada telefónica y determinar la cantidad a pagar: toda llamada de menos de 3 minutos cuesta 10 céntimos; cada minuto adicional a partir de los 3 primeros cuesta 5 céntimos.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-7" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-7" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-7" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> usa un <code>Si-SiNo</code>: una rama para menos de 3 minutos (coste fijo) y otra para el resto. En esa segunda rama, ¿cuántos minutos "de más" hay sobre los 3 primeros?</p>
+  </div>
+  <div id="solucion-7" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>duracion</code> (minutos de la llamada)</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>coste</code> (en céntimos)</p></div>
+    </div>
+    <pre><code>Algoritmo CosteLlamada
+    Definir duracion Como Entero
+    Definir coste Como Real
+
+    Escribir "Introduce la duración de la llamada (minutos):"
+    Leer duracion
+
+    Si duracion &lt; 3 Entonces
+        coste &lt;- 10
+    SiNo
+        coste &lt;- 10 + (duracion - 3) * 5
+    FinSi
+
+    Escribir "El coste total es: ", coste, " céntimos"
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> estructura <code>Si-SiNo</code> que separa el caso base (llamada corta, coste fijo de 10 céntimos) del caso con minutos extra, donde se suman <code>5 céntimos</code> por cada minuto por encima de los 3 primeros: <code>(duracion - 3) * 5</code>.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 8 — Suma o producto según comparación</h2>
+  <p class="enunciado">Pedir la introducción de dos números enteros, a y b. Si a es mayor que b visualizar la suma y en caso contrario, visualizar el producto.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-8" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-8" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-8" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> una única condición (<code>a &gt; b</code>) decide qué operación calcular y mostrar; no necesitas más de un <code>Si-SiNo</code>.</p>
+  </div>
+  <div id="solucion-8" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>a</code>, <code>b</code> (números enteros)</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>resultado</code> (suma o producto)</p></div>
+    </div>
+    <pre><code>Algoritmo CompararNumeros
+    Definir a, b, resultado Como Entero
+
+    Escribir "Introduce el valor de a:"
+    Leer a
+    Escribir "Introduce el valor de b:"
+    Leer b
+
+    Si a &gt; b Entonces
+        resultado &lt;- a + b
+        Escribir "La suma es: ", resultado
+    SiNo
+        resultado &lt;- a * b
+        Escribir "El producto es: ", resultado
+    FinSi
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> ejemplo clásico de <code>Si-Entonces-SiNo</code> donde la propia operación a realizar (suma o producto) depende del resultado de la comparación <code>a &gt; b</code>. El mensaje mostrado también cambia según la rama ejecutada.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 9 — Ecuación de segundo grado</h2>
+  <p class="enunciado">Resolver la ecuación cuadrática ax²+bx+c=0. Si la operación dentro de la raíz es inferior a 0, visualizar "La solución son dos números complejos conjugados". Si el divisor es 0, visualizar "Error: División entre 0".</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-9" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-9" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-9" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> primero comprueba si <code>a = 0</code> (evita dividir entre 0). Después calcula el discriminante (<code>b² - 4ac</code>) en una variable intermedia y decide según su signo antes de aplicar <code>SQRT()</code>.</p>
+  </div>
+  <div id="solucion-9" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>a</code>, <code>b</code>, <code>c</code> (coeficientes)</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>x1</code>, <code>x2</code> o mensaje de error / complejas</p></div>
+    </div>
+    <pre><code>Algoritmo EcuacionCuadratica
+    Definir a, b, c Como Real
+    Definir discriminante, x1, x2 Como Real
+
+    Escribir "Introduce el coeficiente a:"
+    Leer a
+    Escribir "Introduce el coeficiente b:"
+    Leer b
+    Escribir "Introduce el coeficiente c:"
+    Leer c
+
+    Si a = 0 Entonces
+        Escribir "Error: División entre 0"
+    SiNo
+        discriminante &lt;- b^2 - 4*a*c
+
+        Si discriminante &lt; 0 Entonces
+            Escribir "La solución son dos números complejos conjugados"
+        SiNo
+            x1 &lt;- (-b + SQRT(discriminante)) / (2*a)
+            x2 &lt;- (-b - SQRT(discriminante)) / (2*a)
+            Escribir "x1 = ", x1
+            Escribir "x2 = ", x2
+        FinSi
+    FinSi
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> usa <strong>selectivas anidadas</strong>. La primera comprueba que <code>a</code> no sea 0 (evita dividir entre 0 en la fórmula). La segunda, ya dentro, evalúa el <code>discriminante</code>: si es negativo no existe raíz real (soluciones complejas); si es ≥ 0 se calculan <code>x1</code> y <code>x2</code> con la fórmula general, usando <code>discriminante</code> como variable intermedia para no repetir el cálculo.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 10 — Día de la semana</h2>
+  <p class="enunciado">Programa que permita ingresar un número de 1 a 7 y visualice el correspondiente día de la semana (1 Lunes, 2 Martes, etc). Si el número introducido no está comprendido entre 1 y 7 visualizar "Error: valor fuera de rango".</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-10" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-10" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-10" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> con siete valores concretos que comparar sobre la misma variable, la estructura <code>Según-Hacer</code> es más clara que encadenar siete <code>Si</code>. No olvides el caso <code>De Otro Modo</code>.</p>
+  </div>
+  <div id="solucion-10" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>dia</code> (número entero 1-7)</p></div>
+      <div class="card orange"><h4>Salida</h4><p>Nombre del día o mensaje de error</p></div>
+    </div>
+    <pre><code>Algoritmo DiaSemana
+    Definir dia Como Entero
+
+    Escribir "Introduce un número del 1 al 7:"
+    Leer dia
+
+    Según dia Hacer
+        1: Escribir "Lunes"
+        2: Escribir "Martes"
+        3: Escribir "Miércoles"
+        4: Escribir "Jueves"
+        5: Escribir "Viernes"
+        6: Escribir "Sábado"
+        7: Escribir "Domingo"
+        De Otro Modo:
+            Escribir "Error: valor fuera de rango"
+    FinSegún
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> en lugar de encadenar siete <code>Si-SiNo</code>, se usa la estructura selectiva múltiple <code>Según-Hacer</code>, ideal cuando una misma variable se compara con varios valores concretos. La cláusula <code>De Otro Modo</code> cubre cualquier valor fuera de 1-7.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 11 — Área de círculo o rectángulo</h2>
+  <p class="enunciado">Programa que calcule el área, bien de un círculo, bien de un rectángulo. Pedirá que se introduzca C o R. Si se introdujo C, pedir el radio y visualizar área. Si se introdujo R, pedir base y altura y visualizar área.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-11" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-11" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-11" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> primero decide qué figura es (compara con <code>"C"</code> o <code>"R"</code>) y, dentro de cada rama, pide solo los datos que esa figura necesita antes de calcular el área.</p>
+  </div>
+  <div id="solucion-11" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>figura</code> (C/R) y <code>radio</code> o <code>base</code>+<code>altura</code></p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>area</code> de la figura elegida</p></div>
+    </div>
+    <pre><code>Algoritmo AreaFigura
+    Definir figura Como Caracter
+    Definir radio, base, altura, area Como Real
+
+    Escribir "Introduce C (círculo) o R (rectángulo):"
+    Leer figura
+
+    Si figura = "C" Entonces
+        Escribir "Introduce el radio:"
+        Leer radio
+        area &lt;- PI * radio^2
+        Escribir "El área del círculo es: ", area
+    SiNo
+        Si figura = "R" Entonces
+            Escribir "Introduce la base:"
+            Leer base
+            Escribir "Introduce la altura:"
+            Leer altura
+            area &lt;- base * altura
+            Escribir "El área del rectángulo es: ", area
+        SiNo
+            Escribir "Opción no válida"
+        FinSi
+    FinSi
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> selectivas anidadas sobre una variable de tipo <code>Caracter</code>. Cada rama pide únicamente los datos que necesita esa figura y aplica su propia fórmula: <code>PI * radio²</code> para el círculo (usando la constante <code>PI</code> de PSeInt) o <code>base * altura</code> para el rectángulo. Una tercera rama controla entradas no válidas.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 12 — Minutos entre dos horas</h2>
+  <p class="enunciado">Pedir la introducción de una hora de comienzo (hora y minutos por separado) y una hora de fin (hora y minutos por separado) y visualiza los minutos que separan una hora de otra. Visualiza los mensajes de error oportunos ante posibles errores.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-12" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-12" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-12" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> convierte cada hora a minutos totales (<code>hora*60 + minutos</code>) antes de restar. No olvides validar primero que las horas y minutos estén en su rango (0-23 y 0-59) usando el operador <code>O</code>.</p>
+  </div>
+  <div id="solucion-12" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>horaIni</code>, <code>minIni</code>, <code>horaFin</code>, <code>minFin</code></p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>diferencia</code> (minutos) o mensaje de error</p></div>
+    </div>
+    <pre><code>Algoritmo MinutosEntreHoras
+    Definir horaIni, minIni, horaFin, minFin Como Entero
+    Definir totalIni, totalFin, diferencia Como Entero
+
+    Escribir "Hora de inicio (0-23):"
+    Leer horaIni
+    Escribir "Minutos de inicio (0-59):"
+    Leer minIni
+    Escribir "Hora de fin (0-23):"
+    Leer horaFin
+    Escribir "Minutos de fin (0-59):"
+    Leer minFin
+
+    Si horaIni &lt; 0 O horaIni &gt; 23 O horaFin &lt; 0 O horaFin &gt; 23 O minIni &lt; 0 O minIni &gt; 59 O minFin &lt; 0 O minFin &gt; 59 Entonces
+        Escribir "Error: hora o minutos fuera de rango"
+    SiNo
+        totalIni &lt;- horaIni * 60 + minIni
+        totalFin &lt;- horaFin * 60 + minFin
+
+        Si totalFin &lt; totalIni Entonces
+            Escribir "Error: la hora de fin es anterior a la de inicio"
+        SiNo
+            diferencia &lt;- totalFin - totalIni
+            Escribir "Minutos transcurridos: ", diferencia
+        FinSi
+    FinSi
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> la clave es convertir cada hora a "minutos totales desde medianoche" (<code>hora * 60 + minutos</code>) para poder restarlas directamente. Antes de calcular se valida el rango de cada dato con el operador lógico <code>O</code>, y después se comprueba que la hora de fin no sea anterior a la de inicio.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 13 — Área de un triángulo con validación</h2>
+  <p class="enunciado">Leer base y altura de un triángulo y escribir el área siempre que los 2 datos sean positivos. Visualizar un mensaje de error si alguno de los 2 datos es negativo o 0.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-13" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-13" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-13" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> la fórmula del área es <code>(base * altura) / 2</code>, pero antes debes comprobar con <code>O</code> que ninguno de los dos valores sea menor o igual que 0.</p>
+  </div>
+  <div id="solucion-13" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>base</code>, <code>altura</code> del triángulo</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>area</code> o mensaje de error</p></div>
+    </div>
+    <pre><code>Algoritmo AreaTriangulo
+    Definir base, altura, area Como Real
+
+    Escribir "Introduce la base del triángulo:"
+    Leer base
+    Escribir "Introduce la altura del triángulo:"
+    Leer altura
+
+    Si base &lt;= 0 O altura &lt;= 0 Entonces
+        Escribir "Error: la base y la altura deben ser valores positivos"
+    SiNo
+        area &lt;- (base * altura) / 2
+        Escribir "El área del triángulo es: ", area
+    FinSi
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> antes de aplicar la fórmula <code>(base * altura) / 2</code> se valida con el operador <code>O</code> que ninguno de los dos datos sea cero o negativo. Solo si la condición de error es falsa se ejecuta el cálculo.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 14 — Salario semanal de un obrero</h2>
+  <p class="enunciado">Si trabaja 40 horas o menos se le paga 16€ por hora. Si trabaja más de 40 horas se le paga 16€ por cada una de las primeras 40 horas y 20€ por cada hora extra. El número de horas trabajadas se introduce por teclado.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-14" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-14" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-14" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> separa las horas en dos tramos: hasta 40 horas a 16€/hora, y las horas que superen las 40 a 20€/hora cada una. Suma ambos tramos.</p>
+  </div>
+  <div id="solucion-14" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>horas</code> trabajadas (por teclado)</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>salario</code> semanal</p></div>
+    </div>
+    <pre><code>Algoritmo SalarioObrero
+    Definir horas Como Real
+    Definir salario Como Real
+
+    Escribir "Introduce las horas trabajadas:"
+    Leer horas
+
+    Si horas &lt;= 40 Entonces
+        salario &lt;- horas * 16
+    SiNo
+        salario &lt;- 40 * 16 + (horas - 40) * 20
+    FinSi
+
+    Escribir "El salario semanal es: ", salario, "€"
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> si no se superan las 40 horas, se paga todo a tarifa normal; si se superan, se separan las <strong>40 horas normales</strong> (a 16€) de las <strong>horas extra</strong> (a 20€) y se suman ambas partes.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 15 — Descuento por compra de camisas</h2>
+  <p class="enunciado">Si se compran tres camisas o más se aplica un descuento del 20% sobre el total de la compra; si son menos de tres camisas, un descuento del 10%. Se introduce por teclado el número de camisas y el precio (valen todas igual).</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-15" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-15" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-15" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> calcula primero el total sin descuento (<code>numCamisas * precio</code>) y después decide, según el número de camisas, qué porcentaje restarle a ese total.</p>
+  </div>
+  <div id="solucion-15" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>numCamisas</code>, <code>precioUnidad</code></p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>total</code> a pagar, con descuento aplicado</p></div>
+    </div>
+    <pre><code>Algoritmo CompraCamisas
+    Definir numCamisas Como Entero
+    Definir precioUnidad, total, descuento Como Real
+
+    Escribir "Número de camisas:"
+    Leer numCamisas
+    Escribir "Precio de cada camisa:"
+    Leer precioUnidad
+
+    total &lt;- numCamisas * precioUnidad
+
+    Si numCamisas &gt;= 3 Entonces
+        descuento &lt;- total * 0.20
+    SiNo
+        descuento &lt;- total * 0.10
+    FinSi
+
+    total &lt;- total - descuento
+
+    Escribir "Total a pagar: ", total, "€"
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> primero se calcula el <code>total</code> bruto (secuencial), después la selectiva decide el <strong>porcentaje de descuento</strong> según la cantidad comprada, y por último se resta ese descuento del total.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 16 — Juego de las tres preguntas</h2>
+  <p class="enunciado">Se formulan tres preguntas SI/NO, una tras otra. Si se responde mal a cualquiera de ellas ya no se pregunta la siguiente y termina el juego. Si se aciertan las tres, se visualiza "Usted ha ganado".</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-16" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-16" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-16" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> anida las preguntas: solo formula la siguiente dentro del <code>Entonces</code> de la anterior. Ojo con cuál es la respuesta correcta de cada pregunta según el enunciado (Colón sí descubrió América, pero París no es capital de Bélgica).</p>
+  </div>
+  <div id="solucion-16" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>resp1</code>, <code>resp2</code>, <code>resp3</code> (SI/NO)</p></div>
+      <div class="card orange"><h4>Salida</h4><p>"Usted ha ganado" o fin anticipado del juego</p></div>
+    </div>
+    <pre><code>Algoritmo JuegoPreguntas
+    Definir resp1, resp2, resp3 Como Caracter
+
+    Escribir "¿Colón descubrió América? (SI/NO)"
+    Leer resp1
+
+    Si resp1 = "SI" Entonces
+        Escribir "¿Es París capital de Bélgica? (SI/NO)"
+        Leer resp2
+
+        Si resp2 = "NO" Entonces
+            Escribir "¿Los Beatles era un grupo de rock americano? (SI/NO)"
+            Leer resp3
+
+            Si resp3 = "NO" Entonces
+                Escribir "Usted ha ganado"
+            SiNo
+                Escribir "Respuesta incorrecta. Fin del juego."
+            FinSi
+        SiNo
+            Escribir "Respuesta incorrecta. Fin del juego."
+        FinSi
+    SiNo
+        Escribir "Respuesta incorrecta. Fin del juego."
+    FinSi
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> las tres preguntas se anidan una dentro de la rama <code>Entonces</code> de la anterior. Así, la siguiente pregunta solo se formula si la anterior se respondió correctamente. La respuesta correcta a la segunda pregunta es "NO" (París es capital de Francia) y a la tercera también "NO" (eran un grupo británico).</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 17 — Deporte según la temperatura</h2>
+  <p class="enunciado">Leer una temperatura y escribir qué deporte es apropiado: Natación (&gt;85ºF), Tenis (70-85ºF), Golf (32-70ºF), Esquí (10-32ºF), Deportes de interior (≤10ºF).</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-17" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-17" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-17" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> ordena las comparaciones de mayor a menor temperatura con <code>Si-SiNo</code> anidados. Al llegar a un tramo ya sabes que los anteriores fallaron, así que solo hace falta comprobar el límite inferior de ese tramo.</p>
+  </div>
+  <div id="solucion-17" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>temp</code> (temperatura en ºF)</p></div>
+      <div class="card orange"><h4>Salida</h4><p>Deporte recomendado</p></div>
+    </div>
+    <pre><code>Algoritmo DeporteTemperatura
+    Definir temp Como Real
+
+    Escribir "Introduce la temperatura (ºF):"
+    Leer temp
+
+    Si temp &gt; 85 Entonces
+        Escribir "Deporte recomendado: Natación"
+    SiNo
+        Si temp &gt; 70 Entonces
+            Escribir "Deporte recomendado: Tenis"
+        SiNo
+            Si temp &gt; 32 Entonces
+                Escribir "Deporte recomendado: Golf"
+            SiNo
+                Si temp &gt; 10 Entonces
+                    Escribir "Deporte recomendado: Esquí"
+                SiNo
+                    Escribir "Deporte recomendado: Deportes de interior"
+                FinSi
+            FinSi
+        FinSi
+    FinSi
+FinAlgoritmo</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> "escalera" de selectivas anidadas que evalúa los rangos de mayor a menor temperatura. Como cada <code>SiNo</code> ya asume que la condición anterior era falsa, basta con comparar el límite inferior de cada tramo.</p>
+  </div>
+</div>
+
+<script src="../../js/ejercicios-pseint.js"></script>
+</body>
+</html>
