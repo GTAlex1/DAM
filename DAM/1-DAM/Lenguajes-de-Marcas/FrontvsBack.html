@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es" class="note-page page-introduccion">
+<head>
+<meta charset="UTF-8">
+<title>La web en equipo</title>
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<h1>&lt;module&gt;La web en equipo&lt;/module&gt;</h1>
+<p class="subtitulo">Cliente, servidor y un lenguaje común para comunicarse</p>
+<p class="modulo">Programación · DAM 1º · Arquitectura del Software</p>
+
+<div class="caja">
+  <p>Una web funciona porque varias piezas hablan el mismo idioma: el <strong>front</strong> (cliente), el <strong>back</strong> (servidor) y el <strong>HTTP</strong> que usan para comunicarse entre ellos.</p>
+</div>
+
+<h2>Front, HTTP y Back: las tres piezas</h2>
+<div class="grid grid-3">
+  <div class="card blue"><h4>FRONT (Cliente)</h4><p>Es lo que usa la persona. Muestra la interfaz y permite interactuar.</p></div>
+  <div class="card orange"><h4>HTTP</h4><p>Es el lenguaje común que usan cliente y servidor para comunicarse.</p></div>
+  <div class="card green"><h4>BACK (Servidor)</h4><p>Procesa las peticiones, ejecuta lógica (aplicación) y devuelve datos o archivos.</p></div>
+</div>
+
+<h3>El front no siempre es una web</h3>
+<p>Normalmente es una aplicación web en el navegador, pero también puede ser:</p>
+<ul>
+  <li>App móvil (nativa)</li>
+  <li>App de escritorio (nativa)</li>
+  <li>Reloj inteligente</li>
+  <li>Otros dispositivos</li>
+</ul>
+
+<h3>Petición y respuesta HTTP</h3>
+<p>El cliente pide algo con una <strong>petición HTTP</strong> (por ejemplo, pedir una página) y el servidor contesta con una <strong>respuesta HTTP</strong> (por ejemplo, enviando archivos).</p>
+<div class="grid grid-2">
+  <div class="card blue">
+    <h4>Petición HTTP →</h4>
+    <p>Ej: pedir una página.</p>
+    <pre><code>GET /inicio HTTP/1.1
+Host: midominio.com</code></pre>
+  </div>
+  <div class="card green">
+    <h4>← Respuesta HTTP</h4>
+    <p>Ej: enviar archivos.</p>
+    <pre><code>HTTP/1.1 200 OK
+Content-Type: text/html
+...
+[datos de la página]</code></pre>
+  </div>
+</div>
+
+<h3>¿Qué puede hacer el back (servidor)?</h3>
+<ul>
+  <li>Servir archivos estáticos (HTML, CSS, JS, imágenes, ...)</li>
+  <li>Ejecutar código del servidor (por ejemplo, en Node.js, Python, PHP, Java, ...)</li>
+  <li>Acceder a bases de datos</li>
+  <li>Devolver la respuesta al cliente</li>
+</ul>
+
+<h2>¿Qué archivos tiene una app de front (web)?</h2>
+<p>Normalmente está compuesta por varios archivos que se alojan en un servidor y el navegador debe traerlos primero.</p>
+<div class="grid grid-2">
+  <div class="card orange">
+    <h4>HTML</h4>
+    <p>Estructura el contenido de la página.</p>
+    <pre><code>&lt;h1&gt;Hola&lt;/h1&gt;</code></pre>
+  </div>
+  <div class="card blue">
+    <h4>CSS</h4>
+    <p>Define el estilo y el diseño.</p>
+    <pre><code>h1 { color: blue; }</code></pre>
+  </div>
+  <div class="card yellow">
+    <h4>JavaScript</h4>
+    <p>Añade interactividad y comportamiento.</p>
+    <pre><code>console.log("Hola");</code></pre>
+  </div>
+  <div class="card purple">
+    <h4>Recursos</h4>
+    <p>Imágenes, fuentes, iconos, vídeos, etc.</p>
+  </div>
+</div>
+
+<h2>¿Cómo se carga una página?</h2>
+<p>Cuatro pasos que se repiten cada vez que visitas una web... y ocurren en cuestión de segundos.</p>
+<div class="ciclo" style="grid-template-columns:repeat(4, 1fr);">
+  <div class="paso"><div class="num">1</div><div class="tit">Petición</div><div class="desc">El navegador hace una petición HTTP al servidor.</div></div>
+  <div class="paso"><div class="num">2</div><div class="tit">Respuesta</div><div class="desc">El servidor responde enviando los archivos (HTML, CSS, JS, recursos...) a través de HTTP.</div></div>
+  <div class="paso"><div class="num">3</div><div class="tit">Construcción</div><div class="desc">El navegador descarga los archivos, los interpreta y construye la página.</div></div>
+  <div class="paso"><div class="num">4</div><div class="tit">Interacción</div><div class="desc">El usuario ve la página y puede interactuar.</div></div>
+</div>
+<p class="ciclo-nota">¡Todo esto ocurre en segundos!</p>
+
+<blockquote><strong>Idea clave:</strong> el front y el back pueden estar en equipos distintos, se comunican usando HTTP, y el navegador (o cualquier otro dispositivo) trae los archivos necesarios del servidor para mostrar la aplicación.</blockquote>
+<p class="nota-pie">Diferentes tecnologías, la misma idea: ¡comunicar y compartir!</p>
+
+</body>
+</html>

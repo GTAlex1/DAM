@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es" class="note-page page-introduccion">
+<head>
+<meta charset="UTF-8">
+<title>Diagrama interno de un computador</title>
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<h1>&lt;module&gt;Diagrama interno de un computador&lt;/module&gt;</h1>
+<p class="subtitulo">Principales componentes y su funcionamiento</p>
+<p class="modulo">Programación · DAM 1º · Arquitectura del Software</p>
+
+<div class="caja">
+  <p>Un computador está formado por un <strong>procesador (CPU)</strong>, memoria principal y dispositivos de entrada/salida, conectados por medio de <strong>buses</strong>.</p>
+</div>
+
+<h2>Procesador (CPU)</h2>
+<p>Ejecuta instrucciones y coordina el funcionamiento del sistema.</p>
+<div class="grid grid-3">
+  <div class="card green"><h4>Unidad de control (CU)</h4><p>Decodifica instrucciones y coordina el funcionamiento.</p></div>
+  <div class="card orange"><h4>Reloj</h4><p>Sincroniza todas las operaciones.</p></div>
+  <div class="card yellow"><h4>ALU</h4><p>Realiza operaciones aritméticas y lógicas.</p></div>
+</div>
+
+<h3>Banco de registros</h3>
+<p>Almacenan datos temporalmente durante la ejecución.</p>
+<table>
+  <tr><th>Registro</th><th>Función</th></tr>
+  <tr><td><strong>PC</strong></td><td>Contador de programa</td></tr>
+  <tr><td><strong>IR</strong></td><td>Registro de instrucción</td></tr>
+  <tr><td><strong>MAR/DM</strong></td><td>Registro de direcciones</td></tr>
+  <tr><td><strong>MDR/RM</strong></td><td>Registro de memoria</td></tr>
+  <tr><td><strong>SP</strong></td><td>Puntero de pila</td></tr>
+  <tr><td><strong>Registro de estado</strong></td><td>Indicadores de estado (flags)</td></tr>
+</table>
+
+<h2>Buses de comunicación</h2>
+<p>Conectan la CPU con la memoria y los periféricos, transportando direcciones, datos y señales de control.</p>
+<div class="grid grid-3">
+  <div class="card orange"><h4>Bus de direcciones</h4><p>La CPU envía la dirección de memoria a la que quiere acceder.</p></div>
+  <div class="card blue"><h4>Bus de datos</h4><p>Transfiere instrucciones y datos. Es bidireccional.</p></div>
+  <div class="card green"><h4>Bus de control</h4><p>Señales de control (lectura / escritura, etc.).</p></div>
+</div>
+
+<h2>Memoria principal (RAM)</h2>
+<p>Almacena instrucciones y datos del programa que se está ejecutando. Se organiza en posiciones direccionables, y cada posición almacena una palabra (instrucción o dato).</p>
+<table>
+  <tr><th>Dirección</th><th>Contenido (una palabra)</th></tr>
+  <tr><td>0</td><td>Palabra 0</td></tr>
+  <tr><td>1</td><td>Palabra 1</td></tr>
+  <tr><td>2</td><td>Palabra 2</td></tr>
+  <tr><td>3</td><td>Palabra 3</td></tr>
+  <tr><td>…</td><td>…</td></tr>
+  <tr><td>N − 1</td><td>Palabra N − 1</td></tr>
+</table>
+
+<h2>Entrada / Salida (E/S)</h2>
+<p>Permite la comunicación del computador con el mundo exterior a través de los <strong>periféricos</strong>: dispositivos que permiten introducir datos, obtener resultados o almacenar información.</p>
+<div class="grid grid-3">
+  <div class="card green"><h4>Dispositivos de entrada</h4><p>Teclado, ratón.</p></div>
+  <div class="card blue"><h4>Dispositivos de salida</h4><p>Monitor, impresora.</p></div>
+  <div class="card orange"><h4>Dispositivos de almacenamiento</h4><p>Disco / SSD.</p></div>
+</div>
+
+<h2>Ciclo de ejecución de una instrucción</h2>
+<p>La CPU repite continuamente estos pasos para ejecutar un programa.</p>
+<div class="grid grid-2">
+  <div class="card green">
+    <h4>1. Fase de búsqueda (captación)</h4>
+    <ol>
+      <li>El PC contiene la dirección de la siguiente instrucción.</li>
+      <li>Esa dirección se pasa al registro de direcciones y viaja por el bus de direcciones.</li>
+      <li>La memoria devuelve la instrucción por el bus de datos.</li>
+      <li>La instrucción se guarda en el IR y el PC se incrementa.</li>
+    </ol>
+  </div>
+  <div class="card blue">
+    <h4>2. Fase de ejecución</h4>
+    <ol>
+      <li>La unidad de control decodifica la instrucción.</li>
+      <li>Si hace falta, se leen operandos de registros o memoria.</li>
+      <li>La ALU opera, o se realiza lectura/escritura o E/S.</li>
+      <li>Se guarda el resultado y se actualiza el registro de estado.</li>
+    </ol>
+  </div>
+</div>
+<p class="nota-pie" style="text-align:center;">↻ Este ciclo se repite para cada instrucción del programa.</p>
+
+<blockquote>Hardware y software trabajan juntos para hacer posible la computación.</blockquote>
+
+</body>
+</html>
