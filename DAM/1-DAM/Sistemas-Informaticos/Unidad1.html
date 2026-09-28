@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es" class="note-page page-introduccion page-unidad1">
+<head>
+<meta charset="UTF-8">
+<title>Unidad 1. Información y sistemas informáticos</title>
+<link rel="stylesheet" href="/DAM/css/styles.css">
+</head>
+<body>
+
+<h1>Información y Sistemas Informáticos</h1>
+<p class="subtitulo">Anatomía, evolución y lógica de la computación</p>
+<p class="modulo">Sistemas Informáticos · DAM 1º · Unidad 1</p>
+
+<h2>La ecuación fundamental</h2>
+<div class="formula">INFORMACIÓN + AUTOMÁTICA = INFORMÁTICA</div>
+<p>La <strong>informática</strong> es la ciencia que estudia el <strong>tratamiento automático de la información</strong>. El ordenador es la herramienta que permite organizarla, procesarla, transmitirla y almacenarla. Se aplica en:</p>
+<div class="grid grid-3">
+  <div class="card blue"><h4>Industria</h4><p>Control de maquinaria.</p></div>
+  <div class="card orange"><h4>Medicina y agricultura</h4><p>Gestión de datos y diagnóstico.</p></div>
+  <div class="card purple"><h4>Sector espacial</h4><p>Cálculo y control.</p></div>
+  <div class="card green"><h4>Comunicaciones</h4><p>Telefonía e Internet.</p></div>
+  <div class="card yellow"><h4>Vigilancia y tráfico</h4><p>Control y supervisión.</p></div>
+</div>
+
+<h2>El sistema informático: hardware + software</h2>
+<div class="grid grid-2">
+  <div class="card blue"><h4>Hardware (el cuerpo)</h4><p>Componentes físicos y tangibles. Ej: monitor, teclado, impresora, microprocesador, memoria.</p></div>
+  <div class="card orange"><h4>Software (el cerebro)</h4><p>Componentes lógicos: instrucciones, programas y aplicaciones. Ej: sistemas operativos, aplicaciones bancarias.</p></div>
+</div>
+<div class="caja">
+  <p>Un <strong>programa</strong> es un conjunto de instrucciones que permite al ordenador realizar una operación. Varios programas forman una <strong>aplicación</strong> (por ejemplo, una aplicación bancaria: nóminas, préstamos, contabilidad...).</p>
+  <p><strong>Sistema informático</strong> = hardware + software que permiten el tratamiento de la información.</p>
+</div>
+
+<h2>Evolución histórica</h2>
+<h3>Antes del ordenador</h3>
+<table>
+  <tr><th>Año</th><th>Hito</th></tr>
+  <tr><td>—</td><td><strong>Ábaco</strong>: el dispositivo de cálculo más antiguo.</td></tr>
+  <tr><td>1617</td><td><strong>John Napier</strong>: dispositivo de productos y divisiones (multiplicar mediante sumas).</td></tr>
+  <tr><td>1642</td><td><strong>Blaise Pascal</strong>: calculadora mecánica de ruedas dentadas, con transporte de las unidades que se llevan.</td></tr>
+  <tr><td>1672</td><td><strong>Leibniz</strong>: calculadora de las cuatro operaciones; no se comercializó por su compleja fabricación.</td></tr>
+  <tr><td>1822</td><td><strong>Charles Babbage</strong>: máquina diferencial (cálculo de polinomios).</td></tr>
+  <tr><td>1879</td><td><strong>Herman Hollerith</strong>: lectora de tarjetas; el censo de EE.UU. pasó de 7 años a 2 (1890). Primer tratamiento automático de la información.</td></tr>
+  <tr><td>1924</td><td><strong>IBM</strong> (International Business Machines).</td></tr>
+  <tr><td>1930</td><td><strong>John V. Atanasoff</strong>: ABC (Atanasoff-Berry-Computer), la primera calculadora digital.</td></tr>
+</table>
+
+<h3>Las cinco generaciones</h3>
+<table>
+  <tr><th>Generación</th><th>Tecnología</th><th>Características e hitos</th></tr>
+  <tr><td><strong>1ª</strong> (1940–1958)</td><td>Tubos de vacío (válvulas)</td><td>Uso científico/militar, programación en lenguaje máquina, tarjetas perforadas, cintas y tambores. ENIAC (1943), UNIVAC 1: 30 t, 1600 m², 100.000 W.</td></tr>
+  <tr><td><strong>2ª</strong> (1958–1964)</td><td>Transistor</td><td>Primeros ordenadores comerciales, lenguajes Cobol y Fortran, menor consumo y tamaño. Whirlwind I, IBM 1402.</td></tr>
+  <tr><td><strong>3ª</strong> (1964–1971)</td><td>Circuitos integrados (chips de silicio)</td><td>Multiprogramación, abaratamiento, ordenadores en universidades y hogares, redes, disquete (1970). IBM 360, Xerox Alto (ratón, menús, iconos).</td></tr>
+  <tr><td><strong>4ª</strong> (1971–1988)</td><td>Microprocesador</td><td>Todos los elementos básicos en un solo circuito integrado. IBM PC, Apple II, Sun-3/50, Microsoft (1975).</td></tr>
+  <tr><td><strong>5ª</strong> (1988–presente)</td><td>Sistemas inteligentes</td><td>Inteligencia artificial, robots, sistemas expertos, PDAs y dispositivos móviles.</td></tr>
+</table>
+
+<h2>Hardware: la arquitectura del ordenador</h2>
+<div class="grid grid-3">
+  <div class="card blue">
+    <h4>CPU (procesador)</h4>
+    <p>Controla y ejecuta las operaciones. Contiene la <strong>Unidad de Control (UC)</strong>, la <strong>Unidad Aritmético-Lógica (UAL)</strong>, los <strong>registros</strong>, los buses y el reloj.</p>
+  </div>
+  <div class="card orange">
+    <h4>Memoria</h4>
+    <p><strong>RAM</strong>: lectura y escritura; los programas deben estar cargados aquí para ejecutarse. <strong>ROM</strong>: solo lectura; contiene los programas de arranque.</p>
+  </div>
+  <div class="card green">
+    <h4>Periféricos y E/S</h4>
+    <p>Se conectan mediante <strong>puertos</strong>, gestionados por la unidad de entrada/salida.</p>
+  </div>
+</div>
+<div class="grid grid-3">
+  <div class="card blue"><h4>Entrada</h4><p>Introducen datos y programas: teclado, ratón, escáner.</p></div>
+  <div class="card orange"><h4>Salida</h4><p>Extraen información procesada: monitor, impresora.</p></div>
+  <div class="card purple"><h4>Entrada/Salida</h4><p>Bidireccionales: disco duro, CD regrabable, módem, tarjeta de red.</p></div>
+</div>
+<p class="nota-pie">No confundir <strong>periférico</strong> con <strong>soporte</strong>: la unidad de disquete es el periférico; el disquete, que almacena la información, es el soporte.</p>
+
+<h2>El tratamiento de la información</h2>
+<p><strong>Información</strong> es cualquier dato que aporta conocimiento y ayuda a tomar decisiones. Todo lo que maneja el ordenador son <strong>datos</strong> e <strong>instrucciones</strong>. El tratamiento tiene tres fases:</p>
+<div class="grid grid-3">
+  <div class="card blue"><h4>1. Entrada</h4><p>Obtención de los datos de entrada, del usuario o de otros programas.</p></div>
+  <div class="card orange"><h4>2. Proceso</h4><p>Cálculos y cruces de información. Los datos reutilizables se llaman datos intermedios.</p></div>
+  <div class="card green"><h4>3. Salida</h4><p>Resultados (datos de salida) por los dispositivos de salida.</p></div>
+</div>
+
+<h3>Tipos de datos</h3>
+<table>
+  <tr><th>Clasificación</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr><td rowspan="2"><strong>Comportamiento</strong></td><td>Constantes</td><td>No cambian durante la ejecución. Ej: π = 3,1416...</td></tr>
+  <tr><td>Variables</td><td>Pueden cambiar. Ej: el importe total de una factura.</td></tr>
+  <tr><td rowspan="4"><strong>Formato</strong></td><td>Numéricos</td><td>Cantidades formadas por cifras (0–9).</td></tr>
+  <tr><td>Alfabéticos</td><td>Textos formados solo por letras.</td></tr>
+  <tr><td>Alfanuméricos</td><td>Textos con letras y números.</td></tr>
+  <tr><td>Multimedia</td><td>Sonidos, imágenes, vídeos.</td></tr>
+</table>
+
+<h3>Analógico vs. digital</h3>
+<div class="grid grid-2">
+  <div class="card orange"><h4>Analógico</h4><p>El dato toma valores en un intervalo continuo. Ej: el peso, 61,5 kg.</p></div>
+  <div class="card green"><h4>Digital</h4><p>Solo valores discretos, sin estados intermedios. Ej: nº de hijos. El ordenador solo procesa información digital.</p></div>
+</div>
+<p>La unidad mínima es el <strong>bit</strong> (<em>binary digit</em>): 0 = circuito abierto/apagado, 1 = circuito cerrado/encendido. Toda la información se reduce a combinaciones de 0 y 1 según un código preestablecido.</p>
+
+<h2>Sistemas de numeración</h2>
+<p>Un sistema de numeración es un conjunto de símbolos y reglas para representar cantidades. Los sistemas son <strong>posicionales</strong>: el valor de una cifra depende de su posición.</p>
+<div class="formula">Σ Xᵢ · Bⁱ</div>
+<p>Teorema Fundamental de la Numeración: <code>X</code> es el dígito, <code>i</code> su posición respecto al punto decimal y <code>B</code> la base. Ej: <code>723,14 = 7·10² + 2·10¹ + 3·10⁰ + 1·10⁻¹ + 4·10⁻²</code></p>
+<table>
+  <tr><th>Sistema</th><th class="centro">Base</th><th>Símbolos</th><th>Relación con el binario</th></tr>
+  <tr><td>Decimal</td><td class="centro">10</td><td>0–9</td><td>El estándar humano</td></tr>
+  <tr><td>Binario</td><td class="centro">2</td><td>0, 1</td><td>Lenguaje de la máquina. MSB = bit más significativo (izquierda); LSB = menos significativo (derecha)</td></tr>
+  <tr><td>Octal</td><td class="centro">8</td><td>0–7</td><td>3 bits por cifra</td></tr>
+  <tr><td>Hexadecimal</td><td class="centro">16</td><td>0–9, A–F</td><td>4 bits por cifra</td></tr>
+</table>
+
+<h3>Conversor de bases</h3>
+<div class="conv">
+  <div class="conv-campos">
+    <label>Número<input id="conv-num" type="text" value="107" autocomplete="off" spellcheck="false"></label>
+    <label>Está escrito en base
+      <select id="conv-base">
+        <option value="10">Decimal (10)</option>
+        <option value="2">Binario (2)</option>
+        <option value="8">Octal (8)</option>
+        <option value="16">Hexadecimal (16)</option>
+      </select>
+    </label>
+  </div>
+  <div class="conv-res">
+    <div><span>Decimal</span><code id="r10"></code></div>
+    <div><span>Binario</span><code id="r2"></code></div>
+    <div><span>Octal</span><code id="r8"></code></div>
+    <div><span>Hexadecimal</span><code id="r16"></code></div>
+  </div>
+  <p class="conv-msg" id="conv-msg"></p>
+</div>
+
+<h3>Cómo convertir a mano</h3>
+<div class="grid grid-2">
+  <div class="card blue">
+    <h4>Binario → decimal</h4>
+    <p>Se suman las potencias de 2 de las posiciones con un 1.</p>
+    <pre class="pre-flat"><code>101111₂ = 32+8+4+2+1 = 47₁₀</code></pre>
+  </div>
+  <div class="card orange">
+    <h4>Decimal → binario</h4>
+    <p>Divisiones sucesivas entre 2; se leen los restos de abajo arriba.</p>
+    <pre class="pre-flat"><code>107 → 53 r1 → 26 r1 → 13 r0
+    → 6 r1 → 3 r0 → 1 r1 → 1
+107₁₀ = 1101011₂</code></pre>
+  </div>
+  <div class="card purple">
+    <h4>Binario ↔ octal / hexadecimal</h4>
+    <p>Se agrupan los bits de 3 en 3 (octal) o de 4 en 4 (hexadecimal) desde la coma.</p>
+    <pre class="pre-flat"><code>1011111,110001₂ = 5F,C4₁₆
+55,35₈ = 101 101, 011 101₂</code></pre>
+  </div>
+  <div class="card green">
+    <h4>Decimal → octal / hexadecimal</h4>
+    <p>Divisiones sucesivas entre 8 o entre 16.</p>
+    <pre class="pre-flat"><code>345₁₀ = 531₈
+1234₁₀ = 4D2₁₆</code></pre>
+  </div>
+</div>
+<p class="nota-pie">Entre octal y hexadecimal se usa el binario como puente: <code>57₈ → 101111₂ → 2F₁₆</code>. Para la parte fraccionaria decimal → binario se multiplica por 2 y se toma la parte entera de cada resultado.</p>
+
+<h2>Codificación alfanumérica</h2>
+<p>Cada símbolo se representa con una combinación de bits (por ejemplo, la <code>A</code> es el 65 en ASCII).</p>
+<table>
+  <tr><th>Código</th><th>Bits</th><th>Descripción</th></tr>
+  <tr><td><strong>ASCII</strong></td><td>7 (en 1 byte)</td><td>128 caracteres (0–127). Los ficheros ASCII son ficheros de texto.</td></tr>
+  <tr><td><strong>ASCII extendido</strong></td><td>8</td><td>Hasta 256 caracteres.</td></tr>
+  <tr><td><strong>EBCDIC</strong></td><td>8</td><td>Dos bloques de 4 bits; formato extendido del BCD.</td></tr>
+  <tr><td><strong>Fieldata</strong></td><td>6</td><td>Poco extendido; para equipos que procesan en bloques de 36 bits.</td></tr>
+  <tr><td><strong>Unicode</strong></td><td>16</td><td>Un número único para cada carácter, sin importar plataforma, programa o idioma. Requisito de XML y Java.</td></tr>
+</table>
+
+<h2>Aritmética binaria y lógica booleana</h2>
+<div class="grid grid-2">
+  <div>
+    <pre><code>Suma:      Resta:     Producto:
+0+0=0      0-0=0      0x0=0
+0+1=1      1-0=1      0x1=0
+1+0=1      1-1=0      1x0=0
+1+1=0 (llevo 1)       1x1=1
+           0-1=1 (pido 1)</code></pre>
+  </div>
+  <div>
+    <pre><code>  10101101
++ 11001001
+----------
+ 101110110</code></pre>
+    <p class="nota-pie">Hay <strong>desbordamiento</strong> cuando el resultado sale del rango representable: al sumar cantidades del mismo signo, restar de distinto signo o multiplicar.</p>
+  </div>
+</div>
+<div class="verdad">
+  <div class="op"><b>OR (suma lógica)</b><p>Basta un 1 para que el resultado sea 1.<br>(0,0→0 · 0,1→1 · 1,0→1 · 1,1→1)</p></div>
+  <div class="op"><b>AND (producto lógico)</b><p>Todos deben ser 1 para que el resultado sea 1.<br>(0,0→0 · 0,1→0 · 1,0→0 · 1,1→1)</p></div>
+  <div class="op"><b>NOT (complemento)</b><p>Invierte el valor.<br>(0→1 · 1→0)</p></div>
+</div>
+<p class="nota-pie">También son frecuentes las combinadas <strong>NAND</strong> (AND + NOT) y <strong>NOR</strong> (OR + NOT).</p>
+
+<h2>Medidas de la información</h2>
+<table>
+  <tr><th>Unidad</th><th>Equivalencia</th></tr>
+  <tr><td>Bit</td><td>Un 0 o un 1</td></tr>
+  <tr><td>Nibble (cuarteto)</td><td>4 bits</td></tr>
+  <tr><td>Byte (octeto)</td><td>8 bits = 2⁸ = 256 valores. Ej: <code>01101011</code> = 107</td></tr>
+  <tr><td>Palabra (word)</td><td>2 bytes = 2¹⁶ = 65.536 valores</td></tr>
+  <tr><td>Palabra larga</td><td>4 bytes = 2³² = 4.294.967.296 valores</td></tr>
+</table>
+<table>
+  <tr><th>Prefijo decimal (SI)</th><th>Prefijo binario (IEC)</th><th>Ejemplo</th></tr>
+  <tr><td>KB = 10³ = 1000 bytes</td><td>KiB = 2¹⁰ = 1024 bytes</td><td>Una página a máquina ≈ 4 KB</td></tr>
+  <tr><td>MB = 10⁶ bytes</td><td>MiB = 2²⁰ = 1.048.576 bytes</td><td>Obras de Shakespeare ≈ 5 MB</td></tr>
+  <tr><td>GB = 10⁹ bytes</td><td>GiB = 2³⁰ bytes</td><td>Obras de Beethoven ≈ 20 GB</td></tr>
+  <tr><td>TB = 10¹² bytes</td><td>TiB = 2⁴⁰ bytes</td><td>Colecciones masivas</td></tr>
+</table>
+<p class="nota-pie">Tradicionalmente en informática <em>kilo</em> = 1024. Los múltiplos del bit (Kb, Mb) miden la velocidad de transmisión: no confundas <strong>b</strong> (bit) con <strong>B</strong> (byte).</p>
+<div class="caja">
+  <p><strong>Velocidad:</strong> el reloj sincroniza todas las operaciones. El tiempo de un pulso es el <em>tiempo de ciclo</em>; se mide en hercios (1 Hz = 1 ciclo/segundo), habitualmente en MHz (millón de ciclos) y GHz (mil millones).</p>
+</div>
+
+<h2>Software y lenguajes de programación</h2>
+<div class="pila">
+  <div class="capa"><b>Capa 4 · Software de aplicación</b><span>Estándar (del mercado: textos, bases de datos, hojas de cálculo) o a medida (diseñado para un usuario concreto).</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>Capa 3 · Lenguajes de programación</b><span>Máquina (0s y 1s) · Ensamblador · Alto nivel (imperativos y orientados a objetos: C++, Visual Basic).</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>Capa 2 · Software de sistema</b><span>Indispensable para que la máquina funcione: sistemas operativos, drivers.</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>Capa 1 · Hardware</b><span>La máquina física.</span></div>
+</div>
+
+<h3>Intérpretes vs. compiladores</h3>
+<div class="grid grid-2">
+  <div class="card orange">
+    <h4>Intérpretes (ej: Visual Basic)</h4>
+    <p>Analizan y ejecutan línea por línea; si hay un error, se detiene y permite corregirlo. Errores fáciles de localizar, pero ejecución más lenta.</p>
+  </div>
+  <div class="card green">
+    <h4>Compiladores (ej: C, C++, Pascal, Delphi)</h4>
+    <p>Código fuente → depuración sintáctica → código objeto → ejecutable. Una vez compilado es mucho más rápido; los errores lógicos solo aparecen al ejecutar.</p>
+  </div>
+</div>
+
+<blockquote>Del ábaco al microprocesador, toda la informática se apoya en una idea: reducir la información a ceros y unos y tratarla con reglas lógicas precisas.</blockquote>
+
+<script src="/DAM/js/unidad1.js"></script>
+</body>
+</html>
