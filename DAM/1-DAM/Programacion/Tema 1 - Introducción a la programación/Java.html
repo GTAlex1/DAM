@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es" class="note-page page-introduccion page-java">
+<head>
+<meta charset="UTF-8">
+<title>Java: de C++ a la Programación Orientada a Objetos</title>
+<link rel="stylesheet" href="/DAM/css/styles.css">
+</head>
+<body>
+
+<h1>Java: de C++ a la Programación Orientada a Objetos</h1>
+<p class="subtitulo">Sintaxis, clases, herencia y errores típicos</p>
+<p class="modulo">Programación · DAM 1º · Java</p>
+
+<h2>Cómo funciona Java por dentro</h2>
+<p>Java no compila directamente a código máquina: compila a un formato intermedio (<strong>bytecode</strong>) que ejecuta la <strong>JVM</strong>. Por eso el mismo programa corre en cualquier sistema.</p>
+<div class="ciclo">
+  <div class="paso"><div class="num">1</div><div class="tit">Escribir</div><div class="desc">Archivo <code>.java</code> con tu código fuente.</div></div>
+  <div class="paso"><div class="num">2</div><div class="tit">Compilar</div><div class="desc"><code>javac</code> revisa toda la sintaxis y los tipos.</div></div>
+  <div class="paso"><div class="num">3</div><div class="tit">Bytecode</div><div class="desc">Se genera un <code>.class</code>, no específico de tu PC.</div></div>
+  <div class="paso"><div class="num">4</div><div class="tit">JVM</div><div class="desc">La máquina virtual interpreta el bytecode.</div></div>
+  <div class="paso"><div class="num">5</div><div class="tit">Resultado</div><div class="desc">Salida por consola.</div></div>
+</div>
+<p class="ciclo-nota">Java compila el proyecto entero de una vez: por eso no existe un "link" entre tus archivos.</p>
+
+<h2>Anatomía de un programa</h2>
+<pre><code>public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hola mundo");   <span class="txt-verde">// equivale al cout de C++</span>
+    }
+}</code></pre>
+<div class="grid grid-2">
+  <div class="card blue"><h4>Todo vive en una clase</h4><p>No hay código suelto como en Python o JS. La ejecución arranca en <code>main</code>.</p></div>
+  <div class="card orange"><h4>Nombre de archivo</h4><p>La clase pública <code>Main</code> va en <code>Main.java</code>. Deben coincidir exactamente.</p></div>
+  <div class="card green"><h4>Punto y coma</h4><p>Obligatorio al final de cada instrucción, sin excepción.</p></div>
+  <div class="card purple"><h4>Llaves {}</h4><p>Delimitan los bloques; la indentación es solo por legibilidad.</p></div>
+</div>
+
+<h2>Tipos de datos y variables</h2>
+<p>Java es de <strong>tipado estático y fuerte</strong>: declaras el tipo y no puede cambiar. Meter un texto en un <code>int</code> ni compila.</p>
+<table>
+  <tr><th>Tipo</th><th>Guarda</th><th>Ejemplo</th></tr>
+  <tr><td><code>int</code></td><td>Entero</td><td><code>int edad = 18;</code></td></tr>
+  <tr><td><code>double</code></td><td>Decimal</td><td><code>double precio = 19.99;</code></td></tr>
+  <tr><td><code>boolean</code></td><td>true / false</td><td><code>boolean activo = true;</code></td></tr>
+  <tr><td><code>char</code></td><td>Un carácter (comillas simples)</td><td><code>char inicial = 'A';</code></td></tr>
+  <tr><td><code>String</code></td><td>Texto (comillas dobles). Es un objeto, no un primitivo</td><td><code>String nombre = "Ana";</code></td></tr>
+</table>
+<p>El operador <code>+</code> concatena un <code>String</code> con cualquier otro tipo: <code>"Tienes " + edad + " años"</code>.</p>
+
+<h2>Entrada de datos: Scanner</h2>
+<pre><code>import java.util.Scanner;
+
+Scanner sc = new Scanner(System.in);
+String nombre = sc.nextLine();   <span class="txt-verde">// línea completa</span>
+int edad = sc.nextInt();         <span class="txt-verde">// entero</span>
+double n = sc.nextDouble();      <span class="txt-verde">// decimal</span></code></pre>
+<p class="nota-pie"><code>import</code> solo hace falta para clases que NO son tuyas (librería estándar). Tus propias clases del mismo proyecto se ven entre sí sin importar nada.</p>
+<div class="aviso">
+  <h4>Trampa: nextInt() + nextLine()</h4>
+  <p><code>nextInt()</code> no consume el salto de línea del Enter. Si después llamas a <code>nextLine()</code>, devuelve una cadena vacía. Solución: añadir un <code>sc.nextLine();</code> extra para limpiarlo (igual que mezclar <code>cin &gt;&gt;</code> con <code>getline</code> en C++).</p>
+</div>
+
+<h2>Control de flujo</h2>
+<div class="grid grid-2">
+  <div class="card blue">
+    <h4>if / else</h4>
+    <pre class="pre-flat"><code>if (n % 2 == 0) {
+    System.out.println("par");
+} else {
+    System.out.println("impar");
+}</code></pre>
+  </div>
+  <div class="card orange">
+    <h4>switch</h4>
+    <pre class="pre-flat"><code>switch (dia) {
+    case 1:
+        System.out.println("Lunes");
+        break;
+    default:
+        System.out.println("Otro");
+}</code></pre>
+  </div>
+  <div class="card green">
+    <h4>for / while</h4>
+    <pre class="pre-flat"><code>for (int i = 0; i &lt; 5; i++) {
+    System.out.println(i);
+}
+while (i &lt; 5) { i++; }</code></pre>
+  </div>
+  <div class="card purple">
+    <h4>for-each</h4>
+    <pre class="pre-flat"><code>for (int n : numeros) {
+    System.out.println(n);
+}</code></pre>
+  </div>
+</div>
+<p class="nota-pie">El <code>break</code> del switch es obligatorio, igual que en C++, para no caer al siguiente caso.</p>
+
+<h2>Arrays</h2>
+<pre><code>int[] numeros = {10, 20, 30, 40};
+System.out.println(numeros[0]);        <span class="txt-verde">// 10</span>
+System.out.println(numeros.length);    <span class="txt-verde">// 4 → atributo, SIN paréntesis</span></code></pre>
+<p>Tamaño fijo desde que se crea, sin punteros ni gestión manual de memoria. Ojo: en un array es <code>.length</code>, en un <code>String</code> es <code>.length()</code>.</p>
+
+<h2>Clases y objetos</h2>
+<p>Una <strong>clase</strong> es el plano de una casa; un <strong>objeto</strong> es una casa real construida con ese plano. Con un solo plano puedes construir muchas casas, cada una con sus propios valores.</p>
+
+<pre><code>public class Coche {
+    private String marca;               <span class="txt-verde">// atributos: lo que el coche TIENE</span>
+    private String modelo;
+    private int velocidad;
+
+    public Coche(String marca, String modelo) {   <span class="txt-verde">// constructor</span>
+        this.marca = marca;
+        this.modelo = modelo;
+        this.velocidad = 0;
+    }
+
+    public void acelerar(int cantidad) {          <span class="txt-verde">// método: lo que el coche HACE</span>
+        this.velocidad += cantidad;
+    }
+
+    public void frenar(int cantidad) {
+        if (cantidad &gt; this.velocidad) {
+            this.velocidad = 0;
+        } else {
+            this.velocidad -= cantidad;
+        }
+    }
+}</code></pre>
+
+<div class="grid grid-2">
+  <div class="card blue"><h4>Atributos</h4><p>Variables que guardan el estado de cada objeto. Cada objeto tiene su propia copia.</p></div>
+  <div class="card orange"><h4>Constructor</h4><p>Se llama igual que la clase y NO lleva tipo de retorno (ni <code>void</code>). Se ejecuta con <code>new</code>.</p></div>
+  <div class="card green"><h4>Métodos</h4><p><code>void</code> si solo hacen algo; si devuelven un valor, el tipo debe coincidir con el <code>return</code>.</p></div>
+  <div class="card purple"><h4>this</h4><p>"El objeto actual". Obligatorio solo cuando un parámetro tiene el mismo nombre que el atributo.</p></div>
+</div>
+
+<h3>Usar la clase desde otra</h3>
+<pre><code>public class Ejercicio6 {
+    public static void main(String[] args) {
+        Coche c1 = new Coche("Skoda", "Karoq");
+        c1.acelerar(8);
+        c1.frenar(6);
+    }
+}</code></pre>
+<div class="caja">
+  <p><strong>¿Dónde va el main?</strong> Solo en la clase que quieres ejecutar (punto de entrada). Las clases "modelo" (<code>Coche</code>, <code>Persona</code>...) no llevan <code>main</code>: se usan desde otra. El nombre <code>Main</code> no es especial; Java busca cualquier clase con método <code>main</code>.</p>
+</div>
+
+<h2>Encapsulamiento y visibilidad</h2>
+<table>
+  <tr><th>Modificador</th><th>Quién lo ve</th><th>Uso típico</th></tr>
+  <tr><td><code>private</code></td><td>Solo la propia clase</td><td>Atributos</td></tr>
+  <tr><td><code>protected</code></td><td>La clase y sus hijas (herencia)</td><td>Atributos que heredarán las subclases</td></tr>
+  <tr><td><code>public</code></td><td>Todo el mundo</td><td>Constructores y métodos</td></tr>
+</table>
+<pre><code>public double getSaldo() {              <span class="txt-verde">// getter: devuelve, así que NO es void</span>
+    return this.saldo;
+}
+public void setEdad(int edad) {         <span class="txt-verde">// setter: puede validar antes de asignar</span>
+    if (edad &gt; 0) { this.edad = edad; }
+}</code></pre>
+<p class="nota-pie">Atajo de IntelliJ: <code>Alt+Insert</code> genera constructor, getters y setters automáticamente.</p>
+
+<h2>Herencia</h2>
+<p>Lo común se escribe una vez en la clase padre; las hijas lo heredan con <code>extends</code> y añaden lo propio.</p>
+<pre><code>public class Animal {
+    protected String nombre;
+    public Animal(String nombre) { this.nombre = nombre; }
+    public void comer() { System.out.println(nombre + " está comiendo."); }
+}
+
+public class Perro extends Animal {
+    public Perro(String nombre) {
+        super(nombre);                  <span class="txt-verde">// primera línea obligatoria</span>
+    }
+    public void ladrar() { System.out.println(nombre + " dice: ¡Guau!"); }
+}</code></pre>
+
+<h3>Qué pasa con <code>new Perro("Rex")</code></h3>
+<div class="pila">
+  <div class="capa"><b>1. Constructor de Perro</b><span>Recibe "Rex" en su parámetro.</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>2. super(nombre)</b><span>Reenvía ese valor al constructor de la clase padre.</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>3. Constructor de Animal</b><span>Ejecuta <code>this.nombre = nombre</code>: aquí se guarda realmente el dato.</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>4. Vuelve a Perro</b><span>Termina el resto de su constructor. El objeto ya puede usar <code>comer()</code> y <code>ladrar()</code>.</span></div>
+</div>
+
+<h2>Polimorfismo</h2>
+<p>Una clase hija puede redefinir un método heredado con <code>@Override</code>. Si no lo redefine, conserva el del padre.</p>
+<pre><code>public class Moto extends Vehiculo {
+    @Override
+    public void arrancar() {
+        System.out.println(marca + " arranca con un rugido.");
+    }
+}
+
+Vehiculo v = new Moto("Kawasaki");
+v.arrancar();     <span class="txt-verde">// versión de Moto: manda el objeto real, no el tipo de la variable</span></code></pre>
+<div class="caja">
+  <p><strong>Regla clave:</strong> Java ejecuta el método según el tipo real del objeto (lo de la derecha de <code>new</code>), no según el tipo con el que se declaró la variable. Por eso un mismo bucle puede tratar objetos distintos de forma uniforme.</p>
+</div>
+
+<h2>ArrayList</h2>
+<pre><code>import java.util.ArrayList;
+
+ArrayList&lt;String&gt; nombres = new ArrayList&lt;&gt;();
+nombres.add("Ana");
+nombres.add("Luis");
+nombres.get(0);            <span class="txt-verde">// "Ana"</span>
+nombres.remove("Luis");
+nombres.size();            <span class="txt-verde">// 1</span>
+
+ArrayList&lt;Figura&gt; figuras = new ArrayList&lt;&gt;();    <span class="txt-verde">// con polimorfismo:</span>
+figuras.add(new Circulo("c1"));                     <span class="txt-verde">// hijas distintas en</span>
+figuras.add(new Rectangulo("r1"));                  <span class="txt-verde">// la misma lista</span>
+for (Figura f : figuras) { f.calcularArea(); }</code></pre>
+<table>
+  <tr><th></th><th>Array</th><th>ArrayList</th></tr>
+  <tr><td><strong>Tamaño</strong></td><td>Fijo</td><td>Crece y encoge</td></tr>
+  <tr><td><strong>Acceso</strong></td><td><code>a[0]</code></td><td><code>lista.get(0)</code></td></tr>
+  <tr><td><strong>Longitud</strong></td><td><code>a.length</code></td><td><code>lista.size()</code></td></tr>
+  <tr><td><strong>Naturaleza</strong></td><td>Estructura primitiva</td><td>Objeto (por eso usa métodos)</td></tr>
+</table>
+
+<h2>Excepciones: try / catch</h2>
+<pre><code>try {
+    int r = 10 / n;                              <span class="txt-verde">// puede fallar al ejecutar</span>
+    System.out.println(r);
+} catch (ArithmeticException e) {
+    System.out.println("No se puede dividir por cero.");
+}
+<span class="txt-verde">// el programa continúa aquí en vez de crashear</span></code></pre>
+<div class="grid grid-2">
+  <div class="card blue"><h4>Usa if / else cuando...</h4><p>Tú controlas la condición y la conoces de antemano (ej: saldo insuficiente).</p></div>
+  <div class="card orange"><h4>Usa try / catch cuando...</h4><p>El fallo viene de algo externo o impredecible (input del usuario, conversiones de texto).</p></div>
+</div>
+<p class="nota-pie">Excepciones habituales: <code>ArithmeticException</code> (dividir por 0), <code>InputMismatchException</code> (texto en <code>nextInt()</code>, de <code>java.util</code>), <code>NumberFormatException</code> (<code>Integer.parseInt("abc")</code>).</p>
+
+<h2>Errores típicos (y cómo leerlos)</h2>
+<div class="aviso">
+  <h4>Falta el punto y coma</h4>
+  <p>Mensaje: <code>';' expected</code>. IntelliJ subraya la línea en rojo.</p>
+</div>
+<div class="aviso">
+  <h4>Getter con void</h4>
+  <p>Un método que hace <code>return</code> no puede ser <code>void</code>: <code>public double getSaldo()</code>. El tipo antes del nombre debe coincidir con lo que devuelve.</p>
+</div>
+<div class="aviso">
+  <h4>Variable "sombra": compila pero da 0</h4>
+  <p>Escribir <code>double base = sc.nextDouble();</code> crea una variable local nueva que tapa al atributo. Para asignar al atributo, sin tipo delante: <code>base = sc.nextDouble();</code>.</p>
+</div>
+<div class="aviso">
+  <h4>possible lossy conversion from double to int</h4>
+  <p>Intentas guardar un <code>double</code> en un <code>int</code> y perderías decimales. Cambia el tipo de la variable a <code>double</code>, o fuerza con casting <code>(int) 5.7</code> solo si de verdad quieres truncar.</p>
+</div>
+<div class="aviso">
+  <h4>Tipo equivocado en el ArrayList</h4>
+  <p><code>ArrayList&lt;Circulo&gt;</code> solo acepta objetos <code>Circulo</code>: <code>add("c1")</code> no compila, hace falta <code>add(new Circulo("c1"))</code>. Para mezclar hijas, declara la lista con el tipo padre.</p>
+</div>
+<div class="aviso">
+  <h4>Confundir constructor y método</h4>
+  <p>Solo es constructor lo que se llama igual que la clase y se invoca con <code>new</code>. <code>acelerar()</code> o <code>frenar()</code> son métodos.</p>
+</div>
+
+<h2>Práctica con solución</h2>
+<p>Intenta cada ejercicio por tu cuenta antes de abrir la solución.</p>
+
+<h3>Ejercicio: CuentaBancaria</h3>
+<p>Clase con <code>saldo</code> privado, constructor con saldo inicial, <code>depositar</code>, <code>retirar</code> (rechaza si no hay saldo) y getter.</p>
+<details class="solucion">
+  <summary>Mostrar solución</summary>
+<pre><code>public class CuentaBancaria {
+    private double saldo;
+
+    public CuentaBancaria(double saldoInicial) {
+        this.saldo = saldoInicial;
+    }
+
+    public void depositar(double cantidad) {
+        this.saldo += cantidad;
+    }
+
+    public void retirar(double cantidad) {
+        if (cantidad &gt; this.saldo) {
+            System.out.println("Saldo insuficiente.");
+        } else {
+            this.saldo -= cantidad;
+        }
+    }
+
+    public double getSaldo() {
+        return this.saldo;
+    }
+}</code></pre>
+</details>
+
+<h3>Ejercicio: Figuras con polimorfismo</h3>
+<p><code>Figura</code> con <code>calcularArea()</code> genérico; <code>Circulo</code> y <code>Rectangulo</code> lo sobreescriben. Recórrelos desde una única <code>ArrayList&lt;Figura&gt;</code>.</p>
+<details class="solucion">
+  <summary>Mostrar solución</summary>
+<pre><code>public class Figura {
+    protected String nombre;
+    public Figura(String nombre) { this.nombre = nombre; }
+    public void calcularArea() { System.out.println("Área no definida"); }
+}
+
+public class Circulo extends Figura {
+    private double radio;
+    public Circulo(String nombre, double radio) {
+        super(nombre);
+        this.radio = radio;
+    }
+    @Override
+    public void calcularArea() {
+        System.out.println(Math.PI * radio * radio);
+    }
+}
+
+public class Rectangulo extends Figura {
+    private double base, altura;
+    public Rectangulo(String nombre, double base, double altura) {
+        super(nombre);
+        this.base = base;
+        this.altura = altura;
+    }
+    @Override
+    public void calcularArea() {
+        System.out.println(base * altura);
+    }
+}
+
+<span class="txt-verde">// En el main:</span>
+ArrayList&lt;Figura&gt; figuras = new ArrayList&lt;&gt;();
+figuras.add(new Circulo("c1", 2));
+figuras.add(new Rectangulo("r1", 3, 4));
+for (Figura f : figuras) { f.calcularArea(); }</code></pre>
+</details>
+
+<h2>Cómo demostrar nivel en el examen</h2>
+<p>Si piden "lo más complejo que sepas", no listes datos sueltos: los conceptos se construyen unos sobre otros. Este es tu mapa de menor a mayor complejidad:</p>
+<ol>
+  <li>Variables y tipos</li>
+  <li>Condicionales y bucles</li>
+  <li>Arrays</li>
+  <li>Clases con encapsulamiento (atributos privados, constructor, getters)</li>
+  <li>Herencia (<code>extends</code>, <code>super</code>)</li>
+  <li>Polimorfismo (<code>@Override</code>, lista de tipo padre)</li>
+  <li>Colecciones (<code>ArrayList</code>)</li>
+  <li>Excepciones (<code>try/catch</code>)</li>
+</ol>
+<p>Un único programa que combine varios escalones y del que sepas explicar cada decisión vale más que muchos programas sueltos.</p>
+
+<blockquote>Compilar sin errores no significa que esté bien: revisa siempre que el resultado tenga sentido.</blockquote>
+
+</body>
+</html>
