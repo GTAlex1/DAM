@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es" class="note-page page-introduccion page-unidad1 page-unidades-medida">
+<head>
+<meta charset="UTF-8">
+<title>Unidades de medida en informática</title>
+<link rel="stylesheet" href="/DAM/css/styles.css">
+</head>
+<body>
+
+<h1>Unidades de medida en informática</h1>
+<p class="subtitulo">Prefijos binarios (CEI) frente a prefijos decimales (SI)</p>
+<p class="modulo">Sistemas Informáticos · DAM 1º · Unidad 1 · Complemento</p>
+
+<h2>Dos normas, dos bases</h2>
+<p>Los prefijos se usan para expresar grandes cantidades de bits y de bytes (octetos de 8 bits). Pueden basarse en dos normalizaciones:</p>
+<div class="grid grid-2">
+  <div class="card blue"><h4>SI · Sistema Internacional</h4><p>El sistema de unidades más extendido (sistema métrico). Sus prefijos son potencias de <strong>10</strong>: kilo = 10³ = 1000.</p></div>
+  <div class="card orange"><h4>CEI / IEC · Comisión Electrotécnica Internacional</h4><p>Organización de normalización en electricidad y electrónica. Define prefijos para potencias de <strong>2</strong>: kibi = 2¹⁰ = 1024.</p></div>
+</div>
+<div class="caja"><p>El problema: usar los prefijos del SI (base 10) como si fueran binarios (base 2). <strong>1024 no es 1000</strong>, y la diferencia crece con cada potencia.</p></div>
+
+<h2>Uso convencional: 1024 frente a 1000</h2>
+<table>
+  <tr><th>Prefijo</th><th class="centro">Símbolo</th><th>Potencia binaria</th><th>Valor SI (base 10)</th><th class="centro">Diferencia</th></tr>
+  <tr><td>kilo</td><td class="centro">K</td><td>2¹⁰ = 1.024</td><td>10³ = 1.000</td><td class="centro">2 %</td></tr>
+  <tr><td>mega</td><td class="centro">M</td><td>2²⁰ = 1.048.576</td><td>10⁶ = 1.000.000</td><td class="centro">5 %</td></tr>
+  <tr><td>giga</td><td class="centro">G</td><td>2³⁰ = 1.073.741.824</td><td>10⁹</td><td class="centro">7 %</td></tr>
+  <tr><td>tera</td><td class="centro">T</td><td>2⁴⁰ = 1.099.511.627.776</td><td>10¹²</td><td class="centro">10 %</td></tr>
+  <tr><td>peta</td><td class="centro">P</td><td>2⁵⁰ ≈ 1,126 · 10¹⁵</td><td>10¹⁵</td><td class="centro">13 %</td></tr>
+  <tr><td>exa</td><td class="centro">E</td><td>2⁶⁰ ≈ 1,153 · 10¹⁸</td><td>10¹⁸</td><td class="centro">15 %</td></tr>
+  <tr><td>zetta</td><td class="centro">Z</td><td>2⁷⁰ ≈ 1,181 · 10²¹</td><td>10²¹</td><td class="centro">18 %</td></tr>
+  <tr><td>yotta</td><td class="centro">Y</td><td>2⁸⁰ ≈ 1,209 · 10²⁴</td><td>10²⁴</td><td class="centro">21 %</td></tr>
+</table>
+<p class="nota-pie">El PDF también menciona «bronto» (2⁹⁰, 24 %) y «geop» (2¹⁰⁰, 27 %); no son prefijos oficiales del SI ni de la CEI.</p>
+
+<h2>¿Por qué «desaparece» espacio en el disco?</h2>
+<div class="grid grid-2">
+  <div class="card orange"><h4>Fabricantes</h4><p>Anuncian la capacidad con los factores del SI (potencias de 10).</p></div>
+  <div class="card blue"><h4>Sistemas operativos</h4><p>Miden la capacidad en potencias binarias (de 2), aunque muestren «GB» en lugar de «GiB».</p></div>
+</div>
+<pre><code>Disco de 60 GB (fabricante, SI):
+60 · 1000 · 1000 · 1000 = 60.000.000.000 bytes
+60.000.000.000 / 1024 / 1024 / 1024 = 55,879 GiB
+
+Disco de 320 GB:
+320 · (1.000.000.000 / 1.073.741.824) = 298 GiB</code></pre>
+<p>Los discos no son más pequeños de lo anunciado: el fallo está en que el sistema operativo escribe «GB» donde debería escribir «GiB».</p>
+
+<h3>Calculadora</h3>
+<div class="conv">
+  <div class="conv-campos">
+    <label>Capacidad anunciada (SI)<input id="um-num" type="text" value="320" inputmode="decimal" autocomplete="off" spellcheck="false"></label>
+    <label>Unidad
+      <select id="um-uni">
+        <option value="MB">MB</option>
+        <option value="GB" selected>GB</option>
+        <option value="TB">TB</option>
+      </select>
+    </label>
+  </div>
+  <div class="conv-res">
+    <div><span>Bytes reales</span><code id="um-bytes"></code></div>
+    <div><span>Lo que muestra el sistema</span><code id="um-bin"></code></div>
+    <div><span>Diferencia aparente</span><code id="um-dif"></code></div>
+  </div>
+  <p class="conv-msg" id="um-msg"></p>
+</div>
+
+<h2>La norma CEI: prefijos binarios</h2>
+<p>Para acabar con la confusión, la CEI creó los prefijos <strong>kibi, mebi, gibi, tebi, pebi y exbi</strong>: la primera sílaba del prefijo SI más «bi» de <em>binario</em>. Además, estipula que los prefijos SI valen siempre potencias de 10 y nunca deben usarse como potencias de 2.</p>
+<table>
+  <tr><th>Nombre</th><th class="centro">Símbolo</th><th>Factor</th><th>Derivación SI</th></tr>
+  <tr><td>kibi</td><td class="centro">Ki</td><td>2¹⁰ = 1.024</td><td>kilo (10³)</td></tr>
+  <tr><td>mebi</td><td class="centro">Mi</td><td>2²⁰ = 1.048.576</td><td>mega (10⁶)</td></tr>
+  <tr><td>gibi</td><td class="centro">Gi</td><td>2³⁰ = 1.073.741.824</td><td>giga (10⁹)</td></tr>
+  <tr><td>tebi</td><td class="centro">Ti</td><td>2⁴⁰ = 1.099.511.627.776</td><td>tera (10¹²)</td></tr>
+  <tr><td>pebi</td><td class="centro">Pi</td><td>2⁵⁰ = 1.125.899.906.842.624</td><td>peta (10¹⁵)</td></tr>
+  <tr><td>exbi</td><td class="centro">Ei</td><td>2⁶⁰ = 1.152.921.504.606.846.976</td><td>exa (10¹⁸)</td></tr>
+</table>
+<p class="nota-pie">La norma llega hasta «exbi». Por extensión se sugieren <strong>zebi</strong> (Zi, 2⁷⁰) y <strong>yobi</strong> (Yi, 2⁸⁰). Desde 2006 algunos sistemas, como GNU/Linux (Ubuntu), ya usan estos nombres.</p>
+
+<h2>Símbolos con bit y con byte</h2>
+<table>
+  <tr><th>Nivel</th><th>SI · bit</th><th>SI · byte</th><th>CEI · bit</th><th>CEI · byte</th></tr>
+  <tr><td>kilo / kibi</td><td>kbit (1000 bit)</td><td>kB (1000 B)</td><td>Kibit (1024 bit)</td><td>KiB (1024 B)</td></tr>
+  <tr><td>mega / mebi</td><td>Mbit</td><td>MB</td><td>Mibit</td><td>MiB</td></tr>
+  <tr><td>giga / gibi</td><td>Gbit</td><td>GB</td><td>Gibit</td><td>GiB</td></tr>
+  <tr><td>tera / tebi</td><td>Tbit</td><td>TB</td><td>Tibit</td><td>TiB</td></tr>
+  <tr><td>peta / pebi</td><td>Pbit</td><td>PB</td><td>Pibit</td><td>PiB</td></tr>
+  <tr><td>exa / exbi</td><td>Ebit</td><td>EB</td><td>Eibit</td><td>EiB</td></tr>
+</table>
+<p class="nota-pie">Cada unidad SI vale 1000 veces la anterior; cada unidad CEI, 1024. Un byte (B) son 8 bits.</p>
+
+<h2>Otras consideraciones</h2>
+<div class="grid grid-2">
+  <div class="card blue">
+    <h4>Cuidado con las mayúsculas</h4>
+    <p><code>B</code> mayúscula = bytes; <code>b</code> minúscula = bits. No es lo mismo <code>GB</code> que <code>Gb</code>, ni <code>GiB</code> que <code>Gib</code>.</p>
+  </div>
+  <div class="card orange">
+    <h4>Velocidad: siempre múltiplos de 1000</h4>
+    <p>Las velocidades de transmisión se miden en bits y con factores del SI, no de 1024.</p>
+  </div>
+</div>
+<pre><code>Conexión de 4 Mb (megabits por segundo):
+4 · 1.000.000 = 4.000.000 bits/s
+4.000.000 / 8 = 500.000 bytes/s = 500 kB/s</code></pre>
+
+<blockquote>Regla práctica: si el prefijo lleva «bi» (Ki, Mi, Gi...), multiplica por 1024; si no, por 1000. Y siempre comprueba si la letra es <code>b</code> o <code>B</code>.</blockquote>
+
+<script src="/DAM/js/unidadesMedida.js"></script>
+</body>
+</html>
