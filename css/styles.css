@@ -1756,3 +1756,66 @@ html.page-introduccion{
 
 /* Listas ordenadas dentro de la página: números en el color de acento */
 .page-java ol li::marker{ color:var(--h); font-family:"Cascadia Code",Consolas,monospace; }
+
+
+/* ==========================================================================
+   9. Temporización.html  (.page-temporizacion)
+   Esta página también lleva la clase .page-introduccion en el <html>, así que
+   hereda su tipografía, h1/h2/h3, .grid, .card, tablas, blockquote y .nota-pie.
+   Aquí solo se añade lo nuevo: el código "RA" de las tarjetas, la columna de
+   sesiones con su barra de proporción y las tarjetas de total por trimestre.
+   No usa JS.
+   ========================================================================== */
+
+/* Código del resultado de aprendizaje (RA1, RA2...) dentro de la tarjeta */
+.page-temporizacion .card .ra{
+  display:inline-block; margin-bottom:6px; padding:1px 8px;
+  font-family:"Cascadia Code",Consolas,monospace; font-size:11px;
+  color:var(--h); border:1px solid currentColor; border-radius:3px;
+}
+.page-temporizacion .card.blue .ra{ color:var(--blue); }
+.page-temporizacion .card.orange .ra{ color:var(--orange); }
+.page-temporizacion .card.purple .ra{ color:var(--purple); }
+.page-temporizacion .card.green .ra{ color:var(--green); }
+.page-temporizacion .card.yellow .ra{ color:var(--yellow); }
+
+/* Tabla de unidades */
+.page-temporizacion table.tabla-uni td.num-uni,
+.page-temporizacion table.tabla-uni td.ses{
+  font-family:"Cascadia Code",Consolas,monospace; text-align:center; white-space:nowrap;
+}
+.page-temporizacion table.tabla-uni th.ses,
+.page-temporizacion table.tabla-uni th.num-uni{ text-align:center; }
+.page-temporizacion table.tabla-uni td.ses{ color:#fff; font-weight:600; }
+.page-temporizacion table.tabla-uni td.td-barra{ width:34%; vertical-align:middle; }
+.page-temporizacion table.tabla-uni tr.total td{
+  background:var(--panel); font-weight:600; color:#fff; border-top:2px solid var(--border);
+}
+.page-temporizacion table.tabla-uni tr.total td.ses{ color:var(--h); }
+
+/* Barra de proporción de sesiones (escala: 30 sesiones = 100 %) */
+.page-temporizacion .barra{ height:8px; background:#111; border-radius:4px; overflow:hidden; }
+.page-temporizacion .barra span{ display:block; height:100%; border-radius:4px; background:var(--h); }
+.page-temporizacion .barra.t1 span{ background:var(--blue); }
+.page-temporizacion .barra.t2 span{ background:var(--orange); }
+.page-temporizacion .barra.t3 span{ background:var(--green); }
+.page-temporizacion .barra .s5{ width:16.67%; }
+.page-temporizacion .barra .s6{ width:20%; }
+.page-temporizacion .barra .s10{ width:33.33%; }
+.page-temporizacion .barra .s18{ width:60%; }
+.page-temporizacion .barra .s20{ width:66.67%; }
+.page-temporizacion .barra .s25{ width:83.33%; }
+.page-temporizacion .barra .s26{ width:86.67%; }
+.page-temporizacion .barra .s30{ width:100%; }
+
+/* Tarjetas de total por trimestre */
+.page-temporizacion .card .total-num{
+  display:block; margin:2px 0 4px;
+  font-family:"Cascadia Code",Consolas,monospace; font-size:28px; font-weight:600; color:#fff;
+}
+.page-temporizacion .card .total-num small{ font-size:12px; font-weight:400; color:var(--muted); }
+
+@media (max-width:700px){
+  .page-temporizacion table.tabla-uni td.td-barra,
+  .page-temporizacion table.tabla-uni th.th-barra{ display:none; }
+}
