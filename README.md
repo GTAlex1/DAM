@@ -1,36 +1,70 @@
-# Apuntes DAM
+# DAM
 
-Repositorio de apuntes y recursos para el ciclo formativo de Desarrollo de Aplicaciones Multiplataforma (DAM). La página está diseñada como una experiencia tipo editor de código, con un árbol de archivos, búsqueda, favoritos y visualización de contenidos en formato HTML/Markdown.
+Una web pensada para que los alumnos del curso de DAM tengan sus apuntes, horario, calendario, búsquedas y trabajo del día a día en un solo sitio.
 
-## Descripción
+## Cómo usarlo
 
-Este proyecto consiste en una web estática que funciona como un cuaderno de clase digital para consultar apuntes de distintas asignaturas del curso DAM. La interfaz se inspira en un entorno de desarrollo visual, con:
+Abre la página en:
 
-- Explorador de archivos
-- Búsqueda global por contenido
-- Favoritos
-- Vista de documentos desde una estructura de carpetas
-- Soporte para calendario y horario académico
-- Autenticación de usuarios
-- Subida de archivos (integración de almacenamiento en la nube)
+https://gtalex1.github.io/DAM/
 
-## Características principales
+Desde ahí puedes:
 
-- Navegación por carpetas y archivos del curso
-- Búsqueda de apuntes por asignatura y contenido
-- Panel de favoritos para acceso rápido
-- Estilo visual tipo VS Code / editor de código
-- Organización temática de materias como:
-  - Bases de Datos
-  - Digitalización
-  - Entornos de Desarrollo
-  - Lenguajes de Marcas
-  - Programación
-  - Sistemas Informáticos
-- Integración con Firebase para autenticación y gestión de usuarios
-- Integración con almacenamiento Cloudinary para subida de documentos
+- leer los apuntes del curso
+- navegar por asignaturas y temas
+- buscar contenido rápido
+- añadir archivos favoritos
+- usar el horario del curso
+- llevar tu calendario personal con tareas
+- iniciar sesión para guardar cambios y personalizar la página
 
-## Estructura del proyecto
+## Iniciar sesión
+
+Para entrar, pulsa en "Acceder" y usa tu usuario IDEA (el mismo usuario de iPASEN o Moodle).
+
+- Usuario: tu usuario IDEA
+- Contraseña: la que tú elijas
+
+Importante: si olvidas la contraseña, no se puede recuperar la cuenta. Tienes que recordarla bien.
+
+La idea es que cada alumno use su propia cuenta para guardar su trabajo y no mezclarlo con el de otros.
+
+## Qué puedes hacer una vez dentro
+
+Cuando estés logueado podrás:
+
+- subir tus propios archivos
+- modificar o añadir contenido dentro de la web
+- apuntar en el horario las clases o horas que te han convalidado
+- usar el calendario como agenda personal para tareas, exámenes y recordatorios
+- dejar marcados los archivos o temas que más te interesen
+
+## Qué es esta página
+
+Es una especie de cuaderno digital para clase, con una interfaz parecida a un editor de código o a un IDE.
+
+La idea no es solo leer apuntes, sino que también sirva como herramienta de estudio y organización del curso:
+
+- ver apuntes por temas
+- buscar información rápido
+- tener el horario a mano
+- llevar un calendario personal
+- compartir materiales dentro del entorno del curso
+- personalizar la experiencia con tu cuenta
+
+## Para la gente normal: resumen rápido
+
+Es una página para estudiar DAM con menos líos: apuntes, agenda, horario, búsqueda y todo en un sitio.
+
+## Objetivo
+
+Que los alumnos puedan tener una herramienta útil, clara y rápida para estudiar y organizar su curso sin tener que depender de documentos dispersos por internet o por otros sitios.
+
+## Nota importante
+
+Esto está pensado para usarse desde GitHub Pages, así que la web principal es la URL de GitHub Pages indicada arriba. La cuenta del usuario y los cambios personalizados están ligados a la sesión del alumno dentro de la app.
+
+## Estructura básica
 
 ```text
 .
@@ -40,66 +74,23 @@ Este proyecto consiste en una web estática que funciona como un cuaderno de cla
 ├── js/
 │   ├── app.js
 │   ├── calendario.js
-│   ├── calendario.js
-│   ├── ejercicios-pseint.js
-│   ├── firebase-init.js
-│   ├── github-source.js
-│   ├── horario-cuenta.js
 │   ├── horario.js
-│   ├── unidad1.js
-│   └── unidadesMedida.js
+│   ├── firebase-init.js
+│   └── ...
 ├── DAM/
 │   └── 1-DAM/
 │       ├── Bases-de-Datos/
-│       ├── Digitalización/
-│       ├── Entornos-de-Desarrollo/
-│       ├── Lenguajes-de-Marcas/
 │       ├── Programacion/
 │       ├── Sistemas-Informaticos/
-│       ├── calendario.html
-│       └── horario.html
-└── README.md
+│       └── ...
+├── README.md
+└── .github/
 ```
 
-## Tecnologías utilizadas
+## Recomendación de uso
 
-- HTML
-- CSS
-- JavaScript
-- Marked.js para renderizado de Markdown
-- Highlight.js para resaltado de código
-- Firebase para autenticación/usuarios
-- Cloudinary para subida de archivos
-
-## Cómo ejecutar el proyecto
-
-Como se trata de una web estática, puedes ejecutarla con un servidor local sencillo:
-
-```bash
-python -m http.server 8000
-```
-
-Luego abre en el navegador:
-
-```text
-http://localhost:8000/
-```
-
-Si se despliega en un entorno con una ruta base como `/DAM/`, asegúrate de mantener la estructura de rutas de los assets y de los archivos HTML para que los estilos y scripts carguen correctamente.
-
-## Uso
-
-1. Abre la aplicación en el navegador.
-2. Explora la estructura del curso desde el panel lateral.
-3. Selecciona un archivo para visualizar su contenido.
-4. Usa la búsqueda para encontrar apuntes por tema.
-5. Guarda archivos como favoritos para acceso rápido.
-6. Si tienes permisos, inicia sesión para acceder a funciones avanzadas como gestión de usuarios y subida de contenido.
-
-## Objetivo
-
-Este proyecto sirve como herramienta de estudio y consulta para alumnos de DAM, centralizando apuntes, ejercicios, recursos y organización del curso en una interfaz clara y fácil de navegar.
-
-## Nota
-
-El contenido de los apuntes está organizado dentro de la carpeta `DAM/1-DAM/` y puede ampliarse o actualizarse según el temario del curso.
+1. Abre la web en GitHub Pages.
+2. Inicia sesión con tu usuario IDEA.
+3. Elige la contraseña que vayas a recordar.
+4. Usa la página para estudiar, apuntar tareas y organizar el curso.
+5. Guarda lo que te haga falta en horario, calendario o archivos.
