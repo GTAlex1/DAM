@@ -1,5 +1,7 @@
 # DAM
 
+[For English speakers](README-en.md)
+
 Una web pensada para que los alumnos del curso de DAM tengan sus apuntes, horario, calendario, búsquedas y trabajo del día a día en un solo sitio.
 
 ## Cómo usarlo
@@ -95,7 +97,9 @@ La idea no es solo leer apuntes, sino que también sirva como herramienta de est
 │       ├── Sistemas-Informaticos/
 │       ├── calendario.html
 │       └── horario.html
-└── README.md
+├── README.md
+├── README-en.md
+└── .github/
 ```
 
 ### Asignaturas incluidas
