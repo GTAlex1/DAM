@@ -4,7 +4,7 @@
 // manifest.json que haya que editar a mano cada vez que añades un apunte.
 
 const ROOT_FOLDER = 'DAM'; // nombre de la carpeta del repo que contiene los apuntes
-const ALLOWED_EXTENSIONS = ['html', 'htm', 'md'];
+const ALLOWED_EXTENSIONS = ['html', 'htm', 'md', "pdf"];
 
 // Detecta owner/repo a partir de la URL. Funciona automáticamente para
 // GitHub Pages de proyecto (https://usuario.github.io/repo/...). Si pruebas
