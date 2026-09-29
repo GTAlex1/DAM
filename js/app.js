@@ -12,6 +12,25 @@ marked.setOptions({
   breaks: false,
 });
 
+// ---------- Seguridad: escape y saneado ----------
+// Todo texto que no sea una constante de este archivo (nombres de archivo, rutas,
+// contenido de los apuntes, lo que escribe el usuario, parámetros de la URL) debe
+// pasar por esc() antes de meterse en un innerHTML, o insertarse con textContent.
+function esc(valor) {
+  return String(valor ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+// Convierte Markdown en HTML seguro. Falla cerrado: si DOMPurify no se ha cargado
+// (CDN caído o bloqueado) se muestra el texto plano escapado en vez de HTML sin sanear.
+function markdownSeguro(raw) {
+  if (typeof DOMPurify === 'undefined') {
+    return `<pre>${esc(raw)}</pre>`;
+  }
+  return DOMPurify.sanitize(marked.parse(raw), { USE_PROFILES: { html: true } });
+}
+
 const fileTreeEl = document.getElementById('file-tree');
 const tabbarEl = document.getElementById('tabbar');
 const breadcrumbsEl = document.getElementById('breadcrumbs');
@@ -90,7 +109,7 @@ async function cargarArbol() {
     if (!root.children.length) {
       fileTreeEl.innerHTML = `<div style="padding:12px;color:#9a9a9a;font-size:12px;line-height:1.5;">
         La carpeta <strong>DAM/</strong> está vacía (o todavía no existe) en
-        <code>${owner}/${repo}</code>. Sube tus apuntes ahí y recarga la página.
+        <code>${esc(owner)}/${esc(repo)}</code>. Sube tus apuntes ahí y recarga la página.
       </div>`;
       return;
     }
@@ -168,7 +187,7 @@ function renderTree(node, container, crumbs) {
 
     if (child.type === 'folder') {
       const collapsed = collapsedIds.has(child.id);
-      row.innerHTML = `${grip}${ICON_CHEVRON}${ICON_FOLDER}<span class="label">${child.name}</span>`;
+      row.innerHTML = `${grip}${ICON_CHEVRON}${ICON_FOLDER}<span class="label">${esc(child.name)}</span>`;
       if (collapsed) row.querySelector('.chevron').classList.add('collapsed');
       wrapper.appendChild(row);
 
@@ -186,7 +205,7 @@ function renderTree(node, container, crumbs) {
       });
     } else {
       const activo = esFavorito(child.path);
-      row.innerHTML = `${grip}<span style="width:16px;flex-shrink:0;"></span>${fileIcon(child.name)}<span class="label">${child.name}</span>`
+      row.innerHTML = `${grip}<span style="width:16px;flex-shrink:0;"></span>${fileIcon(child.name)}<span class="label">${esc(child.name)}</span>`
         + `<span class="fav-star${activo ? ' activo' : ''}" title="${activo ? 'Quitar de favoritos' : 'Añadir a favoritos'}">${activo ? ICON_STAR_FILL : ICON_STAR_OUTLINE}</span>`;
       row.addEventListener('click', (e) => {
         if (e.target.closest('.grip-handle')) return;
@@ -312,8 +331,8 @@ function renderFavoritos() {
     const crumbs = crumbsFor(node);
     const el = document.createElement('div');
     el.className = 'fav-item';
-    el.innerHTML = `${fileIcon(node.name)}<div class="fav-info"><div class="fav-name">${node.name}</div>`
-      + `<div class="fav-crumbs">${crumbs.join(' / ')}</div></div>`
+    el.innerHTML = `${fileIcon(node.name)}<div class="fav-info"><div class="fav-name">${esc(node.name)}</div>`
+      + `<div class="fav-crumbs">${esc(crumbs.join(' / '))}</div></div>`
       + `<button class="fav-remove" title="Quitar de favoritos">${ICON_STAR_FILL}</button>`;
     el.addEventListener('click', (e) => {
       if (e.target.closest('.fav-remove')) { toggleFavorito(node.path); return; }
@@ -376,9 +395,11 @@ function todosLosArchivos(node, out) {
 }
 
 function htmlAPlano(html) {
-  const tmp = document.createElement('div');
-  tmp.innerHTML = html;
-  return (tmp.textContent || '').replace(/\s+/g, ' ');
+  // DOMParser crea un documento inerte: no ejecuta scripts ni carga imágenes/handlers
+  // (a diferencia de asignar innerHTML a un elemento, aunque no esté en la página).
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  doc.querySelectorAll('script, style, noscript, template').forEach(n => n.remove());
+  return (doc.body ? doc.body.textContent : '').replace(/\s+/g, ' ');
 }
 
 async function indexarArchivo(node) {
@@ -448,7 +469,14 @@ function snippetCon(texto, q) {
   if (inicio > 0) frag = '…' + frag;
   if (fin < texto.length) frag += '…';
   const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'ig');
-  return frag.replace(re, m => `<mark>${m}</mark>`);
+  // Se escapa cada trozo por separado; solo el <mark> es HTML propio.
+  let out = '';
+  let ultimo = 0;
+  for (const m of frag.matchAll(re)) {
+    out += esc(frag.slice(ultimo, m.index)) + `<mark>${esc(m[0])}</mark>`;
+    ultimo = m.index + m[0].length;
+  }
+  return out + esc(frag.slice(ultimo));
 }
 
 function ejecutarBusqueda() {
@@ -476,7 +504,7 @@ function ejecutarBusqueda() {
     .slice(0, 60);
 
   if (!resultados.length) {
-    searchResultsEl.innerHTML = `<div class="search-empty">Sin resultados para "${q}".</div>`;
+    searchResultsEl.innerHTML = `<div class="search-empty">Sin resultados para "${esc(q)}".</div>`;
     return;
   }
 
@@ -485,8 +513,8 @@ function ejecutarBusqueda() {
     const crumbs = crumbsFor(node);
     const el = document.createElement('div');
     el.className = 'search-result';
-    el.innerHTML = `<div class="sr-name">${fileIcon(node.name)}<span>${node.name}</span></div>`
-      + `<div class="sr-crumbs">${crumbs.join(' / ')}</div>`
+    el.innerHTML = `<div class="sr-name">${fileIcon(node.name)}<span>${esc(node.name)}</span></div>`
+      + `<div class="sr-crumbs">${esc(crumbs.join(' / '))}</div>`
       + (snippet ? `<div class="sr-snippet">${snippet}</div>` : '');
     el.addEventListener('click', () => openFile(node, crumbs));
     searchResultsEl.appendChild(el);
@@ -544,7 +572,7 @@ function renderTabbar() {
   openTabs.forEach(tab => {
     const el = document.createElement('div');
     el.className = 'tab' + (tab.path === activePath ? ' active' : '');
-    el.innerHTML = `${fileIcon(tab.name).replace('width="16" height="16"', 'width="15" height="15"')}<span class="label">${tab.name}</span><span class="tab-close">${ICON_CLOSE}</span>`;
+    el.innerHTML = `${fileIcon(tab.name).replace('width="16" height="16"', 'width="15" height="15"')}<span class="label">${esc(tab.name)}</span><span class="tab-close">${ICON_CLOSE}</span>`;
     el.addEventListener('click', () => activatePath(tab.path));
     el.querySelector('.tab-close').addEventListener('click', (e) => closeTab(tab.path, e));
     tabbarEl.appendChild(el);
@@ -562,7 +590,7 @@ function renderBreadcrumbs() {
   breadcrumbsEl.classList.remove('empty');
   const parts = [...tab.crumbs, tab.name];
   breadcrumbsEl.innerHTML = parts.map((p, i) =>
-    (i > 0 ? '<span class="crumb-sep">›</span>' : '') + `<span>${p}</span>`
+    (i > 0 ? '<span class="crumb-sep">›</span>' : '') + `<span>${esc(p)}</span>`
   ).join('');
   titlebarPathEl.textContent = `${tab.name} — Apuntes DAM`;
 }
@@ -578,7 +606,7 @@ function rawUrl(path) {
 // de la nota en el sitio. Con eso las mismas rutas funcionan dentro de la app y abriendo la nota directamente.
 function conBase(html, path) {
   const noteUrl = new URL(path.split('/').map(encodeURIComponent).join('/'), document.baseURI).href;
-  const base = `<base href="${noteUrl}">`;
+  const base = `<base href="${esc(noteUrl)}">`;
   const abreHead = /<head(\s[^>]*)?>/i; // ojo: no debe coincidir con <header>
   return abreHead.test(html) ? html.replace(abreHead, m => m + base) : base + html;
 }
@@ -613,7 +641,7 @@ async function renderEditor(path) {
       contentCache[path] = raw;
     } catch (e) {
       editorContentEl.classList.remove('full-bleed');
-      editorContentEl.innerHTML = `<div class="note"><p style="color:#f48771;">No se pudo cargar <code>${path}</code> desde GitHub (${e.message}).</p></div>`;
+      editorContentEl.innerHTML = `<div class="note"><p style="color:#f48771;">No se pudo cargar <code>${esc(path)}</code> desde GitHub (${esc(e.message)}).</p></div>`;
       editorContentEl.classList.remove('loading');
       return;
     }
@@ -632,7 +660,7 @@ async function renderEditor(path) {
     editorContentEl.appendChild(iframe);
   } else {
     editorContentEl.classList.remove('full-bleed');
-    const html = marked.parse(raw);
+    const html = markdownSeguro(raw);
     editorContentEl.innerHTML = `<div class="note">${html}</div>`;
     editorContentEl.scrollTop = 0;
   }
