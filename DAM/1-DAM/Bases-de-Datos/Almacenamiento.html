@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es" class="note-page page-introduccion page-badat">
+<head>
+<meta charset="UTF-8">
+<title>Sistemas de almacenamiento de la información</title>
+<link rel="stylesheet" href="DAM/css/styles.css">
+</head>
+<body>
+
+<h1>Sistemas de Almacenamiento de la Información</h1>
+<p class="subtitulo">De los ficheros orientados al proceso a las bases de datos orientadas a los datos</p>
+<p class="modulo">Base de Datos · DAM 1º · Unidad 1</p>
+
+<h2>Introducción</h2>
+<p>La <strong>informática</strong> es, según el DRAE, el conjunto de conocimientos científicos y técnicas que hacen posible el tratamiento automático de la información por medio de ordenadores. Un <strong>sistema de información</strong> es el conjunto de elementos que trabajan juntos para <strong>recoger, procesar, almacenar y distribuir información</strong>, con el objetivo de ayudar a tomar decisiones, coordinar actividades y controlar procesos.</p>
+<p>Antes de las bases de datos, cada aplicación gestionaba su propio fichero, con su propio formato: las aplicaciones estaban <strong>orientadas al proceso</strong>, no a los datos. Esto generaba varios problemas:</p>
+<div class="grid grid-2">
+  <div class="card blue"><h4>Redundancia</h4><p>Duplicidad innecesaria de información entre ficheros.</p></div>
+  <div class="card orange"><h4>Mal aprovechamiento</h4><p>Del espacio de almacenamiento.</p></div>
+  <div class="card purple"><h4>Más tiempo de proceso</h4><p>Cada aplicación repite trabajo sobre datos similares.</p></div>
+  <div class="card green"><h4>Inconsistencia</h4><p>Si un dato cambia en un fichero, no cambia en los demás.</p></div>
+  <div class="card yellow"><h4>Aislamiento</h4><p>Compartir datos entre aplicaciones exige software de migración específico.</p></div>
+</div>
+
+<h2>Ficheros</h2>
+<div class="caja">
+  <p><strong>Fichero o archivo</strong>: conjunto de datos relacionados, organizados de forma estructurada, que se guarda como una unidad. Es una secuencia de bytes que se almacena en memoria secundaria (disco duro, pendrive, cinta magnética, DVD...) y a la que se hace referencia mediante un nombre.</p>
+  <p>Sus datos se pueden añadir, suprimir, actualizar o consultar individualmente en cualquier momento.</p>
+</div>
+
+<h3>Según su contenido</h3>
+<div class="grid grid-2">
+  <div class="card blue">
+    <h4>Fichero plano (texto)</h4>
+    <p>Secuencias de caracteres con una codificación determinada (ASCII, Unicode, EBCDIC). Legibles con un editor de texto.</p>
+    <p class="nota-op">Ej: <code>.txt</code>, <code>.csv</code>, <code>.htm/.html</code>, <code>.xml</code></p>
+  </div>
+  <div class="card orange">
+    <h4>Fichero binario</h4>
+    <p>Información codificada en binario para su procesamiento por aplicaciones. Ilegible en un editor de texto.</p>
+    <p class="nota-op">Ej: <code>.exe</code>, <code>.pdf</code>, <code>.docx</code>, <code>.jpg</code>, <code>.mp3</code>, <code>.dll</code></p>
+  </div>
+</div>
+
+<h3>Según su organización interna (ficheros de texto)</h3>
+<div class="card blue">
+  <h4>Secuencial</h4>
+  <p>La información se escribe en posiciones físicamente contiguas; para acceder a un dato hay que recorrer todos los anteriores.</p>
+</div>
+<div class="fichero">0078952lT<span class="sep">#</span>Paula<span class="sep">#</span>Sanz<span class="sep">#</span>González<span class="sep">#</span>619554687<span class="fin">$</span>50687452Y<span class="sep">#</span>José Luis<span class="sep">#</span>Garcia<span class="sep">#</span>Viñals<span class="sep">#</span>66785921<span class="fin">$</span>38546998X<span class="sep">#</span>Javier<span class="sep">#</span>Peinado<span class="sep">#</span>Martín<span class="sep">#</span>66932541<span class="fin">$</span>09653801B<span class="sep">#</span>Ruth<span class="sep">#</span>Lázaro<span class="sep">#</span>Cardenal<span class="sep">#</span>689330247<span class="fin">%</span></div>
+<p class="nota-pie">NIF, nombre, primer apellido, segundo apellido y teléfono. El programador usó <code>#</code> como separador de datos, <code>$</code> como separador de registros y <code>%</code> como marca de fin de fichero.</p>
+
+<div class="card orange">
+  <h4>De acceso directo o aleatorio</h4>
+  <p>Cada registro ocupa un tamaño fijo. Se puede acceder directamente al principio de cualquier registro.</p>
+</div>
+<pre class="pre-flat"><code>0078952lT  Paula     Sanz       González   619554687
+50687452Y  José Luis García     Viñals     667859215
+38546998X  Javier    Peinado    Martín     669325412
+09653801B  Ruth      Lázaro     Cardenal   689330247</code></pre>
+<p class="nota-pie">Cada línea mide 63 caracteres + 2 de salto de línea = 65. Para llegar al 3er cliente en Windows: (3−1) × 65 = 130 → la información empieza en la posición 131. A cambio de esta facilidad de posicionamiento, el fichero ocupa más espacio que su versión secuencial.</p>
+
+<div class="card purple">
+  <h4>Indexado</h4>
+  <p>Uno o varios ficheros adjuntos ordenan una <strong>clave</strong> y la relacionan con la línea del fichero principal donde está el registro. Permite varios criterios de ordenación sin reordenar los datos.</p>
+</div>
+<div class="indice">
+  <div class="col">
+    <div>00789521T → 1</div>
+    <div>09653801B → 4</div>
+    <div>38546998X → 3</div>
+    <div>50687452Y → 2</div>
+  </div>
+  <div class="flechas">→</div>
+  <div class="col">
+    <div>1. Paula Sanz…</div>
+    <div>2. José Luis García…</div>
+    <div>3. Javier Peinado…</div>
+    <div>4. Ruth Lázaro…</div>
+  </div>
+</div>
+<p class="nota-pie">Índice por NIF (izquierda) apuntando al fichero principal (derecha). Un segundo índice, por ejemplo por apellido, apuntaría a las mismas líneas sin duplicar los datos.</p>
+
+<h3>Tipos de soporte de almacenamiento</h3>
+<div class="grid grid-2">
+  <div class="card blue"><h4>Secuencial</h4><p>Hay que recorrer todo el contenido previo para llegar a un dato. Ej: cinta magnética.</p></div>
+  <div class="card orange"><h4>Direccionable</h4><p>Se accede directamente a un dato sin recorrer los anteriores. Ej: disco duro.</p></div>
+</div>
+<p class="nota-pie">En un soporte direccionable caben los tres accesos (secuencial, directo, indexado); en uno secuencial, solo el acceso secuencial.</p>
+
+<h2>Bases de datos</h2>
+<p>La evolución lógica de los problemas de los ficheros fue estandarizar el acceso a la información: un diseño físico único sirve para todas las aplicaciones. El enfoque pasa a centrarse en los <strong>datos</strong>, no en el <strong>proceso</strong>. Así nace el concepto de <strong>base de datos</strong>.</p>
+
+<h3>Definición</h3>
+<div class="caja">
+  <p>DRAE: <em>«Conjunto de datos organizado de tal modo que permita obtener con rapidez diversos tipos de información».</em></p>
+  <p>En el ámbito técnico: conjunto de datos relacionados entre sí, organizados de forma estructurada y almacenados en un soporte <strong>no volátil</strong>, utilizables por varios usuarios y aplicaciones a la vez, sin depender directamente de ellas. Sigue un <strong>modelo de datos</strong> que representa también las relaciones y reglas del mundo real, con procedimientos para garantizar su integridad y coherencia.</p>
+</div>
+
+<h3>Tipos de bases de datos</h3>
+<h4>Según la variabilidad de la información</h4>
+<div class="grid grid-2">
+  <div class="card blue"><h4>Estáticas</h4><p>No cambian con el tiempo. Información histórica para analizar tendencias y apoyar decisiones estratégicas. Ej: ventas de los últimos 10 años.</p></div>
+  <div class="card orange"><h4>Dinámicas</h4><p>Se actualizan constantemente: alta, baja, modificación y consulta. Ej: pedidos de clientes en tiempo real.</p></div>
+</div>
+
+<h4>Según el modelo de datos</h4>
+<div class="grid grid-3">
+  <div class="card blue"><h4>Jerárquica</h4><p>Estructura de árbol invertido: nodo raíz, nodos hijo, hojas. Solo relaciones 1:N. Base de XML.</p></div>
+  <div class="card orange"><h4>De red</h4><p>Como la jerárquica, pero un nodo puede tener varios padres. Reduce redundancia a costa de más complejidad.</p></div>
+  <div class="card green"><h4>Relacional</h4><p>Entidades y relaciones en tablas bidimensionales (filas y columnas). El modelo más extendido. Ej: MySQL.</p></div>
+  <div class="card purple"><h4>Orientada a objetos</h4><p>La información se representa mediante objetos, como en la POO. Encaja con Java, C#, C++.</p></div>
+  <div class="card yellow"><h4>Objeto-relacional</h4><p>Modelo híbrido: admite tipos abstractos de datos (TAD). Ej: Oracle, SQL Server, Informix, PostgreSQL.</p></div>
+  <div class="card blue"><h4>NoSQL</h4><p>Grandes volúmenes, datos no estructurados, cambios rápidos. Documentos (MongoDB), clave-valor (Redis), grafos (Neo4j), columnas (Cassandra).</p></div>
+</div>
+
+<h4>Según la ubicación física</h4>
+<div class="grid grid-2">
+  <div class="card blue"><h4>Centralizada</h4><p>Reside en una sola máquina, típicamente el servidor de base de datos.</p></div>
+  <div class="card orange">
+    <h4>Distribuida</h4>
+    <p>Repartida por varios servidores, físicamente alejados. El sistema traduce las consultas globales a consultas sobre <strong>fragmentos</strong> y recompone la respuesta.</p>
+    <p class="nota-op">Fragmentación vertical (por columnas), horizontal (por filas) o mixta.</p>
+  </div>
+</div>
+<p class="nota-pie">Curiosidad: las bases de datos se representan con un cilindro apoyado en su base, en referencia a las antiguas memorias de tambor magnético.</p>
+
+<h2>Sistemas Gestores de Bases de Datos (SGBD / DBMS)</h2>
+<p>Un <strong>SGBD</strong> es una colección de programas, lenguajes y herramientas que proporcionan al usuario los medios para:</p>
+<div class="grid grid-2">
+  <div class="card blue"><h4>Definición de los datos</h4><p>Descripción de la base de datos.</p></div>
+  <div class="card orange"><h4>Manipulación</h4><p>Inserción, modificación, borrado, acceso y consulta.</p></div>
+  <div class="card green"><h4>Integridad</h4><p>De los datos, sus valores y las relaciones entre ellos.</p></div>
+  <div class="card purple"><h4>Privacidad y seguridad</h4><p>Control de acceso a los datos de la BD.</p></div>
+</div>
+
+<h2>Componentes de un SGBD</h2>
+<p>El SGBD se divide en el <strong>núcleo</strong>, los <strong>lenguajes</strong>, las <strong>utilidades</strong> y el <strong>diccionario de datos</strong>.</p>
+
+<h3>Lenguajes</h3>
+<div class="verdad">
+  <div class="op"><b>DDL</b><p>Lenguaje de Descripción de Datos: representación lógica de los datos. Autocontenido, no necesita otro lenguaje de programación. Su resultado se guarda en el diccionario de datos.</p></div>
+  <div class="op"><b>DCL</b><p>Lenguaje de Control de Datos: seguridad y accesos. Sentencias <code>GRANT</code> y <code>REVOKE</code>. A veces se considera sublenguaje del DDL.</p></div>
+  <div class="op"><b>DML</b><p>Lenguaje de Manipulación de Datos: insertar, eliminar, modificar y recuperar información. Gramática sencilla; también puede invocarse desde Cobol, C, Java, PHP...</p></div>
+</div>
+
+<h3>Utilidades</h3>
+<div class="grid grid-3">
+  <div class="card blue"><h4>Generador de menús</h4><p>Diseña la interfaz de una aplicación.</p></div>
+  <div class="card orange"><h4>Generador de informes</h4><p>Presenta datos en pantalla o impresora con formato predefinido.</p></div>
+  <div class="card green"><h4>Generador de formularios</h4><p>Pantallas para introducir información fácilmente.</p></div>
+  <div class="card purple"><h4>Exportación/importación</h4><p>De datos hacia o desde otros sistemas.</p></div>
+  <div class="card yellow"><h4>Copias de seguridad</h4><p>Creación y restablecimiento; clave para recuperar datos perdidos.</p></div>
+  <div class="card blue"><h4>Recuperación</h4><p>Ante fallos del sistema, cortes de alimentación o errores de red.</p></div>
+</div>
+
+<h3>Diccionario de datos</h3>
+<div class="caja">
+  <p>Almacén integrado de ficheros con toda la información sobre la descripción, gestión e implantación de la BD. También llamado <strong>catálogo del sistema</strong>: es una <strong>metabase de datos</strong> (una BD sobre otra BD). Contiene el esquema, las restricciones de privacidad y acceso (definidas con DDL/DCL) y las operaciones de los usuarios.</p>
+</div>
+
+<h3>El gestor de la base de datos (monitor)</h3>
+<p>Componente software del núcleo que hace de intérprete entre el usuario y los datos: valida cada operación antes de ejecutarla o rechazarla. Se encarga de:</p>
+<div class="grid grid-2">
+  <div class="card blue"><h4>Privacidad</h4><p>Solo acceden los usuarios autorizados.</p></div>
+  <div class="card orange"><h4>Seguridad</h4><p>Los datos se pueden recuperar tras un fallo.</p></div>
+  <div class="card green"><h4>Integridad</h4><p>Se cumplen las restricciones del esquema.</p></div>
+  <div class="card purple"><h4>Acceso concurrente</h4><p>Varios usuarios sin pérdida de integridad.</p></div>
+</div>
+<p class="nota-pie">También interacciona con el sistema operativo (y su gestor de archivos) para que los procedimientos DML se traduzcan en almacenamiento y recuperación reales.</p>
+
+<h3>El administrador de la base de datos (DBA)</h3>
+<p>Componente <strong>humano</strong>, responsable de la definición, administración, seguridad, privacidad e integridad de la información tratada.</p>
+
+<h3>Los usuarios de la base de datos</h3>
+<div class="grid grid-3">
+  <div class="card blue"><h4>Técnicos / expertos</h4><p>Escriben aplicaciones que llaman al SGBD desde un lenguaje de alto nivel (Pascal, C, PHP, Java...).</p></div>
+  <div class="card orange"><h4>Normales o habituales</h4><p>Sin conocimientos de BD; usan aplicaciones ya escritas. Ej: cajeros automáticos, formularios web.</p></div>
+  <div class="card green"><h4>Ocasionales</h4><p>Con ciertos conocimientos, consultan la BD directamente mediante un lenguaje DML.</p></div>
+</div>
+
+<h2>Funciones de los SGBD</h2>
+<div class="grid grid-3">
+  <div class="card blue"><h4>Definición (DDL)</h4><p>Especifica los elementos de datos, su estructura, relaciones, reglas de integridad y controles de acceso. Crea, elimina o modifica metadatos.</p></div>
+  <div class="card orange"><h4>Manipulación (DML)</h4><p>Recuperar o actualizar datos según las normas de seguridad del administrador, controlando la concurrencia.</p></div>
+  <div class="card green"><h4>Control (DCL)</h4><p>Establece los permisos de acceso: qué ve y qué usa cada usuario.</p></div>
+</div>
+
+<h2>Big Data y la inteligencia de negocios</h2>
+<p><strong>Big Data</strong>: gestión y análisis de conjuntos de datos muy voluminosos, complejos y variables, que superan las herramientas de procesamiento tradicionales. Se caracteriza por las <strong>tres V</strong>:</p>
+<div class="grid grid-3">
+  <div class="card blue"><h4>Volumen</h4><p>Cantidades enormes: redes sociales, transacciones, sensores, servidores.</p></div>
+  <div class="card orange"><h4>Velocidad</h4><p>Generación y actualización a gran ritmo, especialmente en tiempo real (IoT).</p></div>
+  <div class="card green"><h4>Variedad</h4><p>Texto, imagen, audio, vídeo, geoespaciales... estructurados, semiestructurados o no estructurados.</p></div>
+</div>
+<p class="nota-pie">Se analiza con almacenamiento distribuido, bases NoSQL, frameworks de clúster (Hadoop, Spark) y aprendizaje automático, para descubrir patrones y apoyar decisiones.</p>
+
+<div class="caja">
+  <p><strong>Inteligencia de Negocios (BI)</strong>: procesos, tecnologías y herramientas para recopilar, analizar, interpretar y presentar datos empresariales con fines de decisión estratégica.</p>
+</div>
+<div class="pila">
+  <div class="capa"><b>1. Recopilación de datos</b><span>De fuentes internas y externas a la organización.</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>2. Almacenamiento y organización</b><span>En bases de datos optimizadas para el análisis.</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>3. Procesamiento y transformación</b><span>Limpieza, integración y formateo de los datos.</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>4. Análisis</b><span>Explorar, visualizar y detectar patrones y oportunidades.</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>5. Informes y paneles</b><span>Tablas y gráficos que resumen la información clave.</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>6. Toma de decisiones</b><span>Ventas, marketing, operaciones, finanzas, RR. HH.</span></div>
+</div>
+<p class="nota-pie">La BI avanzada añade <strong>predicción y modelado</strong> para anticipar tendencias, y exige un <strong>acceso seguro</strong> a los datos.</p>
+
+<h2>Legislación vigente sobre protección de datos</h2>
+<div class="grid grid-2">
+  <div class="card blue">
+    <h4>RGPD (UE 2016/679)</h4>
+    <p>En vigor desde el 25 de mayo de 2018; aplicación directa en toda la UE, incluida España.</p>
+  </div>
+  <div class="card orange">
+    <h4>LOPDGDD (Ley Orgánica 3/2018)</h4>
+    <p>Adapta el RGPD al ordenamiento español: derecho a la desconexión digital, derecho al olvido, deberes del DPO.</p>
+  </div>
+</div>
+
+<h3>Principios clave del RGPD</h3>
+<div class="chips">
+  <span>Licitud, lealtad y transparencia</span>
+  <span>Finalidad determinada y legítima</span>
+  <span>Minimización de datos</span>
+  <span>Exactitud</span>
+  <span>Limitación del plazo de conservación</span>
+  <span>Integridad y confidencialidad</span>
+</div>
+
+<h3>Aplicación en el ámbito de las bases de datos</h3>
+<div class="grid grid-2">
+  <div class="card blue"><h4>Diseño seguro</h4><p>Controles de acceso, cifrado de datos sensibles, separación por niveles de confidencialidad.</p></div>
+  <div class="card orange"><h4>Privacidad desde el diseño</h4><p>La protección de datos se integra desde la planificación del sistema.</p></div>
+  <div class="card green"><h4>Consentimiento informado</h4><p>La recogida de datos se basa en el consentimiento explícito o en otra base legal válida.</p></div>
+  <div class="card purple"><h4>Auditorías y registros</h4><p>Control documental de qué datos se tratan, cómo y con qué finalidad.</p></div>
+</div>
+
+<h3>Derechos de los ciudadanos</h3>
+<div class="chips">
+  <span>Acceso</span>
+  <span>Rectificación</span>
+  <span>Supresión («derecho al olvido»)</span>
+  <span>Limitación del tratamiento</span>
+  <span>Portabilidad</span>
+  <span>Oposición</span>
+  <span>No ser objeto de decisiones automatizadas</span>
+</div>
+
+<div class="aviso">
+  <p><strong>Consecuencias del incumplimiento:</strong> sanciones económicas muy elevadas, además de daños reputacionales. Las multas del RGPD pueden alcanzar <strong>hasta 20 millones de € o el 4 % de la facturación anual global</strong>, lo que sea mayor.</p>
+</div>
+
+<h2>Anexo · Tipos de gestión de un sistema de información</h2>
+
+<h3>Orientados al proceso</h3>
+<p>Antes de los SGBD (años 70), la información se gestionaba con sistemas de gestión de archivos sobre el sistema operativo: cada programa definía y trabajaba sus propios datos. Si cambiaba la estructura del archivo, había que modificar todos los programas que lo usaban.</p>
+<div class="duo">
+  <div class="col si">
+    <h5>Ventaja</h5>
+    <ul><li>Procesos independientes: modificar uno no afecta al resto.</li></ul>
+  </div>
+  <div class="col no">
+    <h5>Inconvenientes</h5>
+    <ul>
+      <li>Programación de aplicaciones compleja</li>
+      <li>Datos redundantes</li>
+      <li>Datos inconsistentes</li>
+      <li>Difícil acceso a los datos (consultas no previstas)</li>
+      <li>Coste de almacenamiento elevado</li>
+      <li>Dependencia física-lógica de los datos</li>
+      <li>Difícil acceso concurrente</li>
+      <li>Problemas de seguridad</li>
+    </ul>
+  </div>
+</div>
+<p class="nota-pie">También se consideran sistemas de gestión de ficheros aquellos que usan programas ofimáticos (Word, Excel) para gestionar datos; habitual en pequeñas empresas, con los mismos problemas o más.</p>
+
+<h3>Orientados a los datos</h3>
+<p>Los datos se centralizan en una <strong>base de datos común</strong> a todas las aplicaciones, en una única estructura lógica accesible por todas ellas. Son los sistemas que se estudian en este curso.</p>
+<div class="duo">
+  <div class="col si">
+    <h5>Ventajas</h5>
+    <ul>
+      <li>Independencia de datos y programas</li>
+      <li>Menor redundancia</li>
+      <li>Mayor integridad</li>
+      <li>Mayor seguridad</li>
+      <li>Visiones distintas según el usuario</li>
+      <li>Datos más documentados (metadatos)</li>
+      <li>Acceso más eficiente</li>
+      <li>Menor espacio de almacenamiento</li>
+      <li>Acceso simultáneo</li>
+    </ul>
+  </div>
+  <div class="col no">
+    <h5>Inconvenientes</h5>
+    <ul>
+      <li>Instalación costosa</li>
+      <li>Requiere personal cualificado</li>
+      <li>Implantación larga y difícil</li>
+      <li>Ausencia de estándares reales</li>
+    </ul>
+  </div>
+</div>
+
+<blockquote>El salto de los ficheros a las bases de datos no es solo técnico: es pasar de pensar «¿cómo proceso estos datos?» a pensar «¿cómo organizo estos datos para que cualquiera pueda usarlos bien?».</blockquote>
+
+</body>
+</html>
