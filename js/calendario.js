@@ -143,7 +143,7 @@ const eventosFijos = [
 ];
 
 const notasSinFecha = [
-  'Acto de graduación de Ciclos y 4º ESO — pendiente de fecha',
+  'Acto de graduación de Ciclos — pendiente de fecha',
 ];
 
 // Expande cada evento fijo a su lista concreta de días (para pintar la rejilla)
