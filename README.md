@@ -18,18 +18,18 @@ Desde ahí puedes:
 - llevar tu calendario personal con tareas
 - iniciar sesión para guardar cambios y personalizar la página
 
-## Iniciar sesión
+### Iniciar sesión
 
 Para entrar, pulsa en "Acceder" y usa tu usuario IDEA (el mismo usuario de iPASEN o Moodle).
 
 - Usuario: tu usuario IDEA
 - Contraseña: la que tú elijas
 
-Importante: si olvidas la contraseña, no se puede recuperar la cuenta. Tienes que recordarla bien.
+**Importante:** si olvidas la contraseña, no se puede recuperar la cuenta. Tienes que recordarla bien.
 
 La idea es que cada alumno use su propia cuenta para guardar su trabajo y no mezclarlo con el de otros.
 
-## Qué puedes hacer una vez dentro
+### Qué puedes hacer una vez dentro
 
 Cuando estés logueado podrás:
 
@@ -38,6 +38,8 @@ Cuando estés logueado podrás:
 - apuntar en el horario las clases o horas que te han convalidado
 - usar el calendario como agenda personal para tareas, exámenes y recordatorios
 - dejar marcados los archivos o temas que más te interesen
+
+---
 
 ## Qué es esta página
 
@@ -52,19 +54,20 @@ La idea no es solo leer apuntes, sino que también sirva como herramienta de est
 - compartir materiales dentro del entorno del curso
 - personalizar la experiencia con tu cuenta
 
-## Para la gente normal: resumen rápido
+---
 
-Es una página para estudiar DAM con menos líos: apuntes, agenda, horario, búsqueda y todo en un sitio.
+## Información técnica
 
-## Objetivo
+### Tecnologías utilizadas
 
-Que los alumnos puedan tener una herramienta útil, clara y rápida para estudiar y organizar su curso sin tener que depender de documentos dispersos por internet o por otros sitios.
+- **HTML / CSS / JavaScript** para la interfaz
+- **Marked.js** para renderizado de Markdown
+- **Highlight.js** para resaltado de código
+- **Firebase** para autenticación de usuarios
+- **Cloudinary** para subida y almacenamiento de archivos
+- **GitHub Pages** para el despliegue
 
-## Nota importante
-
-Esto está pensado para usarse desde GitHub Pages, así que la web principal es la URL de GitHub Pages indicada arriba. La cuenta del usuario y los cambios personalizados están ligados a la sesión del alumno dentro de la app.
-
-## Estructura básica
+### Estructura del proyecto
 
 ```text
 .
@@ -74,23 +77,62 @@ Esto está pensado para usarse desde GitHub Pages, así que la web principal es 
 ├── js/
 │   ├── app.js
 │   ├── calendario.js
-│   ├── horario.js
+│   ├── calendario.js
+│   ├── ejercicios-pseint.js
 │   ├── firebase-init.js
-│   └── ...
+│   ├── github-source.js
+│   ├── horario-cuenta.js
+│   ├── horario.js
+│   ├── unidad1.js
+│   └── unidadesMedida.js
 ├── DAM/
 │   └── 1-DAM/
 │       ├── Bases-de-Datos/
+│       ├── Digitalización/
+│       ├── Entornos-de-Desarrollo/
+│       ├── Lenguajes-de-Marcas/
 │       ├── Programacion/
 │       ├── Sistemas-Informaticos/
-│       └── ...
-├── README.md
-└── .github/
+│       ├── calendario.html
+│       └── horario.html
+└── README.md
 ```
 
-## Recomendación de uso
+### Asignaturas incluidas
 
-1. Abre la web en GitHub Pages.
-2. Inicia sesión con tu usuario IDEA.
-3. Elige la contraseña que vayas a recordar.
-4. Usa la página para estudiar, apuntar tareas y organizar el curso.
-5. Guarda lo que te haga falta en horario, calendario o archivos.
+- Bases de Datos
+- Digitalización
+- Entornos de Desarrollo
+- Lenguajes de Marcas
+- Programación (Java, Pseint, etc.)
+- Sistemas Informáticos
+
+### Ejecución local
+
+Si quieres ejecutar la web en tu máquina local:
+
+```bash
+python -m http.server 8000
+```
+
+Luego abre en el navegador:
+
+```text
+http://localhost:8000/
+```
+
+Si se despliega en un servidor con una ruta base diferente, asegúrate de que la estructura de rutas de assets y archivos HTML se mantiene consistente.
+
+### Configuración necesaria
+
+Para que funcione correctamente, necesitas:
+
+1. **Firebase** configurado con autenticación de usuarios
+2. **Cloudinary** configurado para subida de archivos
+3. La estructura de carpetas con los apuntes en `DAM/1-DAM/`
+
+---
+
+## Objetivo
+
+Que los alumnos puedan tener una herramienta útil, clara y rápida para estudiar y organizar su curso sin tener que depender de documentos dispersos por internet o por otros sitios.
