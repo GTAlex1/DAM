@@ -1,0 +1,64 @@
+{
+ "v": 1,
+ "root": "DAM",
+ "repo": "GTAlex1/DAM",
+ "indice": "baf51fe13a15",
+ "files": [
+  {
+   "path": "DAM/1-DAM/Bases-de-Datos/Almacenamiento.html",
+   "h": "06cac617a7"
+  },
+  {
+   "path": "DAM/1-DAM/Digitalización/loquesea.md",
+   "h": "e3b0c44298"
+  },
+  {
+   "path": "DAM/1-DAM/Entornos-de-Desarrollo/Funcionamiento_Interno.html",
+   "h": "f004ecb0ba"
+  },
+  {
+   "path": "DAM/1-DAM/Entornos-de-Desarrollo/entornos-desarrollo.html",
+   "h": "6a5e4e639a"
+  },
+  {
+   "path": "DAM/1-DAM/Lenguajes-de-Marcas/FrontvsBack.html",
+   "h": "29bdcf8c3e"
+  },
+  {
+   "path": "DAM/1-DAM/Lenguajes-de-Marcas/Lenguajes-de-marcas.html",
+   "h": "aa1e3376e0"
+  },
+  {
+   "path": "DAM/1-DAM/Programacion/Introducción.html",
+   "h": "c0c06d1b66"
+  },
+  {
+   "path": "DAM/1-DAM/Programacion/Java/Java.html",
+   "h": "32fa438881"
+  },
+  {
+   "path": "DAM/1-DAM/Programacion/Pseint/ejercicios-pseint.html",
+   "h": "879542a6bc"
+  },
+  {
+   "path": "DAM/1-DAM/Sistemas-Informaticos/Temporización.html",
+   "h": "f45ea933c8"
+  },
+  {
+   "path": "DAM/1-DAM/Sistemas-Informaticos/Unidad1.html",
+   "h": "a5a2e82982"
+  },
+  {
+   "path": "DAM/1-DAM/Sistemas-Informaticos/UnidadesMedida.html",
+   "h": "61e6702b0c"
+  },
+  {
+   "path": "DAM/1-DAM/calendario.html",
+   "h": "3f05a96570"
+  },
+  {
+   "path": "DAM/1-DAM/horario.html",
+   "h": "75eb15bdf7"
+  }
+ ]
+}
