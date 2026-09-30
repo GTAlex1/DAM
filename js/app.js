@@ -1,5 +1,5 @@
 import { isAuthorized, watchAuth, loadOrder, saveOrderForPath, crearPanelSubida, crearControlModal } from './firebase-init.js?v=5';
-import { fetchGithubTree } from './github-source.js?v=2';
+import { fetchGithubTree } from './github-source.js?v=3';
 
 // ---------- Config ----------
 marked.setOptions({
@@ -600,31 +600,57 @@ function rawUrl(path) {
   return `https://raw.githubusercontent.com/${ghOwner}/${ghRepo}/${ghBranch}/${path}`;
 }
 
-// Las notas HTML se pintan con `srcdoc`, y en un srcdoc las rutas relativas se resuelven contra index.html,
-// no contra el archivo de la nota. Las notas enlazan sus recursos con rutas relativas a SU propia carpeta
-// (p. ej. ../../css/styles.css y ../../js/horario.js), así que se añade un <base> con la ubicación real
-// de la nota en el sitio. Con eso las mismas rutas funcionan dentro de la app y abriendo la nota directamente.
-function conBase(html, path) {
-  const noteUrl = new URL(path.split('/').map(encodeURIComponent).join('/'), document.baseURI).href;
-  const base = `<base href="${esc(noteUrl)}">`;
-  const abreHead = /<head(\s[^>]*)?>/i; // ojo: no debe coincidir con <header>
-  return abreHead.test(html) ? html.replace(abreHead, m => m + base) : base + html;
+// ---------- Notas HTML: niveles de confianza ----------
+// Las notas HTML se pintan en un <iframe srcdoc>. Con `allow-same-origin` la nota comparte
+// origen con la web y puede leer la sesión de Firebase (incluida la del administrador),
+// así que ese permiso se reserva a las notas de esta lista, que SÍ lo necesitan:
+//   - horario / calendario / entornos-desarrollo: usan la cuenta de Firebase.
+//   - lenguajes-de-marcas: guarda el progreso en localStorage.
+// Cualquier otra nota (incluida una nueva) se ejecuta sin `allow-same-origin`: puede
+// mostrar contenido y ejecutar sus scripts, pero en un origen aislado sin acceso a la sesión.
+// Estas rutas deben coincidir EXACTAMENTE con las del repo. Revisa cualquier cambio en
+// estos archivos con el mismo cuidado que en js/ (ver .github/CODEOWNERS).
+const NOTAS_CONFIABLES = new Set([
+  'DAM/1-DAM/horario.html',
+  'DAM/1-DAM/calendario.html',
+  'DAM/1-DAM/Entornos-de-Desarrollo/entornos-desarrollo.html',
+  'DAM/1-DAM/Lenguajes-de-Marcas/lenguajes-de-marcas.html',
+]);
+
+const SANDBOX_CONFIABLE = 'allow-same-origin allow-scripts allow-popups allow-forms';
+const SANDBOX_AISLADA = 'allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms';
+
+function sandboxPara(path) {
+  return NOTAS_CONFIABLES.has(path) ? SANDBOX_CONFIABLE : SANDBOX_AISLADA;
 }
 
-// Efecto secundario del <base>: un enlace `href="#algo"` pasaría a apuntar a la URL real de la nota y
-// recargaría el iframe. Se convierte en un simple salto dentro del propio documento.
-function arreglaAnclas(iframe) {
-  const doc = iframe.contentDocument;
-  if (!doc) return;
-  doc.addEventListener('click', (e) => {
-    if (e.defaultPrevented) return; // la nota ya lo gestiona por su cuenta
-    const a = e.target.closest && e.target.closest('a[href^="#"]');
+// En un srcdoc las rutas relativas se resuelven contra index.html, no contra el archivo de la nota.
+// Las notas enlazan sus recursos con rutas relativas a SU propia carpeta (p. ej. ../../css/styles.css),
+// así que se añade un <base> con la ubicación real de la nota en el sitio.
+//
+// Efecto secundario del <base>: un enlace `href="#algo"` pasaría a apuntar a la URL real de la nota
+// y recargaría el iframe. Se arregla con un pequeño script que se inyecta DENTRO de la nota (el padre
+// no puede tocar el documento de un iframe aislado). Se registra en `load` para ir después de los
+// manejadores de la propia nota y respetar su `preventDefault`.
+const SCRIPT_ANCLAS = `<script>
+window.addEventListener('load', function () {
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented) return;
+    var a = e.target.closest && e.target.closest('a[href^="#"]');
     if (!a) return;
     e.preventDefault();
-    const id = decodeURIComponent(a.getAttribute('href').slice(1));
-    const destino = id ? doc.getElementById(id) : null;
-    if (destino) destino.scrollIntoView(); else if (!id) doc.documentElement.scrollTop = 0;
+    var id = decodeURIComponent(a.getAttribute('href').slice(1));
+    var destino = id ? document.getElementById(id) : null;
+    if (destino) destino.scrollIntoView(); else if (!id) document.documentElement.scrollTop = 0;
   });
+});
+<\/script>`;
+
+function conBase(html, path) {
+  const noteUrl = new URL(path.split('/').map(encodeURIComponent).join('/'), document.baseURI).href;
+  const cabecera = `<base href="${esc(noteUrl)}">` + SCRIPT_ANCLAS;
+  const abreHead = /<head(\s[^>]*)?>/i; // ojo: no debe coincidir con <header>
+  return abreHead.test(html) ? html.replace(abreHead, m => m + cabecera) : cabecera + html;
 }
 
 async function renderEditor(path) {
@@ -654,9 +680,8 @@ async function renderEditor(path) {
     editorContentEl.innerHTML = '';
     const iframe = document.createElement('iframe');
     iframe.className = 'html-frame';
-    iframe.sandbox = 'allow-same-origin allow-scripts allow-popups allow-forms';
+    iframe.sandbox = sandboxPara(path); // debe fijarse ANTES de asignar srcdoc
     iframe.srcdoc = conBase(raw, path);
-    iframe.addEventListener('load', () => arreglaAnclas(iframe));
     editorContentEl.appendChild(iframe);
   } else {
     editorContentEl.classList.remove('full-bleed');

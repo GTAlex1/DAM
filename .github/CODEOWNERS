@@ -1,0 +1,16 @@
+# Archivos que se ejecutan con la sesión del usuario (mismo origen que Firebase Auth).
+# Cualquier cambio aquí debe revisarse a fondo antes de fusionarse a main.
+# Activa en GitHub: Settings → Branches → regla para `main` →
+#   "Require a pull request before merging" + "Require review from Code Owners".
+
+/index.html                                                   @gtalex1
+/js/                                                          @gtalex1
+/css/                                                         @gtalex1
+/rules.firestore                                              @gtalex1
+/.github/                                                     @gtalex1
+
+# Notas HTML con permiso de mismo origen (ver NOTAS_CONFIABLES en js/app.js).
+/DAM/1-DAM/horario.html                                       @gtalex1
+/DAM/1-DAM/calendario.html                                    @gtalex1
+/DAM/1-DAM/Entornos-de-Desarrollo/entornos-desarrollo.html    @gtalex1
+/DAM/1-DAM/Lenguajes-de-Marcas/lenguajes-de-marcas.html       @gtalex1

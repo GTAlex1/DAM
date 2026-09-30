@@ -8,14 +8,20 @@ const ALLOWED_EXTENSIONS = ['html', 'htm', 'md', "pdf"];
 
 // Detecta owner/repo a partir de la URL. Funciona automáticamente para
 // GitHub Pages de proyecto (https://usuario.github.io/repo/...). Si pruebas
-// en local o usas un dominio propio, añade ?owner=TU-USUARIO&repo=TU-REPO
-// (opcionalmente &branch=main) a la URL.
+// en LOCAL (localhost), añade ?owner=TU-USUARIO&repo=TU-REPO
+// (opcionalmente &branch=main) a la URL. En producción se ignoran.
+// SEGURIDAD: los parámetros ?owner=&repo=&branch= SOLO se aceptan en desarrollo local.
+// En producción cualquiera podría enviar un enlace como
+//   https://gtalex1.github.io/DAM/?owner=atacante&repo=x
+// y la web cargaría (y ejecutaría con la sesión de la víctima) las notas de OTRO repositorio.
+const HOSTS_LOCALES = ['localhost', '127.0.0.1', '[::1]'];
+
 function detectRepo() {
+  const host = location.hostname;
   const params = new URLSearchParams(location.search);
-  if (params.get('owner') && params.get('repo')) {
+  if (HOSTS_LOCALES.includes(host) && params.get('owner') && params.get('repo')) {
     return { owner: params.get('owner'), repo: params.get('repo'), branch: params.get('branch') || null };
   }
-  const host = location.hostname;
   if (host.endsWith('.github.io')) {
     const owner = host.split('.')[0];
     const parts = location.pathname.split('/').filter(Boolean);
