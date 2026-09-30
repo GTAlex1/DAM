@@ -52,6 +52,8 @@ let ghOwner = null, ghRepo = null, ghBranch = null; // repo de GitHub detectado
 // Fuente del contenido: 'manifest' (archivos del propio sitio, con caché por huella) o
 // 'api' (respaldo: raw.githubusercontent.com). Ver js/github-source.js.
 let fuente = { origen: 'api', hashes: {}, indice: '' };
+// Texto que se debe localizar al abrir un archivo desde los resultados de búsqueda.
+let busquedaPendiente = null; // { path, q, k }: k = nº de aparición (0 = la primera)
 const openTabs = [];        // { path, name, crumbs: [..] }
 let activePath = null;
 const contentCache = {};
@@ -500,9 +502,20 @@ function coincideFiltro(node, filtro) {
   return false;
 }
 
-function snippetCon(texto, q) {
-  const idx = texto.indexOf(q);
-  if (idx === -1) return '';
+// Posiciones (sin solaparse) de cada aparición de q en el texto indexado. La aparición nº k de
+// esta lista es la MISMA que localizarOcurrencia() busca en la página con el mismo k.
+function posicionesDe(texto, q) {
+  const pos = [];
+  let i = texto.indexOf(q);
+  while (i !== -1) {
+    pos.push(i);
+    i = texto.indexOf(q, i + q.length);
+  }
+  return pos;
+}
+
+// Fragmento de texto alrededor de la aparición que empieza en `idx`.
+function snippetEn(texto, q, idx) {
   const inicio = Math.max(0, idx - 40);
   const fin = Math.min(texto.length, idx + q.length + 60);
   let frag = texto.slice(inicio, fin);
@@ -536,9 +549,9 @@ function ejecutarBusqueda() {
     .map(node => {
       const nombreCoincide = node.name.toLowerCase().includes(q);
       const texto = textoIndexado[node.id] || '';
-      const textoCoincide = texto.includes(q);
-      if (!nombreCoincide && !textoCoincide) return null;
-      return { node, snippet: textoCoincide ? snippetCon(texto, q) : '' };
+      const posiciones = posicionesDe(texto, q);
+      if (!nombreCoincide && !posiciones.length) return null;
+      return { node, texto, posiciones };
     })
     .filter(Boolean)
     .slice(0, 60);
@@ -548,15 +561,34 @@ function ejecutarBusqueda() {
     return;
   }
 
+  const MAX_FRAGMENTOS = 5; // fragmentos clicables por archivo
   searchResultsEl.innerHTML = '';
-  resultados.forEach(({ node, snippet }) => {
+  resultados.forEach(({ node, texto, posiciones }) => {
     const crumbs = crumbsFor(node);
     const el = document.createElement('div');
     el.className = 'search-result';
-    el.innerHTML = `<div class="sr-name">${fileIcon(node.name)}<span>${esc(node.name)}</span></div>`
-      + `<div class="sr-crumbs">${esc(crumbs.join(' / '))}</div>`
-      + (snippet ? `<div class="sr-snippet">${snippet}</div>` : '');
-    el.addEventListener('click', () => openFile(node, crumbs));
+    const total = posiciones.length;
+    el.innerHTML = `<div class="sr-name">${fileIcon(node.name)}<span>${esc(node.name)}</span>`
+      + (total > 1 ? `<span style="margin-left:auto;padding-left:8px;opacity:.6;font-size:11px;">${total}</span>` : '')
+      + `</div><div class="sr-crumbs">${esc(crumbs.join(' / '))}</div>`;
+    // Clic en el archivo: abre en la primera aparición.
+    el.addEventListener('click', () => openFile(node, crumbs, q, 0));
+
+    // Un fragmento por aparición: el clic abre el archivo justo en ESA aparición.
+    posiciones.slice(0, MAX_FRAGMENTOS).forEach((idx, k) => {
+      const frag = document.createElement('div');
+      frag.className = 'sr-snippet';
+      frag.style.cursor = 'pointer';
+      frag.innerHTML = snippetEn(texto, q, idx);
+      frag.addEventListener('click', (ev) => { ev.stopPropagation(); openFile(node, crumbs, q, k); });
+      el.appendChild(frag);
+    });
+    if (total > MAX_FRAGMENTOS) {
+      const mas = document.createElement('div');
+      mas.className = 'sr-crumbs';
+      mas.textContent = `+ ${total - MAX_FRAGMENTOS} más en este archivo`;
+      el.appendChild(mas);
+    }
     searchResultsEl.appendChild(el);
   });
 }
@@ -569,7 +601,8 @@ searchInputEl.addEventListener('input', () => {
 searchFiltroEl.addEventListener('change', ejecutarBusqueda);
 
 // ---------- Tabs ----------
-function openFile(fileNode, crumbs) {
+function openFile(fileNode, crumbs, textoBuscado, k) {
+  busquedaPendiente = textoBuscado ? { path: fileNode.path, q: textoBuscado, k: k || 0 } : null;
   let tab = openTabs.find(t => t.path === fileNode.path);
   if (!tab) {
     tab = { path: fileNode.path, name: fileNode.name, crumbs };
@@ -687,7 +720,68 @@ function sandboxPara(path) {
 // y recargaría el iframe. Se arregla con un pequeño script que se inyecta DENTRO de la nota (el padre
 // no puede tocar el documento de un iframe aislado). Se registra en `load` para ir después de los
 // manejadores de la propia nota y respetar su `preventDefault`.
-const SCRIPT_ANCLAS = `<script>
+// Localiza la aparición nº k (0 = la primera) del texto q dentro de `raiz`, la resalta y la lleva
+// a la vista. Usa solo APIs estándar: TreeWalker, Range, Selection y CSS Custom Highlight.
+//
+// El texto se construye EXACTAMENTE como el índice de búsqueda (scripts/build-index.mjs): texto
+// de la página sin <script>/<style>/<noscript>, espacios colapsados y en minúsculas. Así la
+// aparición nº k de los resultados es la nº k aquí, también si cruza etiquetas (<b>hor</b>ario).
+//
+// IMPORTANTE: esta función se copia como texto dentro de cada nota (ver SCRIPT_NOTA), así que debe
+// ser autosuficiente: no puede usar nada definido fuera de ella.
+function localizarOcurrencia(raiz, q, k) {
+  var recorrido = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT);
+  var nodos = [], pos = [], txt = '', espacioPrevio = false, nodo;
+  while ((nodo = recorrido.nextNode())) {
+    if (nodo.parentElement && nodo.parentElement.closest('script,style,noscript,template')) continue;
+    var v = nodo.nodeValue;
+    for (var i = 0; i < v.length; i++) {
+      var c = v.charAt(i);
+      if (/\s/.test(c)) {
+        if (espacioPrevio) continue;
+        espacioPrevio = true;
+        c = ' ';
+      } else {
+        espacioPrevio = false;
+      }
+      var minus = c.toLowerCase();
+      for (var j = 0; j < minus.length; j++) { txt += minus.charAt(j); nodos.push(nodo); pos.push(i); }
+    }
+  }
+
+  var idx = -1, desde = 0;
+  for (var n = 0; n <= k; n++) {
+    idx = txt.indexOf(q, desde);
+    if (idx === -1) return false;
+    desde = idx + q.length;
+  }
+
+  var fin = idx + q.length - 1;
+  var rango = document.createRange();
+  rango.setStart(nodos[idx], pos[idx]);
+  rango.setEnd(nodos[fin], pos[fin] + 1);
+
+  var el = nodos[idx].parentElement;
+  if (!el) return false;
+  // Si la aparición está dentro de un <details> cerrado, se abre para que sea visible.
+  for (var d = el.closest('details:not([open])'); d; d = d.parentElement && d.parentElement.closest('details:not([open])')) {
+    d.open = true;
+  }
+  if (window.CSS && CSS.highlights && typeof Highlight !== 'undefined') {
+    CSS.highlights.set('busqueda-apuntes', new Highlight(rango));
+  } else {
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(rango);
+  }
+  el.scrollIntoView({ block: 'center' });
+  return true;
+}
+
+// Color del resaltado (CSS Custom Highlight). Se inyecta también en cada nota.
+const ESTILO_RESALTADO = '<style>::highlight(busqueda-apuntes){background-color:#f5c518;color:#000;}</style>';
+
+const SCRIPT_NOTA = `<script>
 window.addEventListener('load', function () {
   document.addEventListener('click', function (e) {
     if (e.defaultPrevented) return;
@@ -699,11 +793,32 @@ window.addEventListener('load', function () {
     if (destino) destino.scrollIntoView(); else if (!id) document.documentElement.scrollTop = 0;
   });
 });
+
+${localizarOcurrencia.toString()}
+
+// Desde el buscador: la web padre pide localizar la aparición nº k del texto buscado.
+// Solo se aceptan mensajes del padre. Se reintenta unas veces por si la nota pinta su contenido
+// con retraso (p. ej. tras cargar datos de la cuenta).
+window.addEventListener('message', function (e) {
+  if (e.source !== window.parent) return;
+  var d = e.data;
+  if (!d || d.apuntes !== 'buscar' || typeof d.q !== 'string' || !d.q || d.q.length > 200) return;
+  var k = (typeof d.k === 'number' && d.k >= 0 && d.k < 10000) ? Math.floor(d.k) : 0;
+  var intentos = 0;
+  (function buscar() {
+    var ok = false;
+    try {
+      // Si esa aparición no existe (la nota cambió respecto al índice), se va a la primera.
+      ok = localizarOcurrencia(document.body, d.q, k) || (k > 0 && localizarOcurrencia(document.body, d.q, 0));
+    } catch (err) {}
+    if (!ok && ++intentos < 6) setTimeout(buscar, 400);
+  })();
+});
 <\/script>`;
 
 function conBase(html, path) {
   const noteUrl = new URL(path.split('/').map(encodeURIComponent).join('/'), document.baseURI).href;
-  const cabecera = `<base href="${esc(noteUrl)}">` + SCRIPT_ANCLAS;
+  const cabecera = `<base href="${esc(noteUrl)}">` + ESTILO_RESALTADO + SCRIPT_NOTA;
   const abreHead = /<head(\s[^>]*)?>/i; // ojo: no debe coincidir con <header>
   return abreHead.test(html) ? html.replace(abreHead, m => m + cabecera) : cabecera + html;
 }
@@ -730,6 +845,10 @@ async function renderEditor(path) {
 
   if (activePath !== path) return; // el usuario cambió de pestaña mientras cargaba
 
+  const pedido = busquedaPendiente && busquedaPendiente.path === path ? busquedaPendiente : null;
+  busquedaPendiente = null;
+  if (window.CSS && CSS.highlights) CSS.highlights.delete('busqueda-apuntes'); // quita el resaltado anterior
+
   if (isHtml) {
     editorContentEl.classList.add('full-bleed');
     editorContentEl.innerHTML = '';
@@ -737,12 +856,22 @@ async function renderEditor(path) {
     iframe.className = 'html-frame';
     iframe.sandbox = sandboxPara(path); // debe fijarse ANTES de asignar srcdoc
     iframe.srcdoc = conBase(raw, path);
+    if (pedido) {
+      // '*' es necesario porque una nota aislada tiene origen opaco; solo viaja el texto buscado.
+      iframe.addEventListener('load', () => {
+        iframe.contentWindow.postMessage({ apuntes: 'buscar', q: pedido.q, k: pedido.k }, '*');
+      });
+    }
     editorContentEl.appendChild(iframe);
   } else {
     editorContentEl.classList.remove('full-bleed');
     const html = markdownSeguro(raw);
     editorContentEl.innerHTML = `<div class="note">${html}</div>`;
     editorContentEl.scrollTop = 0;
+    if (pedido) {
+      const nota = editorContentEl.querySelector('.note') || editorContentEl;
+      if (!localizarOcurrencia(nota, pedido.q, pedido.k) && pedido.k > 0) localizarOcurrencia(nota, pedido.q, 0);
+    }
   }
   editorContentEl.classList.remove('loading');
 }
