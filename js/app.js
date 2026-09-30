@@ -1,5 +1,5 @@
 import { isAuthorized, watchAuth, loadOrder, saveOrderForPath, crearPanelSubida, crearControlModal } from './firebase-init.js?v=5';
-import { fetchGithubTree } from './github-source.js?v=3';
+import { fetchGithubTree } from './github-source.js?v=4';
 
 // ---------- Config ----------
 marked.setOptions({
@@ -49,6 +49,9 @@ const favoritosListEl = document.getElementById('favoritos-list');
 let root = null;            // raíz del árbol en memoria (con parent/id/pathKey)
 let savedOrder = {};        // orden guardado en Firestore { pathKey: [nombres] }
 let ghOwner = null, ghRepo = null, ghBranch = null; // repo de GitHub detectado
+// Fuente del contenido: 'manifest' (archivos del propio sitio, con caché por huella) o
+// 'api' (respaldo: raw.githubusercontent.com). Ver js/github-source.js.
+let fuente = { origen: 'api', hashes: {}, indice: '' };
 const openTabs = [];        // { path, name, crumbs: [..] }
 let activePath = null;
 const contentCache = {};
@@ -90,11 +93,12 @@ function fileIcon(name) {
 // ---------- Load file tree from GitHub + saved order ----------
 async function cargarArbol() {
   try {
-    const [{ root: treeRoot, owner, repo, branch }, orderData] = await Promise.all([
+    const [{ root: treeRoot, owner, repo, branch, origen, hashes, indice }, orderData] = await Promise.all([
       fetchGithubTree(),
       loadOrder(),
     ]);
     ghOwner = owner; ghRepo = repo; ghBranch = branch;
+    fuente = { origen, hashes: hashes || {}, indice: indice || '' };
     savedOrder = orderData || {};
     root = treeRoot;
     nextId = 1;
@@ -129,6 +133,8 @@ function showTreeError(err) {
     msg = 'No se ha podido detectar el repositorio de GitHub automáticamente. Si estás probando en local o con un dominio propio, añade <code>?owner=TU-USUARIO&repo=TU-REPO</code> a la URL.';
   } else if (err && err.message === 'REPO_NOT_FOUND') {
     msg = 'No se encontró ese repositorio en GitHub. Comprueba que sea público y que el nombre coincida con la URL.';
+  } else if (err && err.message === 'RATE_LIMIT') {
+    msg = 'GitHub ha limitado temporalmente las consultas desde tu red (demasiadas peticiones). Espera un rato y recarga la página.';
   } else if (err && err.message === 'TREE_NOT_FOUND') {
     msg = 'No se pudo leer el contenido del repositorio (rama no encontrada).';
   }
@@ -404,7 +410,7 @@ function htmlAPlano(html) {
 
 async function indexarArchivo(node) {
   try {
-    const res = await fetch(rawUrl(node.path), { cache: 'no-store' });
+    const res = await fetch(contenidoUrl(node.path), opcionesFetch());
     if (!res.ok) return;
     const raw = await res.text();
     contentCache[node.path] = raw; // aprovecha para no re-descargar al abrir el archivo
@@ -434,10 +440,44 @@ async function construirIndice(archivos) {
   ejecutarBusqueda();
 }
 
+// Carga search-index.json (texto plano de todos los apuntes, generado por la GitHub Action).
+// Devuelve false si no existe o es inválido; entonces se indexa descargando cada apunte.
+async function cargarIndicePrecalculado(archivos) {
+  if (fuente.origen !== 'manifest' || !fuente.indice) return false;
+  try {
+    const u = new URL('search-index.json', document.baseURI);
+    u.searchParams.set('v', fuente.indice);
+    const res = await fetch(u.href);
+    if (!res.ok) return false;
+    const datos = await res.json();
+    const docs = datos && datos.docs;
+    if (!docs || typeof docs !== 'object') return false;
+    for (const nodo of archivos) {
+      if (Object.hasOwn(docs, nodo.path) && typeof docs[nodo.path] === 'string') {
+        textoIndexado[nodo.id] = docs[nodo.path];
+      }
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function cargarIndice(archivos) {
+  searchStatusEl.textContent = 'Cargando índice…';
+  if (await cargarIndicePrecalculado(archivos)) {
+    indiceListo = true;
+    searchStatusEl.textContent = '';
+    ejecutarBusqueda();
+    return;
+  }
+  await construirIndice(archivos);
+}
+
 function iniciarIndiceBusqueda() {
   if (indiceListo || indiceEnCurso || !root) return;
   const archivos = todosLosArchivos(root, []);
-  indiceEnCurso = construirIndice(archivos);
+  indiceEnCurso = cargarIndice(archivos);
 
   // Rellena el filtro de asignaturas con las carpetas de segundo nivel
   // (curso/asignatura), sin duplicados.
@@ -596,8 +636,23 @@ function renderBreadcrumbs() {
 }
 
 // ---------- Render note content ----------
-function rawUrl(path) {
+// URL desde la que se descarga el contenido de un apunte.
+//  - Con manifest: el propio sitio (GitHub Pages). Se añade ?v=<huella> para que el navegador
+//    cachee cada archivo y solo lo vuelva a descargar cuando su contenido cambia.
+//  - Sin manifest (respaldo): raw.githubusercontent.com.
+function contenidoUrl(path) {
+  if (fuente.origen === 'manifest') {
+    const u = new URL(path.split('/').map(encodeURIComponent).join('/'), document.baseURI);
+    const h = fuente.hashes[path];
+    if (h) u.searchParams.set('v', h);
+    return u.href;
+  }
   return `https://raw.githubusercontent.com/${ghOwner}/${ghRepo}/${ghBranch}/${path}`;
+}
+
+// Con huella en la URL la caché normal es segura; en el respaldo se pide siempre fresco.
+function opcionesFetch() {
+  return fuente.origen === 'manifest' ? {} : { cache: 'no-store' };
 }
 
 // ---------- Notas HTML: niveles de confianza ----------
@@ -661,13 +716,13 @@ async function renderEditor(path) {
   let raw = contentCache[path];
   if (!raw) {
     try {
-      const res = await fetch(rawUrl(path), { cache: 'no-store' });
+      const res = await fetch(contenidoUrl(path), opcionesFetch());
       if (!res.ok) throw new Error('HTTP ' + res.status);
       raw = await res.text();
       contentCache[path] = raw;
     } catch (e) {
       editorContentEl.classList.remove('full-bleed');
-      editorContentEl.innerHTML = `<div class="note"><p style="color:#f48771;">No se pudo cargar <code>${esc(path)}</code> desde GitHub (${esc(e.message)}).</p></div>`;
+      editorContentEl.innerHTML = `<div class="note"><p style="color:#f48771;">No se pudo cargar <code>${esc(path)}</code> (${esc(e.message)}).</p></div>`;
       editorContentEl.classList.remove('loading');
       return;
     }

@@ -1,0 +1,48 @@
+# Regenera manifest.json y search-index.json cuando cambian los apuntes.
+# Los archivos generados se guardan en el repo (commit del bot) y GitHub Pages los publica.
+name: Generar manifest e índice de búsqueda
+
+on:
+  push:
+    branches: [main]
+    # Los archivos generados NO están en esta lista, así que el commit del bot no relanza la Action.
+    paths:
+      - 'DAM/**'
+      - 'scripts/build-index.mjs'
+      - '.github/workflows/build-index.yml'
+  workflow_dispatch: # botón «Run workflow» en la pestaña Actions (para la primera vez)
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-index
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencia
+        run: npm install --no-save --no-package-lock cheerio@1.0.0
+
+      - name: Generar archivos
+        run: node scripts/build-index.mjs
+
+      - name: Guardar cambios (solo si hay)
+        run: |
+          if [ -n "$(git status --porcelain -- manifest.json search-index.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add manifest.json search-index.json
+            git commit -m "chore: regenerar manifest e índice de búsqueda"
+            git push
+          else
+            echo "Sin cambios."
+          fi

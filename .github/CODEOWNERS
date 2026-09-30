@@ -8,6 +8,7 @@
 /css/                                                         @gtalex1
 /rules.firestore                                              @gtalex1
 /.github/                                                     @gtalex1
+/scripts/                                                     @gtalex1
 
 # Notas HTML con permiso de mismo origen (ver NOTAS_CONFIABLES en js/app.js).
 /DAM/1-DAM/horario.html                                       @gtalex1
