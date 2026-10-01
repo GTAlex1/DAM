@@ -4792,8 +4792,26 @@ lab('ci', {
 const NAV = { tab: null, userTab: null, abiertos: {}, filtro: '', kbIdx: -1 };
 let VISTA = { v: 'inicio', id: null };
 
+/* Ruta interna: la vista actual se guarda en memoria y NO depende de que el navegador
+   resuelva '#...' contra la URL del documento. Así los enlaces de las pestañas no
+   provocan una navegación real (que en un entorno con URL con token/proxy devolvía
+   el error 'querystring must have required property token'). */
+let HASH_V = location.hash || '';
+function curHash() { return HASH_V; }
+function setHash(h) {
+  h = '#' + String(h).replace(/^#/, '');
+  if (HASH_V === h) { render(); return; }
+  HASH_V = h;
+  try { history.pushState(null, '', h); } catch (e) { /* entorno sin acceso a history: seguimos en memoria */ }
+  render();
+}
+function sincronizaHash() {
+  let l = ''; try { l = location.hash || ''; } catch (e) { return; }
+  if (l !== HASH_V) { HASH_V = l; render(); }
+}
+
 function ruta() {
-  const hs = decodeURIComponent((location.hash || '').slice(1));
+  const hs = decodeURIComponent((curHash() || '').slice(1));
   if (!hs || hs === 'inicio') return { v: 'inicio' };
   if (hs.startsWith('s-')) return { v: 'sesion', id: hs.slice(2) };
   if (hs.startsWith('f-')) return { v: 'ficha', id: hs.slice(2) };
@@ -4804,7 +4822,7 @@ function ruta() {
   if (hs === 'progreso') return { v: 'progreso' };
   return { v: 'inicio' };
 }
-function ir(hash) { if (location.hash === '#' + hash) render(); else location.hash = hash; }
+function ir(hash) { if (curHash() === '#' + hash) render(); else setHash(hash); }
 
 function render() {
   limpiaVista();
@@ -4894,8 +4912,8 @@ function pintaNav() {
   }
   nav.innerHTML = hh;
   const cur = $('.ngrp-l [aria-current="page"]', nav);
-  if (NAV.ultimaVista !== location.hash) {
-    NAV.ultimaVista = location.hash;
+  if (NAV.ultimaVista !== curHash()) {
+    NAV.ultimaVista = curHash();
     if (cur) { const r = cur.getBoundingClientRect(), nr = nav.getBoundingClientRect(); if (r.top < nr.top || r.bottom > nr.bottom) nav.scrollTop += r.top - nr.top - nr.height / 2; }
     else nav.scrollTop = 0;
   }
@@ -5416,7 +5434,7 @@ function heroTree(host) {
       ctext(ctx, '$ git log --graph --oneline', 16, 20, { size: 11.5, col: COL.dim, mono: true });
     }
   });
-  S.onDown = (px, py) => { const n = HIT.length, m = Math.max(56, S.w * .09); for (let i = 0; i < n; i++) { const x = m + (S.w - 2 * m) * i / (n - 1); if (Math.hypot(px - x, py - S.h * .46) < 18) { location.hash = 's-' + APP.sesiones.find(s => s.bloque === String(i + 1)).id; } } };
+  S.onDown = (px, py) => { const n = HIT.length, m = Math.max(56, S.w * .09); for (let i = 0; i < n; i++) { const x = m + (S.w - 2 * m) * i / (n - 1); if (Math.hypot(px - x, py - S.h * .46) < 18) { setHash('s-' + APP.sesiones.find(s => s.bloque === String(i + 1)).id); } } };
 }
 
 const DATOS_Z = {
@@ -5559,7 +5577,7 @@ qInput.addEventListener('keydown', ev => {
     items.forEach((a, i) => a.classList.toggle('kb', i === NAV.kbIdx));
     items[NAV.kbIdx].scrollIntoView({ block: 'nearest' });
   }
-  if (ev.key === 'Enter') { const a = items[Math.max(0, NAV.kbIdx)]; if (a) { location.hash = a.getAttribute('href').slice(1); qInput.value = ''; NAV.filtro = ''; qInput.blur(); } }
+  if (ev.key === 'Enter') { const a = items[Math.max(0, NAV.kbIdx)]; if (a) { setHash(a.getAttribute('href').slice(1)); qInput.value = ''; NAV.filtro = ''; qInput.blur(); } }
 });
 $('#nav').addEventListener('click', ev => { if (ev.target.closest('.srch a')) { qInput.value = ''; NAV.filtro = ''; setTimeout(pintaNav, 0); } });
 $('#tabSes').addEventListener('click', () => { NAV.userTab = 'ses'; pintaNav(); });
@@ -5589,11 +5607,22 @@ document.addEventListener('keydown', ev => {
   if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') {
     const pg = $('.pager'); if (!pg) return;
     const a = ev.key === 'ArrowLeft' ? $('a:not(.nx)', pg) : $('a.nx', pg);
-    if (a) { location.hash = a.getAttribute('href').slice(1); }
+    if (a) { setHash(a.getAttribute('href').slice(1)); }
   }
 });
 window.addEventListener('scroll', () => { lectura(); if (popEl) hidePop(); }, { passive: true });
-window.addEventListener('hashchange', render);
+window.addEventListener('hashchange', sincronizaHash);
+window.addEventListener('popstate', sincronizaHash);
+/* Intercepta los enlaces internos (#inicio, #s-…, #f-…, #lab-…, #referencia…) para navegar sin salir del documento */
+document.addEventListener('click', ev => {
+  if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+  const a = ev.target.closest && ev.target.closest('a[href^="#"]');
+  if (!a || a.hasAttribute('data-salta')) return;
+  const hf = a.getAttribute('href');
+  if (!hf || hf === '#') return;
+  ev.preventDefault();
+  setHash(hf.slice(1));
+}, true);
 
 (async function () {
   let crudoSes, crudoCon;
