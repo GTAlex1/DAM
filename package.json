@@ -1,0 +1,19 @@
+{
+  "name": "apuntes-dam",
+  "private": true,
+  "type": "module",
+  "description": "Apuntes de DAM: web estática (GitHub Pages) con Firebase.",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "node --test",
+    "indice": "node scripts/build-index.mjs"
+  },
+  "dependencies": {
+    "cheerio": "1.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
+    "jsdom": "^24.0.0"
+  }
+}

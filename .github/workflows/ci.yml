@@ -1,0 +1,24 @@
+# Comprobaciones automáticas en cada push y pull request: ESLint (errores de código) y tests.
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths: ['js/**', 'scripts/**', 'tests/**', 'package.json', 'package-lock.json', 'eslint.config.js']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test

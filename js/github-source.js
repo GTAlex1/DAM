@@ -37,7 +37,7 @@ function detectRepo() {
 const extensionDe = (ruta) => ruta.split('.').pop().toLowerCase();
 
 // Ruta válida: dentro de DAM/, sin «..» ni barras invertidas y con extensión permitida.
-function rutaValida(ruta) {
+export function rutaValida(ruta) {
   return typeof ruta === 'string'
     && ruta.startsWith(ROOT_FOLDER + '/')
     && !ruta.includes('\\')
@@ -46,7 +46,7 @@ function rutaValida(ruta) {
 }
 
 // Convierte una lista de rutas («DAM/1-DAM/Java/Java.html») en el árbol de carpetas.
-function construirArbol(rutas) {
+export function construirArbol(rutas) {
   const root = { name: ROOT_FOLDER, type: 'folder', children: [] };
   rutas.forEach(ruta => {
     const segments = ruta.slice(ROOT_FOLDER.length + 1).split('/'); // quita "DAM/"

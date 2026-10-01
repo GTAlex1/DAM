@@ -1,29 +1,25 @@
-import { isAuthorized, watchAuth, loadOrder, saveOrderForPath, crearPanelSubida, crearControlModal } from './firebase-init.js?v=5';
-import { fetchGithubTree } from './github-source.js?v=4';
+import {
+  isAuthorized, watchAuth, loadOrder, saveOrderForPath, crearPanelSubida, crearControlModal,
+  cargarFavoritosNube, guardarFavoritosNube,
+} from './firebase-init.js?v=6';
+import { fetchGithubTree } from './github-source.js?v=5';
+import { esc, htmlAPlano, posicionesDe, localizarOcurrencia } from './utils.js?v=1';
 
 // ---------- Config ----------
-marked.setOptions({
-  highlight: function (code, lang) {
-    if (lang && hljs.getLanguage(lang)) {
-      return hljs.highlight(code, { language: lang }).value;
-    }
-    return hljs.highlightAuto(code).value;
-  },
-  breaks: false,
-});
-
-// ---------- Seguridad: escape y saneado ----------
-// Todo texto que no sea una constante de este archivo (nombres de archivo, rutas,
-// contenido de los apuntes, lo que escribe el usuario, parámetros de la URL) debe
-// pasar por esc() antes de meterse en un innerHTML, o insertarse con textContent.
-function esc(valor) {
-  return String(valor ?? '').replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  }[c]));
-}
+marked.setOptions({ breaks: false });
+// marked >= 8 ya no admite la opción `highlight`: el código se colorea después de pintar el
+// Markdown (ver resaltarCodigo()).
 
 // Convierte Markdown en HTML seguro. Falla cerrado: si DOMPurify no se ha cargado
 // (CDN caído o bloqueado) se muestra el texto plano escapado en vez de HTML sin sanear.
+// Colorea los bloques de código ya pintados con highlight.js (si está cargado).
+function resaltarCodigo(contenedor) {
+  if (typeof hljs === 'undefined') return;
+  contenedor.querySelectorAll('pre code').forEach(bloque => {
+    try { hljs.highlightElement(bloque); } catch { /* un bloque raro no debe romper la nota */ }
+  });
+}
+
 function markdownSeguro(raw) {
   if (typeof DOMPurify === 'undefined') {
     return `<pre>${esc(raw)}</pre>`;
@@ -62,18 +58,89 @@ let editMode = false;
 let nextId = 1;
 const nodesById = {};
 
-// ---------- Favoritos (guardados en este navegador) ----------
+// ---------- Favoritos ----------
+// Se guardan en este navegador (localStorage) y, si hay sesión, también en tu cuenta
+// (favoritos/{uid} en Firestore) para verlos desde cualquier dispositivo.
+//  - Sin sesión: solo local; los cambios marcan «sucio» para no perderse al iniciar sesión.
+//  - Al iniciar sesión: si es la primera vez en este navegador o hay cambios sin sincronizar, se
+//    UNEN los favoritos locales y los de la cuenta; si no, manda la cuenta.
+//  - Al cerrar sesión se vacían los favoritos locales (no deben quedarse en un equipo compartido).
 const CLAVE_FAVORITOS = 'damNotesFavoritos';
+const CLAVE_FAV_UID = 'damNotesFavoritosUid';     // cuenta con la que se sincronizó por última vez
+const CLAVE_FAV_SUCIO = 'damNotesFavoritosSucio'; // '1' = hay cambios hechos sin sesión
+
+function leerLocal(clave) {
+  try { return localStorage.getItem(clave); } catch { return null; }
+}
+function escribirLocal(clave, valor) {
+  try {
+    if (valor === null) localStorage.removeItem(clave); else localStorage.setItem(clave, valor);
+  } catch { /* sin almacenamiento: se sigue en memoria */ }
+}
+
 let favoritos = new Set();
-try { favoritos = new Set(JSON.parse(localStorage.getItem(CLAVE_FAVORITOS) || '[]')); } catch (e) { }
+try { favoritos = new Set(JSON.parse(leerLocal(CLAVE_FAVORITOS) || '[]')); } catch { /* datos corruptos: se ignoran */ }
+let usuarioFavoritos = null; // usuario con sesión, o null
+let temporizadorFav = null;
 
 function esFavorito(path) { return favoritos.has(path); }
 function guardarFavoritos() {
-  try { localStorage.setItem(CLAVE_FAVORITOS, JSON.stringify([...favoritos])); } catch (e) { }
+  escribirLocal(CLAVE_FAVORITOS, JSON.stringify([...favoritos]));
 }
+
+// Sube la lista a la cuenta tras una pausa (agrupa varios clics seguidos). La lista se copia AL
+// PROGRAMAR: si la sesión se cierra antes de que salte el temporizador, nunca se sube una lista vacía.
+function programarSubidaFavoritos() {
+  clearTimeout(temporizadorFav);
+  const usuario = usuarioFavoritos;
+  const lista = [...favoritos];
+  temporizadorFav = setTimeout(() => {
+    guardarFavoritosNube(usuario, lista).catch(e => console.warn('No se pudieron guardar los favoritos en la cuenta:', e));
+  }, 800);
+}
+
 function alternarFavorito(path) {
   if (favoritos.has(path)) favoritos.delete(path); else favoritos.add(path);
   guardarFavoritos();
+  if (usuarioFavoritos) programarSubidaFavoritos(); else escribirLocal(CLAVE_FAV_SUCIO, '1');
+}
+
+async function sincronizarFavoritos(user) {
+  let nube;
+  try {
+    nube = await cargarFavoritosNube(user);
+  } catch (e) {
+    console.warn('No se pudieron leer los favoritos de la cuenta:', e);
+    return; // se sigue con los locales
+  }
+  if (!usuarioFavoritos || usuarioFavoritos.uid !== user.uid) return; // la sesión cambió mientras se cargaba
+
+  const unir = leerLocal(CLAVE_FAV_UID) !== user.uid || leerLocal(CLAVE_FAV_SUCIO) === '1';
+  let resultado;
+  if (nube === null) resultado = new Set(favoritos);
+  else if (unir) resultado = new Set([...nube, ...favoritos]);
+  else resultado = new Set(nube);
+
+  const hayQueSubir = nube === null
+    ? resultado.size > 0
+    : resultado.size !== nube.length || nube.some(r => !resultado.has(r));
+
+  favoritos = resultado;
+  guardarFavoritos();
+  escribirLocal(CLAVE_FAV_UID, user.uid);
+  escribirLocal(CLAVE_FAV_SUCIO, null);
+  if (hayQueSubir) programarSubidaFavoritos();
+  if (root) buildTree();
+  renderFavoritos();
+}
+
+function alCerrarSesionFavoritos() {
+  favoritos = new Set();
+  guardarFavoritos();
+  escribirLocal(CLAVE_FAV_UID, null);
+  escribirLocal(CLAVE_FAV_SUCIO, null);
+  if (root) buildTree();
+  renderFavoritos();
 }
 
 // ---------- Icons ----------
@@ -402,14 +469,6 @@ function todosLosArchivos(node, out) {
   return out;
 }
 
-function htmlAPlano(html) {
-  // DOMParser crea un documento inerte: no ejecuta scripts ni carga imágenes/handlers
-  // (a diferencia de asignar innerHTML a un elemento, aunque no esté en la página).
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  doc.querySelectorAll('script, style, noscript, template').forEach(n => n.remove());
-  return (doc.body ? doc.body.textContent : '').replace(/\s+/g, ' ');
-}
-
 async function indexarArchivo(node) {
   try {
     const res = await fetch(contenidoUrl(node.path), opcionesFetch());
@@ -500,18 +559,6 @@ function coincideFiltro(node, filtro) {
   let p = node.parent;
   while (p) { if (p.name === filtro) return true; p = p.parent; }
   return false;
-}
-
-// Posiciones (sin solaparse) de cada aparición de q en el texto indexado. La aparición nº k de
-// esta lista es la MISMA que localizarOcurrencia() busca en la página con el mismo k.
-function posicionesDe(texto, q) {
-  const pos = [];
-  let i = texto.indexOf(q);
-  while (i !== -1) {
-    pos.push(i);
-    i = texto.indexOf(q, i + q.length);
-  }
-  return pos;
 }
 
 // Fragmento de texto alrededor de la aparición que empieza en `idx`.
@@ -712,72 +759,6 @@ function sandboxPara(path) {
   return NOTAS_CONFIABLES.has(path) ? SANDBOX_CONFIABLE : SANDBOX_AISLADA;
 }
 
-// En un srcdoc las rutas relativas se resuelven contra index.html, no contra el archivo de la nota.
-// Las notas enlazan sus recursos con rutas relativas a SU propia carpeta (p. ej. ../../css/styles.css),
-// así que se añade un <base> con la ubicación real de la nota en el sitio.
-//
-// Efecto secundario del <base>: un enlace `href="#algo"` pasaría a apuntar a la URL real de la nota
-// y recargaría el iframe. Se arregla con un pequeño script que se inyecta DENTRO de la nota (el padre
-// no puede tocar el documento de un iframe aislado). Se registra en `load` para ir después de los
-// manejadores de la propia nota y respetar su `preventDefault`.
-// Localiza la aparición nº k (0 = la primera) del texto q dentro de `raiz`, la resalta y la lleva
-// a la vista. Usa solo APIs estándar: TreeWalker, Range, Selection y CSS Custom Highlight.
-//
-// El texto se construye EXACTAMENTE como el índice de búsqueda (scripts/build-index.mjs): texto
-// de la página sin <script>/<style>/<noscript>, espacios colapsados y en minúsculas. Así la
-// aparición nº k de los resultados es la nº k aquí, también si cruza etiquetas (<b>hor</b>ario).
-//
-// IMPORTANTE: esta función se copia como texto dentro de cada nota (ver SCRIPT_NOTA), así que debe
-// ser autosuficiente: no puede usar nada definido fuera de ella.
-function localizarOcurrencia(raiz, q, k) {
-  var recorrido = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT);
-  var nodos = [], pos = [], txt = '', espacioPrevio = false, nodo;
-  while ((nodo = recorrido.nextNode())) {
-    if (nodo.parentElement && nodo.parentElement.closest('script,style,noscript,template')) continue;
-    var v = nodo.nodeValue;
-    for (var i = 0; i < v.length; i++) {
-      var c = v.charAt(i);
-      if (/\s/.test(c)) {
-        if (espacioPrevio) continue;
-        espacioPrevio = true;
-        c = ' ';
-      } else {
-        espacioPrevio = false;
-      }
-      var minus = c.toLowerCase();
-      for (var j = 0; j < minus.length; j++) { txt += minus.charAt(j); nodos.push(nodo); pos.push(i); }
-    }
-  }
-
-  var idx = -1, desde = 0;
-  for (var n = 0; n <= k; n++) {
-    idx = txt.indexOf(q, desde);
-    if (idx === -1) return false;
-    desde = idx + q.length;
-  }
-
-  var fin = idx + q.length - 1;
-  var rango = document.createRange();
-  rango.setStart(nodos[idx], pos[idx]);
-  rango.setEnd(nodos[fin], pos[fin] + 1);
-
-  var el = nodos[idx].parentElement;
-  if (!el) return false;
-  // Si la aparición está dentro de un <details> cerrado, se abre para que sea visible.
-  for (var d = el.closest('details:not([open])'); d; d = d.parentElement && d.parentElement.closest('details:not([open])')) {
-    d.open = true;
-  }
-  if (window.CSS && CSS.highlights && typeof Highlight !== 'undefined') {
-    CSS.highlights.set('busqueda-apuntes', new Highlight(rango));
-  } else {
-    var sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(rango);
-  }
-  el.scrollIntoView({ block: 'center' });
-  return true;
-}
-
 // Color del resaltado (CSS Custom Highlight). Se inyecta también en cada nota.
 const ESTILO_RESALTADO = '<style>::highlight(busqueda-apuntes){background-color:#f5c518;color:#000;}</style>';
 
@@ -867,6 +848,7 @@ async function renderEditor(path) {
     editorContentEl.classList.remove('full-bleed');
     const html = markdownSeguro(raw);
     editorContentEl.innerHTML = `<div class="note">${html}</div>`;
+    resaltarCodigo(editorContentEl);
     editorContentEl.scrollTop = 0;
     if (pedido) {
       const nota = editorContentEl.querySelector('.note') || editorContentEl;
@@ -928,6 +910,11 @@ btnSubirArchivo.addEventListener('click', () => {
 });
 
 watchAuth((user) => {
+  const sesionPrevia = usuarioFavoritos;
+  usuarioFavoritos = user || null;
+  if (user) sincronizarFavoritos(user);
+  else if (sesionPrevia) alCerrarSesionFavoritos();
+
   const authorized = isAuthorized(user);
   editMode = authorized;
   editBadgeEl.toggleAttribute('hidden', !authorized);

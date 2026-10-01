@@ -8,7 +8,7 @@
 //
 // Los ejecuta la GitHub Action .github/workflows/build-index.yml en cada push a main.
 // Para probarlo en local (necesita Node 18+):
-//     npm install --no-save --no-package-lock cheerio@1.0.0
+//     npm ci
 //     node scripts/build-index.mjs
 //
 // La salida es DETERMINISTA (sin fechas): si no cambia ningún apunte, los archivos salen
@@ -16,7 +16,7 @@
 
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import * as cheerio from 'cheerio';
+import { htmlAPlano } from './texto-plano.mjs';
 
 const ROOT_FOLDER = 'DAM';
 // Mismas extensiones que js/github-source.js (ALLOWED_EXTENSIONS).
@@ -35,13 +35,6 @@ async function listar(dir) {
     else if (e.isFile() && EXTENSIONES.includes(extensionDe(e.name))) salida.push(ruta);
   }
   return salida;
-}
-
-// Igual que htmlAPlano() de js/app.js: quita script/style/noscript/template y devuelve el texto.
-function htmlAPlano(html) {
-  const $ = cheerio.load(html);
-  $('script, style, noscript, template').remove();
-  return $('body').text().replace(/\s+/g, ' ');
 }
 
 const rutas = (await listar(ROOT_FOLDER)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));

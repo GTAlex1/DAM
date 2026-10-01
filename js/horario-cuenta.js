@@ -1,3 +1,4 @@
+/* global filterBar -- const global declarada en js/horario.js, que debe cargarse antes */
 // Necesita que js/horario.js se cargue ANTES: usa `filterBar` (const global declarada allí).
 // Por eso en horario.html va como <script type="module">, que se ejecuta después de los scripts normales.
 /* ============================================================

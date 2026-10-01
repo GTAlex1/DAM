@@ -8,7 +8,8 @@ on:
     # Los archivos generados NO están en esta lista, así que el commit del bot no relanza la Action.
     paths:
       - 'DAM/**'
-      - 'scripts/build-index.mjs'
+      - 'scripts/**'
+      - 'package-lock.json'
       - '.github/workflows/build-index.yml'
   workflow_dispatch: # botón «Run workflow» en la pestaña Actions (para la primera vez)
 
@@ -29,8 +30,8 @@ jobs:
         with:
           node-version: 20
 
-      - name: Instalar dependencia
-        run: npm install --no-save --no-package-lock cheerio@1.0.0
+      - name: Instalar dependencias
+        run: npm ci --omit=dev
 
       - name: Generar archivos
         run: node scripts/build-index.mjs
