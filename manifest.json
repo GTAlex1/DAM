@@ -2,7 +2,7 @@
  "v": 1,
  "root": "DAM",
  "repo": "GTAlex1/DAM",
- "indice": "baf51fe13a15",
+ "indice": "7e875abec4fa",
  "files": [
   {
    "path": "DAM/1-DAM/Bases-de-Datos/Almacenamiento.html",
@@ -17,15 +17,15 @@
    "h": "f004ecb0ba"
   },
   {
-   "path": "DAM/1-DAM/Entornos-de-Desarrollo/entornos-desarrollo.html",
-   "h": "6a5e4e639a"
+   "path": "DAM/1-DAM/Entornos-de-Desarrollo/Libro.html",
+   "h": "40d1199ef1"
   },
   {
    "path": "DAM/1-DAM/Lenguajes-de-Marcas/FrontvsBack.html",
    "h": "29bdcf8c3e"
   },
   {
-   "path": "DAM/1-DAM/Lenguajes-de-Marcas/Lenguajes-de-marcas.html",
+   "path": "DAM/1-DAM/Lenguajes-de-Marcas/Libro.html",
    "h": "aa1e3376e0"
   },
   {
