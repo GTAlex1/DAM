@@ -33,7 +33,7 @@ function saludo(fecha = new Date()) {
   return 'Buenas noches';
 }
 
-function mostrarVista(raiz, vista, { enfocar = false } = {}) {
+function mostrarVista(raiz, vista, { enfocar = false, contexto = null } = {}) {
   if (!esVista(vista)) return;                       // valor no permitido: no se hace nada
 
   for (const seccion of raiz.querySelectorAll('[data-m-view]')) {
@@ -50,7 +50,7 @@ function mostrarVista(raiz, vista, { enfocar = false } = {}) {
     raiz.querySelector(`[data-m-view="${vista}"] .m-title`)?.focus({ preventScroll: true });
   }
   // Los componentes de cada pantalla escuchan este evento para cargarse bajo demanda.
-  raiz.dispatchEvent(new CustomEvent('m:vista', { detail: { vista } }));
+  raiz.dispatchEvent(new CustomEvent('m:vista', { detail: { vista, contexto } }));
 }
 
 function iniciar(raiz) {
@@ -74,7 +74,32 @@ function iniciar(raiz) {
     }
   });
 
+  // Navegación pedida por los componentes (p. ej. pulsar una asignatura en Inicio).
+  // Se valida la vista; el contexto solo pasa si es un objeto plano y cada componente lo vuelve a validar.
+  raiz.addEventListener('m:ir', (e) => {
+    const { vista, contexto } = e.detail ?? {};
+    if (!esVista(vista)) return;
+    const ctx = contexto && typeof contexto === 'object' ? { ...contexto } : null;
+    mostrarVista(raiz, vista, { enfocar: true, contexto: ctx });
+  });
+
   mostrarVista(raiz, leerVistaGuardada() ?? 'inicio');
+  cargarInicioSiProcede(raiz);
+}
+
+// Inicio hace peticiones (árbol de archivos + Firestore): solo se carga en modo móvil, y una vez.
+function cargarInicioSiProcede(raiz) {
+  const mq = window.matchMedia('(max-width: 1100px)');
+  let cargado = false;
+  const intentar = () => {
+    if (cargado || !mq.matches) return;
+    cargado = true;
+    import('./mobile-inicio.js?v=1')
+      .then((m) => m.iniciarInicio(raiz))
+      .catch((err) => { cargado = false; console.error('No se pudo cargar la pantalla Inicio', err); });
+  };
+  intentar();
+  mq.addEventListener('change', intentar);
 }
 
 const raiz = document.getElementById('mobile-app');
