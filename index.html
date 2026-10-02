@@ -269,11 +269,93 @@
     <span class="status-item" id="status-ln">Ln 1, Col 1</span>
   </div>
 </div>
+<!-- ======================================================================
+     NUEVA UI MÓVIL (≤1100px). Pegar en index.html justo ANTES de los <script>
+     del final (después del <div class="statusbar">). Los modales de acceso
+     que ya existen se reutilizan: no se duplican aquí.
+     ====================================================================== -->
+<div id="mobile-app" data-m-vista="inicio">
 
+  <main class="m-main">
+
+    <!-- INICIO -->
+    <section class="m-view" data-m-view="inicio" aria-labelledby="m-title-inicio">
+      <header class="m-header">
+        <div>
+          <p class="m-eyebrow" id="m-saludo">Hola</p>
+          <h1 class="m-title" id="m-title-inicio" tabindex="-1">Apuntes DAM</h1>
+        </div>
+        <button type="button" class="m-icon-btn" data-m-action="buscar" aria-label="Buscar en los apuntes">
+          <svg class="m-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+      </header>
+      <div data-m-slot="inicio"><!-- próximo examen + rejilla de asignaturas --></div>
+    </section>
+
+    <!-- APUNTES -->
+    <section class="m-view" data-m-view="apuntes" aria-labelledby="m-title-apuntes" hidden>
+      <header class="m-header">
+        <div>
+          <p class="m-eyebrow" id="m-apuntes-resumen"></p>
+          <h1 class="m-title" id="m-title-apuntes" tabindex="-1">Apuntes</h1>
+        </div>
+        <button type="button" class="m-icon-btn" data-m-action="buscar" aria-label="Buscar en los apuntes">
+          <svg class="m-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+      </header>
+      <div data-m-slot="apuntes"><!-- lista de asignaturas desplegables --></div>
+    </section>
+
+    <!-- HORARIO -->
+    <section class="m-view" data-m-view="horario" aria-labelledby="m-title-horario" hidden>
+      <header class="m-header">
+        <div>
+          <p class="m-eyebrow" id="m-horario-dia"></p>
+          <h1 class="m-title" id="m-title-horario" tabindex="-1">Horario</h1>
+        </div>
+      </header>
+      <div data-m-slot="horario"><!-- selector L M X J V + clases del día --></div>
+    </section>
+
+    <!-- CALENDARIO -->
+    <section class="m-view" data-m-view="calendario" aria-labelledby="m-title-calendario" hidden>
+      <header class="m-header">
+        <div>
+          <p class="m-eyebrow" id="m-calendario-mes"></p>
+          <h1 class="m-title" id="m-title-calendario" tabindex="-1">Calendario</h1>
+        </div>
+      </header>
+      <div data-m-slot="calendario"><!-- Agenda/Mes, exámenes, tareas, FAB --></div>
+    </section>
+
+  </main>
+
+  <!-- Navegación inferior -->
+  <nav class="m-tabbar" aria-label="Navegación principal">
+    <button type="button" class="m-tab" data-m-tab="inicio" aria-current="page">
+      <span class="m-tab-pill"><svg class="m-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span>
+      <span>Inicio</span>
+    </button>
+    <button type="button" class="m-tab" data-m-tab="apuntes">
+      <span class="m-tab-pill"><svg class="m-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M4 14h16"/></svg></span>
+      <span>Apuntes</span>
+    </button>
+    <button type="button" class="m-tab" data-m-tab="horario">
+      <span class="m-tab-pill"><svg class="m-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+      <span>Horario</span>
+    </button>
+    <button type="button" class="m-tab" data-m-tab="calendario">
+      <span class="m-tab-pill"><svg class="m-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span>
+      <span>Calendario</span>
+    </button>
+  </nav>
+
+</div>
 <script src="js/vendor/marked.min.js"></script>
 <script src="js/vendor/purify.min.js"></script>
 <script src="js/vendor/highlight.min.js"></script>
 <script type="module" src="js/pwa.js?v=afaad036"></script>
 <script type="module" src="js/app.js?v=47405c11"></script>
+<script type="module" src="js/mobile-app.js?v=1"></script>
 </body>
 </html>
