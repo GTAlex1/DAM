@@ -5,7 +5,7 @@
 // - iPhone / iPad: Apple no permite instalar desde código; el botón abre una pequeña guía con
 //   los pasos de «Añadir a pantalla de inicio».
 // - Si la app ya está instalada (se abrió desde el icono), el botón no aparece.
-import { crearControlModal } from './modal.js?v=1';
+import { crearControlModal } from './modal.js?v=f80c8666';
 
 // ---------- Service worker ----------
 // Ruta relativa: en GitHub Pages queda con alcance /DAM/ y no afecta a otros sitios.

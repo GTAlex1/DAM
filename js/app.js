@@ -1,9 +1,9 @@
 import {
   isAuthorized, watchAuth, loadOrder, saveOrderForPath, crearPanelSubida, crearControlModal,
   cargarFavoritosNube, guardarFavoritosNube,
-} from './firebase-init.js?v=6';
-import { fetchGithubTree } from './github-source.js?v=5';
-import { esc, htmlAPlano, posicionesDe, localizarOcurrencia } from './utils.js?v=1';
+} from './firebase-init.js?v=11feeaf4';
+import { fetchGithubTree } from './github-source.js?v=02537279';
+import { esc, htmlAPlano, posicionesDe, localizarOcurrencia } from './utils.js?v=4733983d';
 
 // ---------- Config ----------
 marked.setOptions({ breaks: false });

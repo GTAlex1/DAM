@@ -6,8 +6,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import {
   auth, db, watchAuth, isAuthorized,
-} from "./firebase-core.js?v=1";
-import { el } from "./dom.js?v=1";
+} from "./firebase-core.js?v=c4e3345d";
+import { el } from "./dom.js?v=fab76259";
 
 /* ==========================================================================
    MÓDULO DE APUNTES  (archivos en Cloudinary + metadatos en Firestore)

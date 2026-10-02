@@ -6,9 +6,9 @@ import {
   auth, ROL, ETIQUETA_ROL, NOMBRE_MIN, NOMBRE_MAX, AUTHORIZED_UID,
   watchAuth, isAuthorized, nombreVisible, correoVisible, formatearCorreo, mensajeErrorAuth,
   login, register, logout, guardarNombrePerfil, getRol, listarUsuarios, fijarAdminInferior,
-} from "./firebase-core.js?v=1";
-import { crearControlModal } from "./modal.js?v=1";
-import { el } from "./dom.js?v=1";
+} from "./firebase-core.js?v=c4e3345d";
+import { crearControlModal } from "./modal.js?v=f80c8666";
+import { el } from "./dom.js?v=fab76259";
 
 /* ==========================================================================
    MÓDULO DE ACCESO  (modal unificado de inicio de sesión / registro)
