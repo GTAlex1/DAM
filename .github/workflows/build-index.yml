@@ -1,13 +1,19 @@
-# Regenera manifest.json y search-index.json cuando cambian los apuntes.
-# Los archivos generados se guardan en el repo (commit del bot) y GitHub Pages los publica.
-name: Generar manifest e índice de búsqueda
+# Mantiene al día, con un commit del bot, los archivos que se generan solos:
+#   · «?v=» de scripts y CSS (scripts/versionar.mjs): huella según el contenido de cada archivo.
+#   · manifest.json y search-index.json (scripts/build-index.mjs): lista de apuntes e índice de búsqueda.
+# GitHub Pages publica lo que quede en main.
+name: Generar versiones, manifest e índice de búsqueda
 
 on:
   push:
     branches: [main]
-    # Los archivos generados NO están en esta lista, así que el commit del bot no relanza la Action.
+    # Un push hecho con el GITHUB_TOKEN de la Action no vuelve a lanzar workflows, y además el
+    # proceso es idempotente (sin cambios reales no hay commit), así que no hay bucle.
     paths:
       - 'DAM/**'
+      - 'js/**'
+      - 'css/**'
+      - 'index.html'
       - 'scripts/**'
       - 'package-lock.json'
       - '.github/workflows/build-index.yml'
@@ -33,16 +39,20 @@ jobs:
       - name: Instalar dependencias
         run: npm ci --omit=dev
 
-      - name: Generar archivos
+      # Primero las versiones: las notas (DAM/) llevan «?v=» y el índice se calcula sobre su texto final.
+      - name: Actualizar «?v=» de scripts y CSS
+        run: node scripts/versionar.mjs
+
+      - name: Generar manifest e índice
         run: node scripts/build-index.mjs
 
       - name: Guardar cambios (solo si hay)
         run: |
-          if [ -n "$(git status --porcelain -- manifest.json search-index.json)" ]; then
+          if [ -n "$(git status --porcelain -- index.html js DAM manifest.json search-index.json)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add manifest.json search-index.json
-            git commit -m "chore: regenerar manifest e índice de búsqueda"
+            git add index.html js DAM manifest.json search-index.json
+            git commit -m "chore: actualizar versiones (?v=), manifest e índice de búsqueda"
             git push
           else
             echo "Sin cambios."
