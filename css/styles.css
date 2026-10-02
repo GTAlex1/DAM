@@ -2478,3 +2478,335 @@ html.page-introduccion{
     .m-tab-pill { transition: none; }
   }
 }
+/* ==========================================================================
+   mobile-app.css — UI tipo «app móvil» (Inicio · Apuntes · Horario · Calendario)
+   Solo actúa con viewport ≤ 1100px. Por encima, el archivo es inerte.
+   Todo cuelga de #mobile-app y usa el prefijo .m- / --m- para no chocar con
+   las ~20 media queries antiguas de styles.css (480/600/700/760/900).
+   ========================================================================== */
+
+/* Tipografía autoalojada. Archivo: fonts/plus-jakarta-sans-latin-wght-normal.woff2 (ver instrucciones).
+   El navegador solo la descarga si algún elemento visible la usa, así que en escritorio no cuesta nada. */
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("../fonts/plus-jakarta-sans-latin-wght-normal.woff2") format("woff2");
+}
+
+/* Fuera del breakpoint la nueva UI no existe. */
+#mobile-app { display: none; }
+
+@media (max-width: 1100px) {
+
+  /* ---- 1. Interfaz de escritorio: fuera ---------------------------------
+     Se ocultan solo los 3 bloques de layout. Los modales (.auth-modal, z:200)
+     y el popover de ajustes siguen en el DOM y funcionan encima de la app. */
+  .titlebar,
+  .workbench,
+  .statusbar { display: none !important; }
+
+  /* ---- 2. Nueva UI: dentro ---------------------------------------------- */
+  #mobile-app {
+    --m-bg: #0e1017;
+    --m-surface: #1a1c26;
+    --m-surface-2: #232633;
+    --m-border: #262936;
+    --m-text: #ffffff;
+    --m-muted: #8b90a0;
+    --m-accent: #ffc857;
+    --m-accent-soft: rgba(255, 200, 87, .16);
+
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    inset: 0;
+    height: 100vh;          /* fallback */
+    height: 100dvh;
+    z-index: 10;            /* por debajo de los modales (200) */
+    background: var(--m-bg);
+    color: var(--m-text);
+    font-family: "Plus Jakarta Sans", var(--font-ui);  /* si falta el .woff2 cae a la fuente del sistema */
+    -webkit-tap-highlight-color: transparent;
+  }
+  #mobile-app *,
+  #mobile-app *::before,
+  #mobile-app *::after { box-sizing: border-box; }
+
+  /* ---- Contenedor de pantallas ------------------------------------------ */
+  .m-main {
+    flex: 1;
+    min-height: 0;          /* permite el scroll interno del flex child */
+    overflow: hidden;
+  }
+  .m-view {
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: max(20px, env(safe-area-inset-top)) 20px 24px;
+  }
+  .m-view[hidden] { display: none !important; }
+
+  .m-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 28px;
+    margin-bottom: 20px;
+  }
+  .m-eyebrow { margin: 0 0 2px; font-size: 15px; color: var(--m-muted); }
+  .m-title {
+    margin: 0;
+    font-size: 32px;
+    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    outline: none;          /* recibe foco programático, no es interactivo */
+  }
+  .m-icon-btn {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid var(--m-border);
+    background: var(--m-surface);
+    color: var(--m-text);
+    cursor: pointer;
+  }
+  .m-icon-btn:active { background: var(--m-surface-2); }
+
+  /* ---- Tab bar inferior -------------------------------------------------- */
+  .m-tabbar {
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+    background: var(--m-bg);
+    border-top: 1px solid var(--m-border);
+  }
+  .m-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-height: 56px;       /* objetivo táctil ≥ 44px */
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--m-muted);
+    font-family: inherit;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+  }
+  .m-tab-pill {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 28px;
+    border-radius: 14px;
+    transition: background-color .15s ease;
+  }
+  .m-tab[aria-current="page"] { color: var(--m-accent); }
+  .m-tab[aria-current="page"] .m-tab-pill { background: var(--m-accent-soft); }
+  .m-tab:focus-visible,
+  .m-icon-btn:focus-visible { outline: 2px solid var(--m-accent); outline-offset: 2px; }
+
+  .m-ico {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ---- Inicio ------------------------------------------------------------ */
+  #mobile-app button { font-family: inherit; }
+
+  .m-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    padding: 20px;
+    border: 0;
+    border-radius: 28px;
+    background: var(--m-accent);
+    color: #1a1400;
+    text-align: left;
+    cursor: pointer;
+  }
+  .m-hero:active { filter: brightness(.96); }
+  .m-hero:focus-visible { outline: 2px solid var(--m-text); outline-offset: 3px; }
+  .m-hero[data-estado="vacio"],
+  .m-hero[data-estado="error"] { background: var(--m-surface); color: var(--m-muted); border: 1px solid var(--m-border); }
+  .m-hero-etiqueta { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+  .m-hero-cuenta { margin: 2px 0 4px; font-size: 48px; line-height: 1.05; font-weight: 800; letter-spacing: -.02em; }
+  .m-hero[data-estado="vacio"] .m-hero-cuenta,
+  .m-hero[data-estado="error"] .m-hero-cuenta { font-size: 28px; color: var(--m-text); }
+  .m-hero-meta { font-size: 15px; font-weight: 500; }
+  .m-hero-meta:empty { display: none; }
+
+  .m-seccion {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 28px 0 12px;
+  }
+  .m-seccion-titulo { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+  .m-seccion-meta { font-size: 14px; color: var(--m-muted); }
+
+  .m-rejilla { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .m-asig {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 111px;
+    padding: 15px;
+    border: 1px solid var(--m-border);
+    border-radius: 24px;
+    background: var(--m-surface);
+    color: var(--m-text);
+    text-align: left;
+    cursor: pointer;
+  }
+  .m-asig:active { background: var(--m-surface-2); }
+  .m-asig:focus-visible { outline: 2px solid var(--m-accent); outline-offset: 2px; }
+  .m-asig-nombre { margin-top: 10px; font-size: 17px; line-height: 1.2; font-weight: 700; overflow-wrap: anywhere; }
+  .m-asig-meta { margin-top: auto; padding-top: 6px; font-size: 14px; color: var(--m-muted); }
+
+  .m-chip {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    color: #10121a;
+    font-size: 13px;
+    font-weight: 800;
+    background: var(--m-muted);
+  }
+  .m-chip[data-color="azul"]     { background: #6ea8ff; }
+  .m-chip[data-color="verde"]    { background: #7fe0a8; }
+  .m-chip[data-color="naranja"]  { background: #ffa45c; }
+  .m-chip[data-color="morado"]   { background: #c58bff; }
+  .m-chip[data-color="rosa"]     { background: #ff7f96; }
+  .m-chip[data-color="turquesa"] { background: #5fd6d1; }
+
+  .m-vacio { grid-column: 1 / -1; margin: 8px 0; color: var(--m-muted); font-size: 15px; }
+  .m-vacio p { margin: 0 0 8px; }
+  .m-btn-texto {
+    padding: 10px 16px;
+    border: 1px solid var(--m-border);
+    border-radius: 999px;
+    background: var(--m-surface);
+    color: var(--m-accent);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* ---- Cuenta ------------------------------------------------------------ */
+  .m-cuenta-card {
+    padding: 20px;
+    border: 1px solid var(--m-border);
+    border-radius: 24px;
+    background: var(--m-surface);
+  }
+  .m-cuenta-titulo { margin: 0 0 8px; font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+  .m-cuenta-texto { margin: 0 0 20px; font-size: 15px; line-height: 1.5; color: var(--m-muted); }
+  .m-btn-primario {
+    width: 100%;
+    min-height: 52px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 16px;
+    background: var(--m-accent);
+    color: #1a1400;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .m-btn-primario:active { filter: brightness(.96); }
+  .m-btn-primario:focus-visible { outline: 2px solid var(--m-text); outline-offset: 3px; }
+
+  .m-perfil { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .m-avatar {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background: var(--m-accent);
+    color: #1a1400;
+    font-size: 28px;
+    font-weight: 800;
+  }
+  .m-perfil-datos { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+  .m-perfil-nombre { font-size: 20px; font-weight: 800; overflow-wrap: anywhere; }
+  .m-perfil-correo { font-size: 14px; color: var(--m-muted); overflow-wrap: anywhere; }
+  .m-rol {
+    margin-top: 2px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--m-accent-soft);
+    color: var(--m-accent);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .m-lista { border: 1px solid var(--m-border); border-radius: 20px; background: var(--m-surface); overflow: hidden; }
+  .m-fila {
+    position: relative;
+    display: block;
+    width: 100%;
+    min-height: 56px;
+    padding: 0 48px 0 18px;
+    border: 0;
+    background: none;
+    color: var(--m-text);
+    font-size: 16px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+  }
+  .m-fila + .m-fila { border-top: 1px solid var(--m-border); }
+  .m-fila::after {                 /* chevron › */
+    content: "";
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-top: 2px solid var(--m-muted);
+    border-right: 2px solid var(--m-muted);
+    transform: translateY(-50%) rotate(45deg);
+  }
+  .m-fila:active { background: var(--m-surface-2); }
+  .m-fila:focus-visible { outline: 2px solid var(--m-accent); outline-offset: -2px; }
+  .m-fila:disabled { opacity: .6; cursor: progress; }
+  .m-fila--peligro { color: #ff7f96; }
+  .m-fila--peligro::after { display: none; }
+  .m-cuenta-app { margin-top: 16px; }
+  .m-cuenta-app[hidden] { display: none !important; }
+  .m-error { margin: 12px 4px 0; font-size: 14px; color: #ff7f96; }
+
+  @media (max-width: 360px) {      /* pantallas muy estrechas: 5 etiquetas caben */
+    .m-tab { font-size: 11px; }
+    .m-tab-pill { width: 44px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .m-tab-pill { transition: none; }
+  }
+}
