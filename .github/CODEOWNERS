@@ -11,7 +11,7 @@
 /scripts/                                                     @gtalex1
 
 # Notas HTML con permiso de mismo origen (ver NOTAS_CONFIABLES en js/app.js).
-/DAM/1-DAM/horario.html                                       @gtalex1
-/DAM/1-DAM/calendario.html                                    @gtalex1
+/DAM/1-DAM/Horario.html                                       @gtalex1
+/DAM/1-DAM/Calendario.html                                    @gtalex1
 /DAM/1-DAM/Entornos-de-Desarrollo/entornos-desarrollo.html    @gtalex1
 /DAM/1-DAM/Lenguajes-de-Marcas/lenguajes-de-marcas.html       @gtalex1

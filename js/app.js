@@ -746,8 +746,8 @@ function opcionesFetch() {
 // Estas rutas deben coincidir EXACTAMENTE con las del repo. Revisa cualquier cambio en
 // estos archivos con el mismo cuidado que en js/ (ver .github/CODEOWNERS).
 const NOTAS_CONFIABLES = new Set([
-  'DAM/1-DAM/horario.html',
-  'DAM/1-DAM/calendario.html',
+  'DAM/1-DAM/Horario.html',
+  'DAM/1-DAM/Calendario.html',
   'DAM/1-DAM/Entornos-de-Desarrollo/entornos-desarrollo.html',
   'DAM/1-DAM/Lenguajes-de-Marcas/lenguajes-de-marcas.html',
 ]);

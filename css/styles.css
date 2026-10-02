@@ -4,8 +4,8 @@
    cuelgan de ella (así los h1/table/body de una no pisan a los de otra):
 
      index.html                            <html class="page-index">
-     horario.html                          <html class="note-page page-horario">
-     calendario.html                       <html class="note-page page-calendario">
+     Horario.html                          <html class="note-page page-horario">
+     Calendario.html                       <html class="note-page page-calendario">
      Introducción.html                     <html class="note-page page-introduccion">
 
    Las páginas de apuntes se cargan desde la app dentro de un iframe (srcdoc),

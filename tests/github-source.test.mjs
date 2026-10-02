@@ -17,7 +17,7 @@ function entorno({ host = 'gtalex1.github.io', search = '', respuestas }) {
 }
 
 test('rutaValida solo acepta archivos permitidos dentro de DAM/', () => {
-  assert.equal(rutaValida('DAM/1-DAM/horario.html'), true);
+  assert.equal(rutaValida('DAM/1-DAM/Horario.html'), true);
   assert.equal(rutaValida('DAM/a/b.md'), true);
   assert.equal(rutaValida('DAM/../js/app.js'), false);
   assert.equal(rutaValida('DAM/x\\y.html'), false);
