@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es" class="note-page page-introduccion page-badat page-er">
+<head>
+<meta charset="UTF-8">
+<title>Diseño de Bases de Datos Relacionales. Modelo E/R</title>
+<link rel="stylesheet" href="DAM/css/styles.css">
+</head>
+<body>
+
+<h1>Diseño de Bases de Datos Relacionales</h1>
+<p class="subtitulo">El Modelo Entidad/Relación (E/R)</p>
+<p class="modulo">Base de Datos · DAM 1º · Unidad 2</p>
+
+<h2>¿Por qué diseñamos antes de programar?</h2>
+<p>Construir una base de datos sin diseño previo es como edificar una casa sin planos: parece más rápido al principio, pero los errores de las primeras etapas son carísimos de corregir más adelante. El diseño se divide en tres fases consecutivas:</p>
+<div class="pila">
+  <div class="capa"><b>1. Diseño conceptual</b><span>Representación abstracta de alto nivel, independiente del SGBD y del ordenador. Su resultado es el diagrama Entidad/Relación.</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>2. Diseño lógico</b><span>Traduce el esquema E/R al Modelo Relacional (tablas, claves primarias y foráneas). Se apoya en la teoría de la normalización para eliminar redundancias.</span></div>
+  <div class="flechaabajo">↓</div>
+  <div class="capa"><b>3. Diseño físico</b><span>Adapta el esquema lógico a un SGBD concreto (MySQL, PostgreSQL, Oracle...): almacenamiento, índices, particionamiento, tipos de datos nativos.</span></div>
+</div>
+
+<h2>El Modelo Entidad/Relación (E/R)</h2>
+<p>Propuesto originalmente por <strong>Peter Chen en 1976</strong>, el modelo E/R ofrece una notación gráfica para describir sistemas con tres elementos: <strong>Entidades</strong>, <strong>Atributos</strong> y <strong>Relaciones</strong>. No existe un único modelo E/R, sino una familia de modelos; el más aceptado hoy es el <strong>modelo E/R extendido (ERE)</strong>.</p>
+<div class="caja">
+  <p>El modelo E/R es <strong>conceptual</strong>: no tiene nada que ver con las bases de datos relacionales, y puede usarse con cualquier SGBD. La palabra "relación" aquí no es la misma idea de "relación" (tabla) del modelo relacional de Codd — es una fuente habitual de confusión en los exámenes.</p>
+</div>
+
+<h2>Entidades</h2>
+<p>Una <strong>entidad</strong> representa una persona, objeto, lugar, evento o concepto del mundo real del que interesa guardar información. Cada caso concreto se llama <strong>instancia u ocurrencia</strong>; cada dato asociado a una ocurrencia es un <strong>atributo</strong> (por ejemplo, un empleado concreto tendrá "Juan Antonio" como valor de su atributo "nombre").</p>
+<p>Toda entidad debe cumplir dos características: el <strong>mismo conjunto de atributos para todas sus ocurrencias</strong> (aunque alguna carezca de valor), y una <strong>diferenciación unívoca</strong>: no puede haber dos ocurrencias con los mismos valores en todos sus atributos.</p>
+
+<h3>Representación gráfica</h3>
+<p>Una entidad se dibuja como un <strong>rectángulo</strong> con su nombre en mayúsculas. Sus atributos, como óvalos unidos por una línea (o como círculos con el nombre fuera):</p>
+<div class="er-diagrama">
+<svg viewBox="0 0 420 170" xmlns="http://www.w3.org/2000/svg">
+  <line class="er-linea" x1="210" y1="85" x2="90" y2="30" />
+  <line class="er-linea" x1="210" y1="85" x2="210" y2="30" />
+  <line class="er-linea" x1="210" y1="85" x2="330" y2="30" />
+  <ellipse class="er-oval" cx="90" cy="25" rx="42" ry="18" />
+  <text class="er-oval-txt" x="90" y="29" text-anchor="middle">nif</text>
+  <ellipse class="er-oval" cx="210" cy="25" rx="48" ry="18" />
+  <text class="er-oval-txt" x="210" y="29" text-anchor="middle">nombre</text>
+  <ellipse class="er-oval" cx="330" cy="25" rx="48" ry="18" />
+  <text class="er-oval-txt" x="330" y="29" text-anchor="middle">apellidos</text>
+  <rect class="er-entidad-rect" x="150" y="66" width="120" height="38" rx="4" />
+  <text class="er-entidad-txt" x="210" y="90" text-anchor="middle">EMPLEADO</text>
+</svg>
+</div>
+
+<h3>Tipos de entidades</h3>
+<div class="grid grid-2">
+  <div class="card blue"><h4>Fuerte o regular</h4><p>Tiene existencia por sí misma, sin depender de otras. Es la representación normal (rectángulo sencillo).</p></div>
+  <div class="card orange"><h4>Débil</h4><p>Su existencia o identificación depende directamente de otra entidad (normalmente fuerte). Si se borra la entidad fuerte relacionada, la débil pierde su sentido. Se representa con un <strong>doble rectángulo</strong>.</p></div>
+</div>
+<p class="nota-pie">Ejemplo: en una biblioteca, no puede existir una <code>SANCIÓN</code> si no está vinculada a un <code>SOCIO</code> ya registrado.</p>
+
+<h2>Relación</h2>
+<p>Una <strong>relación</strong> representa la asociación entre dos o más entidades: es lo que conecta los datos entre sí. En una relación no pueden aparecer dos veces los mismos ejemplares relacionados (por ejemplo, el mismo trabajador asociado dos veces al mismo trabajo).</p>
+
+<h3>Representación gráfica</h3>
+<p>Se dibuja con un <strong>rombo</strong> unido por líneas a las entidades. El nombre de la relación suele ser un verbo:</p>
+<div class="er-diagrama">
+<svg viewBox="0 0 420 100" xmlns="http://www.w3.org/2000/svg">
+  <line class="er-linea" x1="120" y1="50" x2="175" y2="50" />
+  <line class="er-linea" x1="245" y1="50" x2="300" y2="50" />
+  <polygon class="er-rombo" points="210,24 262,50 210,76 158,50" />
+  <text class="er-rombo-txt" x="210" y="54" text-anchor="middle">Trabaja</text>
+  <rect class="er-entidad-rect" x="10" y="31" width="110" height="38" rx="4" />
+  <text class="er-entidad-txt" x="65" y="55" text-anchor="middle">PERSONA</text>
+  <rect class="er-entidad-rect" x="300" y="31" width="110" height="38" rx="4" />
+  <text class="er-entidad-txt" x="355" y="55" text-anchor="middle">PROFESIÓN</text>
+</svg>
+</div>
+
+<h3>Tipos de relaciones</h3>
+<p>Según el número de entidades que relacionan:</p>
+<div class="grid grid-2">
+  <div class="card blue"><h4>Binaria</h4><p>La típica: asocia dos entidades.</p></div>
+  <div class="card orange"><h4>Ternaria / n-aria</h4><p>Relaciona ocurrencias de tres (o más) entidades. A veces se puede simplificar en binarias, pero no siempre.</p></div>
+  <div class="card purple"><h4>Doble</h4><p>Dos relaciones distintas entre las mismas entidades. Son las más difíciles de manejar: hay que elegir bien cuál usar al manipular los datos.</p></div>
+  <div class="card green"><h4>Reflexiva</h4><p>Relaciona ejemplares de la misma entidad (personas con personas, piezas con piezas...). Las ocurrencias juegan papeles distintos aunque sean de la misma entidad.</p></div>
+</div>
+
+<div class="er-galeria">
+  <figure class="er-diagrama compacta">
+    <svg viewBox="0 0 240 110" xmlns="http://www.w3.org/2000/svg">
+      <line class="er-linea" x1="68" y1="55" x2="95" y2="55" /><line class="er-linea" x1="145" y1="55" x2="172" y2="55" />
+      <polygon class="er-rombo" points="120,35 148,55 120,75 92,55" /><text class="er-rombo-txt" x="120" y="59" text-anchor="middle">IMPARTE</text>
+      <rect class="er-entidad-rect" x="8" y="38" width="60" height="34" rx="3" /><text class="er-entidad-txt" x="38" y="59" text-anchor="middle" style="font-size:10px;">CURSOS</text>
+      <rect class="er-entidad-rect" x="172" y="38" width="60" height="34" rx="3" /><text class="er-entidad-txt" x="202" y="59" text-anchor="middle" style="font-size:10px;">AULAS</text>
+    </svg>
+    <figcaption>Binaria</figcaption>
+  </figure>
+  <figure class="er-diagrama compacta">
+    <svg viewBox="0 0 240 110" xmlns="http://www.w3.org/2000/svg">
+      <line class="er-linea" x1="68" y1="45" x2="95" y2="45" /><line class="er-linea" x1="145" y1="45" x2="172" y2="45" /><line class="er-linea" x1="120" y1="63" x2="120" y2="85" />
+      <polygon class="er-rombo" points="120,25 148,45 120,65 92,45" /><text class="er-rombo-txt" x="120" y="49" text-anchor="middle">IMPARTE</text>
+      <rect class="er-entidad-rect" x="8" y="28" width="60" height="34" rx="3" /><text class="er-entidad-txt" x="38" y="49" text-anchor="middle" style="font-size:10px;">CURSOS</text>
+      <rect class="er-entidad-rect" x="172" y="28" width="60" height="34" rx="3" /><text class="er-entidad-txt" x="202" y="49" text-anchor="middle" style="font-size:10px;">AULAS</text>
+      <rect class="er-entidad-rect" x="90" y="85" width="60" height="22" rx="3" /><text class="er-entidad-txt" x="120" y="100" text-anchor="middle" style="font-size:10px;">DÍAS</text>
+    </svg>
+    <figcaption>Ternaria</figcaption>
+  </figure>
+  <figure class="er-diagrama compacta">
+    <svg viewBox="0 0 240 110" xmlns="http://www.w3.org/2000/svg">
+      <line class="er-linea" x1="68" y1="38" x2="92" y2="38" /><line class="er-linea" x1="148" y1="38" x2="172" y2="38" />
+      <line class="er-linea" x1="68" y1="72" x2="92" y2="72" /><line class="er-linea" x1="148" y1="72" x2="172" y2="72" />
+      <polygon class="er-rombo" points="120,22 146,38 120,54 94,38" /><text class="er-rombo-txt" x="120" y="42" text-anchor="middle" style="font-size:8.5px;">SER_CAP.</text>
+      <polygon class="er-rombo" points="120,56 146,72 120,88 94,72" /><text class="er-rombo-txt" x="120" y="76" text-anchor="middle" style="font-size:8.5px;">PERTEN.</text>
+      <rect class="er-entidad-rect" x="4" y="38" width="64" height="34" rx="3" /><text class="er-entidad-txt" x="36" y="59" text-anchor="middle" style="font-size:9px;">LOCALIDADES</text>
+      <rect class="er-entidad-rect" x="172" y="38" width="64" height="34" rx="3" /><text class="er-entidad-txt" x="204" y="59" text-anchor="middle" style="font-size:9px;">CAPITALES</text>
+    </svg>
+    <figcaption>Doble</figcaption>
+  </figure>
+  <figure class="er-diagrama compacta">
+    <svg viewBox="0 0 240 110" xmlns="http://www.w3.org/2000/svg">
+      <line class="er-linea" x1="100" y1="38" x2="130" y2="48" /><line class="er-linea" x1="100" y1="72" x2="130" y2="62" />
+      <polygon class="er-rombo" points="168,40 192,55 168,70 144,55" /><text class="er-rombo-txt" x="168" y="59" text-anchor="middle" style="font-size:9px;">COMPONER</text>
+      <rect class="er-entidad-rect" x="36" y="38" width="64" height="34" rx="3" /><text class="er-entidad-txt" x="68" y="59" text-anchor="middle" style="font-size:10px;">PIEZAS</text>
+    </svg>
+    <figcaption>Reflexiva</figcaption>
+  </figure>
+</div>
+
+<h2>Cardinalidad y participación</h2>
+<p>La <strong>cardinalidad</strong> define el número <strong>máximo</strong> de ocurrencias de una entidad que pueden asociarse con una ocurrencia de otra entidad en una relación. Para obtenerla, fija una ocurrencia concreta de una entidad y cuenta cuántas de la otra le corresponden; después, repite en el sentido contrario.</p>
+
+<div class="grid grid-3">
+  <div>
+    <div class="er-diagrama compacta">
+      <svg viewBox="0 0 220 90" xmlns="http://www.w3.org/2000/svg">
+        <line class="er-linea" x1="66" y1="45" x2="90" y2="45" /><line class="er-linea" x1="130" y1="45" x2="154" y2="45" />
+        <polygon class="er-rombo" points="110,27 138,45 110,63 82,45" /><text class="er-rombo-txt" x="110" y="49" text-anchor="middle">R</text>
+        <text class="er-card-txt" x="110" y="18" text-anchor="middle">1:1</text>
+        <rect class="er-entidad-rect" x="6" y="28" width="60" height="34" rx="3" /><text class="er-entidad-txt" x="36" y="49" text-anchor="middle">A</text>
+        <rect class="er-entidad-rect" x="154" y="28" width="60" height="34" rx="3" /><text class="er-entidad-txt" x="184" y="49" text-anchor="middle">B</text>
+      </svg>
+    </div>
+    <p class="nota-pie" style="text-align:center;">Uno a uno: cada A tiene como mucho una B, y cada B como mucho una A.</p>
+  </div>
+  <div>
+    <div class="er-diagrama compacta">
+      <svg viewBox="0 0 220 90" xmlns="http://www.w3.org/2000/svg">
+        <line class="er-linea" x1="66" y1="45" x2="90" y2="45" /><line class="er-linea" x1="130" y1="45" x2="154" y2="45" />
+        <polygon class="er-rombo" points="110,27 138,45 110,63 82,45" /><text class="er-rombo-txt" x="110" y="49" text-anchor="middle">R</text>
+        <text class="er-card-txt" x="110" y="18" text-anchor="middle">1:N</text>
+        <rect class="er-entidad-rect" x="6" y="28" width="60" height="34" rx="3" /><text class="er-entidad-txt" x="36" y="49" text-anchor="middle">A</text>
+        <rect class="er-entidad-rect" x="154" y="28" width="60" height="34" rx="3" /><text class="er-entidad-txt" x="184" y="49" text-anchor="middle">B</text>
+      </svg>
+    </div>
+    <p class="nota-pie" style="text-align:center;">Uno a muchos: cada A puede tener varias B, pero cada B solo una A.</p>
+  </div>
+  <div>
+    <div class="er-diagrama compacta">
+      <svg viewBox="0 0 220 90" xmlns="http://www.w3.org/2000/svg">
+        <line class="er-linea" x1="66" y1="45" x2="90" y2="45" /><line class="er-linea" x1="130" y1="45" x2="154" y2="45" />
+        <polygon class="er-rombo" points="110,27 138,45 110,63 82,45" /><text class="er-rombo-txt" x="110" y="49" text-anchor="middle">R</text>
+        <text class="er-card-txt" x="110" y="18" text-anchor="middle">M:N</text>
+        <rect class="er-entidad-rect" x="6" y="28" width="60" height="34" rx="3" /><text class="er-entidad-txt" x="36" y="49" text-anchor="middle">A</text>
+        <rect class="er-entidad-rect" x="154" y="28" width="60" height="34" rx="3" /><text class="er-entidad-txt" x="184" y="49" text-anchor="middle">B</text>
+      </svg>
+    </div>
+    <p class="nota-pie" style="text-align:center;">Muchos a muchos: varias B por cada A, y varias A por cada B.</p>
+  </div>
+</div>
+<p class="nota-pie">La cardinalidad marca el límite superior de una relación, pero <strong>no</strong> dice si es obligatoria.</p>
+
+<h3>Participación</h3>
+<p>La <strong>participación</strong> (o modalidad) define el número <strong>mínimo y máximo</strong> de ocurrencias que pueden estar relacionadas. Se indica en cada lado de la relación como <code>(mín, máx)</code>, y su valor máximo coincide con la cardinalidad de ese lado:</p>
+<table>
+  <tr><th>Participación</th><th>Lectura</th></tr>
+  <tr><td><code>(0,1)</code></td><td>Cada ocurrencia puede relacionarse con una, o con ninguna. Nunca con varias.</td></tr>
+  <tr><td><code>(1,1)</code></td><td>Cada ocurrencia debe relacionarse, obligatoriamente, con una y solo una.</td></tr>
+  <tr><td><code>(1,n)</code></td><td>Cada ocurrencia debe relacionarse con al menos una; puede relacionarse con varias.</td></tr>
+  <tr><td><code>(0,n)</code></td><td>Sin límite inferior: ninguna, una o varias.</td></tr>
+</table>
+<p class="nota-pie">Una vez se indica la participación en los dos lados, la cardinalidad es redundante (se deduce tomando el valor máximo de cada lado), así que muchos diagramas ya solo muestran la participación.</p>
+
+<div class="er-diagrama">
+<svg viewBox="0 0 420 110" xmlns="http://www.w3.org/2000/svg">
+  <line class="er-linea" x1="120" y1="55" x2="175" y2="55" /><line class="er-linea" x1="245" y1="55" x2="300" y2="55" />
+  <polygon class="er-rombo" points="210,29 262,55 210,81 158,55" /><text class="er-rombo-txt" x="210" y="59" text-anchor="middle">Compra</text>
+  <text class="er-card-txt" x="148" y="42" text-anchor="middle">(0,1)</text>
+  <text class="er-card-txt" x="272" y="42" text-anchor="middle">(0,n)</text>
+  <rect class="er-entidad-rect" x="10" y="36" width="110" height="38" rx="4" /><text class="er-entidad-txt" x="65" y="60" text-anchor="middle">CLIENTE</text>
+  <rect class="er-entidad-rect" x="300" y="36" width="110" height="38" rx="4" /><text class="er-entidad-txt" x="355" y="60" text-anchor="middle">AUTOMÓVIL</text>
+</svg>
+</div>
+<p class="nota-pie">Cada CLIENTE puede comprar un automóvil, o ninguno, o varios (0,n hacia Automóvil). Cada AUTOMÓVIL se vende a un único cliente, o a ninguno; nunca a varios (0,1 hacia Cliente).</p>
+
+<div class="er-diagrama">
+<svg viewBox="0 0 420 110" xmlns="http://www.w3.org/2000/svg">
+  <line class="er-linea" x1="120" y1="55" x2="175" y2="55" /><line class="er-linea" x1="245" y1="55" x2="300" y2="55" />
+  <polygon class="er-rombo" points="210,29 262,55 210,81 158,55" /><text class="er-rombo-txt" x="210" y="59" text-anchor="middle">tiene</text>
+  <text class="er-card-txt" x="148" y="42" text-anchor="middle">(1,1)</text>
+  <text class="er-card-txt" x="272" y="42" text-anchor="middle">(1,n)</text>
+  <rect class="er-entidad-rect" x="10" y="36" width="110" height="38" rx="4" /><text class="er-entidad-txt" x="65" y="60" text-anchor="middle">GRUPO</text>
+  <rect class="er-entidad-rect" x="300" y="36" width="110" height="38" rx="4" /><text class="er-entidad-txt" x="355" y="60" text-anchor="middle">ALUMNO</text>
+</svg>
+</div>
+<p class="nota-pie">Misma cardinalidad 1:N que el ejemplo anterior, pero más restrictiva: todo GRUPO debe tener al menos un alumno (1,n), y todo ALUMNO pertenece obligatoriamente a uno y solo un grupo (1,1).</p>
+
+<div class="er-diagrama">
+<svg viewBox="0 0 420 110" xmlns="http://www.w3.org/2000/svg">
+  <line class="er-linea" x1="120" y1="55" x2="175" y2="55" /><line class="er-linea" x1="245" y1="55" x2="300" y2="55" />
+  <polygon class="er-rombo" points="210,29 262,55 210,81 158,55" /><text class="er-rombo-txt" x="210" y="59" text-anchor="middle" style="font-size:10px;">recibe prestado</text>
+  <text class="er-card-txt" x="148" y="42" text-anchor="middle">(0,n)</text>
+  <text class="er-card-txt" x="272" y="42" text-anchor="middle">(1,n)</text>
+  <rect class="er-entidad-rect" x="10" y="36" width="110" height="38" rx="4" /><text class="er-entidad-txt" x="65" y="60" text-anchor="middle">SOCIO</text>
+  <rect class="er-entidad-rect" x="300" y="36" width="110" height="38" rx="4" /><text class="er-entidad-txt" x="355" y="60" text-anchor="middle">LIBRO</text>
+</svg>
+</div>
+<p class="nota-pie">Cardinalidad M:N. Todo SOCIO está obligado a haber recibido al menos un libro en préstamo (1,n hacia Libro: se da de alta al pedir el primero). Todo LIBRO puede haberse prestado a varios socios, a uno, o a ninguno (0,n hacia Socio).</p>
+
+<h3>Participación en relaciones ternarias y n-arias</h3>
+<p>Se lee de forma distinta: hay que fijar <strong>dos</strong> de las entidades y analizar cómo participa la tercera, repitiendo el proceso para cada combinación posible.</p>
+<div class="er-diagrama">
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <line class="er-linea" x1="300" y1="60" x2="300" y2="128" />
+  <line class="er-linea" x1="130" y1="150" x2="272" y2="150" />
+  <line class="er-linea" x1="328" y1="150" x2="470" y2="150" />
+  <line class="er-linea" x1="300" y1="172" x2="300" y2="240" />
+  <polygon class="er-rombo" points="300,122 350,150 300,178 250,150" /><text class="er-rombo-txt" x="300" y="154" text-anchor="middle">imparte</text>
+  <text class="er-card-txt" x="312" y="100" text-anchor="middle">(1,n)</text>
+  <text class="er-card-txt" x="200" y="140" text-anchor="middle">(1,1)</text>
+  <text class="er-card-txt" x="400" y="140" text-anchor="middle">(0,n)</text>
+  <text class="er-card-txt" x="312" y="205" text-anchor="middle">(1,n)</text>
+  <rect class="er-entidad-rect" x="245" y="20" width="110" height="40" rx="4" /><text class="er-entidad-txt" x="300" y="45" text-anchor="middle">AULA</text>
+  <rect class="er-entidad-rect" x="20" y="130" width="110" height="40" rx="4" /><text class="er-entidad-txt" x="75" y="155" text-anchor="middle">PROFESOR</text>
+  <rect class="er-entidad-rect" x="470" y="130" width="110" height="40" rx="4" /><text class="er-entidad-txt" x="525" y="155" text-anchor="middle" style="font-size:10px;">ASIGNATURA</text>
+  <rect class="er-entidad-rect" x="245" y="240" width="110" height="40" rx="4" /><text class="er-entidad-txt" x="300" y="265" text-anchor="middle">GRUPO</text>
+</svg>
+</div>
+<ul>
+  <li><strong>AULA (1,n):</strong> la combinación profesor-grupo-asignatura puede darse en una o varias aulas (en momentos distintos).</li>
+  <li><strong>ASIGNATURA (0,n):</strong> por cada profesor-grupo-aula puede haber una, varias o ninguna asignatura (podría ser una reunión de tutoría).</li>
+  <li><strong>GRUPO (1,n):</strong> un profesor que imparte una asignatura en un aula puede impartirla a uno o varios grupos.</li>
+  <li><strong>PROFESOR (1,1):</strong> una misma asignatura, al mismo grupo y en la misma aula, la imparte un único profesor.</li>
+</ul>
+
+<h2>Roles</h2>
+<p>A veces las líneas de la relación llevan un <strong>rol</strong>: el papel que juega la entidad en esa relación. Son imprescindibles en relaciones complejas, como las reflexivas, para entender el sentido de cada lado.</p>
+<div class="er-diagrama">
+<svg viewBox="0 0 420 180" xmlns="http://www.w3.org/2000/svg">
+  <line class="er-linea" x1="190" y1="50" x2="280" y2="78" />
+  <line class="er-linea" x1="190" y1="130" x2="280" y2="102" />
+  <polygon class="er-rombo" points="320,65 355,90 320,115 285,90" /><text class="er-rombo-txt" x="320" y="94" text-anchor="middle">Trabaja</text>
+  <text class="er-role-txt" x="235" y="45" text-anchor="middle">jefe</text>
+  <text class="er-card-txt" x="212" y="62" text-anchor="middle">(0,1)</text>
+  <text class="er-role-txt" x="235" y="148" text-anchor="middle">empleado</text>
+  <text class="er-card-txt" x="212" y="122" text-anchor="middle">(0,n)</text>
+  <rect class="er-entidad-rect" x="40" y="71" width="150" height="38" rx="4" /><text class="er-entidad-txt" x="115" y="95" text-anchor="middle">TRABAJADOR</text>
+</svg>
+</div>
+<p class="nota-pie">Un trabajador es <em>jefe</em> de ninguno, uno o varios trabajadores (0,1 → mira hacia la relación desde el rol jefe); y es <em>empleado</em> (subordinado) de ningún o un trabajador (0,n).</p>
+
+<h2>Dependencia en existencia y en identificación</h2>
+<p>Aparece al relacionar una entidad <strong>fuerte</strong> con una <strong>débil</strong>: la débil tiene una dependencia en existencia de la fuerte, formando una jerarquía de dos niveles.</p>
+
+<div class="grid grid-2">
+  <div>
+    <div class="er-diagrama compacta">
+      <svg viewBox="0 0 320 120" xmlns="http://www.w3.org/2000/svg">
+        <line class="er-linea" x1="65" y1="40" x2="65" y2="58" /><line class="er-linea" x1="255" y1="40" x2="255" y2="58" />
+        <line class="er-linea" x1="120" y1="70" x2="140" y2="70" /><line class="er-linea" x1="195" y1="70" x2="215" y2="70" />
+        <polygon class="er-rombo" points="167,52 192,70 167,88 142,70" /><text class="er-rombo-txt" x="167" y="74" text-anchor="middle" style="font-size:9px;">REALIZA</text>
+        <text class="er-card-txt" x="130" y="60" text-anchor="middle">(1,1)</text>
+        <text class="er-card-txt" x="206" y="60" text-anchor="middle">(0,n)</text>
+        <ellipse class="er-oval" cx="65" cy="25" rx="26" ry="14" /><text class="er-oval-txt" x="65" y="29" text-anchor="middle">ID</text>
+        <ellipse class="er-oval" cx="255" cy="25" rx="26" ry="14" /><text class="er-oval-txt" x="255" y="29" text-anchor="middle">ID</text>
+        <rect class="er-entidad-rect" x="10" y="51" width="110" height="38" rx="4" /><text class="er-entidad-txt" x="65" y="75" text-anchor="middle">CLIENTE</text>
+        <rect class="er-entidad-rect" x="196" y="55" width="104" height="30" rx="3" />
+        <rect class="er-entidad-rect" x="200" y="59" width="96" height="22" rx="3" style="fill:none;" /><text class="er-entidad-txt" x="248" y="74" text-anchor="middle" style="font-size:10px;">PEDIDO</text>
+      </svg>
+    </div>
+    <p class="nota-pie" style="text-align:center;"><strong>Dependencia en existencia.</strong> PEDIDO (débil, doble rectángulo) tiene su propia clave (ID), pero no puede existir sin un CLIENTE.</p>
+  </div>
+  <div>
+    <div class="er-diagrama compacta">
+      <svg viewBox="0 0 320 120" xmlns="http://www.w3.org/2000/svg">
+        <line class="er-linea" x1="65" y1="40" x2="65" y2="58" /><line class="er-linea" x1="255" y1="40" x2="255" y2="58" />
+        <line class="er-linea" x1="120" y1="70" x2="140" y2="70" /><line class="er-linea" x1="195" y1="70" x2="215" y2="70" />
+        <polygon class="er-rombo" points="167,52 192,70 167,88 142,70" /><text class="er-rombo-txt" x="167" y="74" text-anchor="middle" style="font-size:9px;">TIENE</text>
+        <text class="er-card-txt" x="130" y="60" text-anchor="middle">(1,1)</text>
+        <text class="er-card-txt" x="206" y="60" text-anchor="middle">(0,n)</text>
+        <ellipse class="er-oval" cx="65" cy="25" rx="30" ry="14" /><text class="er-oval-txt" x="65" y="29" text-anchor="middle">ISBN</text>
+        <ellipse class="er-oval" cx="255" cy="25" rx="34" ry="14" /><text class="er-oval-txt" x="255" y="29" text-anchor="middle">NÚMERO</text>
+        <rect class="er-entidad-rect" x="10" y="51" width="110" height="38" rx="4" /><text class="er-entidad-txt" x="65" y="75" text-anchor="middle">LIBRO</text>
+        <rect class="er-entidad-rect" x="196" y="55" width="104" height="30" rx="3" />
+        <rect class="er-entidad-rect" x="200" y="59" width="96" height="22" rx="3" style="fill:none;" /><text class="er-entidad-txt" x="248" y="74" text-anchor="middle" style="font-size:9px;">EJEMPLAR</text>
+      </svg>
+    </div>
+    <p class="nota-pie" style="text-align:center;"><strong>Dependencia en identificación.</strong> NÚMERO por sí solo no distingue ejemplares de libros distintos: la clave de EJEMPLAR es ISBN (de LIBRO) + NÚMERO (discriminador).</p>
+  </div>
+</div>
+<p class="nota-pie">La interrelación entre entidad fuerte y débil siempre tiene cardinalidad <strong>1:N</strong>.</p>
+
+<h2>Atributos</h2>
+<p>Describen propiedades de entidades y relaciones. Se representan como óvalos (o círculos con el nombre fuera).</p>
+
+<h3>Tipos de atributos</h3>
+<div class="grid grid-2">
+  <div class="card blue">
+    <h4>Simple</h4>
+    <p>No está formado por otros atributos. Ej: <code>peso</code>.</p>
+  </div>
+  <div class="card orange">
+    <h4>Compuesto</h4>
+    <p>Se descompone en otros atributos, simples o compuestos.</p>
+    <pre class="pre-flat"><code>nombre_completo = nombre + apellido1 + apellido2</code></pre>
+  </div>
+  <div class="card green">
+    <h4>Monovaluado</h4>
+    <p>Un único valor por ocurrencia en cada momento. Puede ser simple o compuesto.</p>
+  </div>
+  <div class="card purple">
+    <h4>Multivaluado</h4>
+    <p>Puede tener varios valores a la vez para la misma ocurrencia. Se dibuja con <strong>doble óvalo</strong>. Ej: <code>teléfono</code> de un EMPLEADO.</p>
+  </div>
+  <div class="card yellow">
+    <h4>Derivado (calculado)</h4>
+    <p>Su valor se calcula a partir de otros atributos; no se almacena. Óvalo con <strong>línea discontinua</strong>. Ej: <code>edad</code> a partir de la fecha de nacimiento.</p>
+  </div>
+  <div class="card blue">
+    <h4>Propio</h4>
+    <p>Pertenece a una relación, no a una entidad. Se dibuja unido al rombo. Ej: <code>cantidad</code> en la relación CLIENTE–Compra–PRODUCTO.</p>
+  </div>
+</div>
+
+<h3>Identificadores</h3>
+<p>Uno o más atributos cuyos valores son únicos para cada ejemplar de la entidad. Toda entidad necesita al menos uno; pueden ser simples o compuestos.</p>
+<div class="chips">
+  <span>Identificador primario (P): se subraya, o se rellena el círculo</span>
+  <span>Identificador alternativo (A): se marca con la letra A junto a la línea</span>
+</div>
+<p class="nota-pie">Una entidad puede tener varios atributos identificadores; se elige uno como primario y el resto quedan como alternativos.</p>
+
+<h3>Cardinalidad de atributo</h3>
+<p>Para cada atributo se puede fijar una cardinalidad <code>(mín, máx)</code>: cuántos valores admite por ocurrencia.</p>
+<table>
+  <tr><th>Caso</th><th>Cardinalidad</th><th>Significado</th></tr>
+  <tr><td>Por defecto</td><td><code>(1,1)</code></td><td>Obligatorio: exactamente un valor en toda ocurrencia.</td></tr>
+  <tr><td>Multivaluado, por defecto</td><td><code>(1,n)</code></td><td>Al menos un valor, puede haber varios.</td></tr>
+  <tr><td>Valor opcional</td><td><code>(0,1)</code></td><td>El atributo admite valor nulo.</td></tr>
+  <tr><td>Multivaluado con tope</td><td>Ej. <code>(0,3)</code></td><td>De 0 a 3 valores como máximo (p. ej., hasta 3 teléfonos).</td></tr>
+</table>
+<p class="nota-pie">Para un atributo compuesto, si no se indica nada, todos sus componentes son obligatorios. Si se fija una cardinalidad en el atributo compuesto pero no en sus componentes, estos la "heredan" (ej: <code>(0,1)</code> en <code>DIRECCIÓN</code> hace opcionales todos sus componentes).</p>
+
+<div class="caja">
+  <p>Para repasar identificando entidades, atributos y cardinalidades sobre enunciados completos de examen, tienes la herramienta <strong>Repaso: Modelo Entidad/Relación</strong> (<code>EntidadRelacion.html</code>), que genera problemas al azar con solución y autoevaluación.</p>
+</div>
+
+</body>
+</html>
