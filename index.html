@@ -194,7 +194,8 @@
   <div class="auth-card">
     <button type="button" class="auth-close" data-auth-cerrar aria-label="Cerrar">&times;</button>
     <div class="auth-title" id="instalar-title">Instalar Apuntes DAM</div>
-    <p class="instalar-intro">Se añade a tu pantalla de inicio y se abre como una app, sin la barra del navegador.</p>
+    <p class="instalar-intro" id="instalar-intro">Se añade a tu pantalla de inicio y se abre como una app, sin la barra del navegador.</p>
+    <p class="instalar-intro" id="instalar-nosoporte" hidden>Este navegador (Opera o Firefox de escritorio) no permite instalar aplicaciones web. Abre Apuntes DAM en <strong>Chrome</strong> o <strong>Edge</strong> para instalarla desde ahí.</p>
     <ol class="instalar-pasos" id="instalar-ios" hidden>
       <li>Pulsa el botón <strong>Compartir</strong> (el cuadrado con la flecha hacia arriba).</li>
       <li>Desliza y elige <strong>Añadir a pantalla de inicio</strong>.</li>
@@ -208,7 +209,6 @@
     <button type="button" class="auth-btn" data-auth-cerrar>Entendido</button>
   </div>
 </div>
-
 <!-- Modal «Gestión de usuarios» (solo Admin Principal) -->
 <div class="auth-modal" id="modal-usuarios" role="dialog" aria-modal="true" aria-labelledby="usuarios-title" hidden>
   <div class="auth-backdrop" data-auth-cerrar></div>
@@ -328,6 +328,17 @@
       <div data-m-slot="calendario"><!-- Agenda/Mes, exámenes, tareas, FAB --></div>
     </section>
 
+    <!-- CUENTA -->
+    <section class="m-view" data-m-view="cuenta" aria-labelledby="m-title-cuenta" hidden>
+      <header class="m-header">
+        <div>
+          <p class="m-eyebrow" id="m-cuenta-estado"></p>
+          <h1 class="m-title" id="m-title-cuenta" tabindex="-1">Cuenta</h1>
+        </div>
+      </header>
+      <div data-m-slot="cuenta"><!-- acceso o perfil, según la sesión --></div>
+    </section>
+
   </main>
 
   <!-- Navegación inferior -->
@@ -348,9 +359,15 @@
       <span class="m-tab-pill"><svg class="m-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span>
       <span>Calendario</span>
     </button>
+    <button type="button" class="m-tab" data-m-tab="cuenta">
+      <span class="m-tab-pill"><svg class="m-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>
+      <span>Cuenta</span>
+    </button>
   </nav>
 
 </div>
+<<<<<<< HEAD
+=======
 <script src="js/vendor/marked.min.js"></script>
 <script src="js/vendor/purify.min.js"></script>
 <script src="js/vendor/highlight.min.js"></script>
@@ -359,3 +376,5 @@
 <script type="module" src="js/mobile-app.js?v=d3f6394e"></script>
 </body>
 </html>
+
+>>>>>>> 09b695190870b77b40e9b17f7b838f0cad17d919
