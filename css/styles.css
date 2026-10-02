@@ -2098,3 +2098,143 @@ html.page-introduccion{
   .page-modelo-rel .esquema-flujo{ flex-direction:column; align-items:flex-start; }
   .page-modelo-rel .esquema-flujo .flecha{ transform:rotate(90deg); align-self:center; }
 }
+/* ==========================================================================
+   16. mobile-app.css — UI tipo «app móvil» (Inicio · Apuntes · Horario · Calendario)
+   Solo actúa con viewport ≤ 1100px. Por encima, el archivo es inerte.
+   Todo cuelga de #mobile-app y usa el prefijo .m- / --m- para no chocar con
+   las ~20 media queries antiguas de styles.css (480/600/700/760/900).
+   ========================================================================== */
+
+/* Fuera del breakpoint la nueva UI no existe. */
+#mobile-app { display: none; }
+
+@media (max-width: 1100px) {
+
+  /* ---- 1. Interfaz de escritorio: fuera ---------------------------------
+     Se ocultan solo los 3 bloques de layout. Los modales (.auth-modal, z:200)
+     y el popover de ajustes siguen en el DOM y funcionan encima de la app. */
+  .titlebar,
+  .workbench,
+  .statusbar { display: none !important; }
+
+  /* ---- 2. Nueva UI: dentro ---------------------------------------------- */
+  #mobile-app {
+    --m-bg: #0e1017;
+    --m-surface: #1a1c26;
+    --m-surface-2: #232633;
+    --m-border: #262936;
+    --m-text: #ffffff;
+    --m-muted: #8b90a0;
+    --m-accent: #ffc857;
+    --m-accent-soft: rgba(255, 200, 87, .16);
+
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    inset: 0;
+    height: 100vh;          /* fallback */
+    height: 100dvh;
+    z-index: 10;            /* por debajo de los modales (200) */
+    background: var(--m-bg);
+    color: var(--m-text);
+    font-family: var(--font-ui);
+    -webkit-tap-highlight-color: transparent;
+  }
+  #mobile-app *,
+  #mobile-app *::before,
+  #mobile-app *::after { box-sizing: border-box; }
+
+  /* ---- Contenedor de pantallas ------------------------------------------ */
+  .m-main {
+    flex: 1;
+    min-height: 0;          /* permite el scroll interno del flex child */
+    overflow: hidden;
+  }
+  .m-view {
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: max(20px, env(safe-area-inset-top)) 20px 24px;
+  }
+  .m-view[hidden] { display: none !important; }
+
+  .m-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 28px;
+    margin-bottom: 20px;
+  }
+  .m-eyebrow { margin: 0 0 2px; font-size: 15px; color: var(--m-muted); }
+  .m-title {
+    margin: 0;
+    font-size: 32px;
+    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    outline: none;          /* recibe foco programático, no es interactivo */
+  }
+  .m-icon-btn {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid var(--m-border);
+    background: var(--m-surface);
+    color: var(--m-text);
+    cursor: pointer;
+  }
+  .m-icon-btn:active { background: var(--m-surface-2); }
+
+  /* ---- Tab bar inferior -------------------------------------------------- */
+  .m-tabbar {
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+    background: var(--m-bg);
+    border-top: 1px solid var(--m-border);
+  }
+  .m-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-height: 56px;       /* objetivo táctil ≥ 44px */
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--m-muted);
+    font: 600 13px/1.2 var(--font-ui);
+    cursor: pointer;
+  }
+  .m-tab-pill {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 28px;
+    border-radius: 14px;
+    transition: background-color .15s ease;
+  }
+  .m-tab[aria-current="page"] { color: var(--m-accent); }
+  .m-tab[aria-current="page"] .m-tab-pill { background: var(--m-accent-soft); }
+  .m-tab:focus-visible,
+  .m-icon-btn:focus-visible { outline: 2px solid var(--m-accent); outline-offset: 2px; }
+
+  .m-ico {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .m-tab-pill { transition: none; }
+  }
+}
