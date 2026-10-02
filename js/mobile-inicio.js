@@ -11,8 +11,8 @@
 // asignaturas ya cargadas, no contra el valor del atributo del DOM.
 
 import { el } from './dom.js';
-import { fetchGithubTree } from './github-source.js?v=5';
-import { auth, watchAuth } from './firebase-init.js?v=6'; // misma URL que app.js: comparte instancia
+import { fetchGithubTree } from './github-source.js?v=02537279';
+import { auth, watchAuth } from './firebase-init.js?v=11feeaf4'; // misma URL que app.js: comparte instancia
 import {
   getFirestore, collection, onSnapshot, query, where,
 } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
