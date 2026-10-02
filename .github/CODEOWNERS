@@ -6,6 +6,8 @@
 /index.html                                                   @gtalex1
 /js/                                                          @gtalex1
 /css/                                                         @gtalex1
+/service-worker.js                                            @gtalex1
+/manifest.webmanifest                                         @gtalex1
 /rules.firestore                                              @gtalex1
 /.github/                                                     @gtalex1
 /scripts/                                                     @gtalex1

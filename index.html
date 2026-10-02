@@ -5,6 +5,13 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://res.cloudinary.com; font-src 'self' data:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://api.cloudinary.com https://*.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Apuntes DAM</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1e1e1e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Apuntes DAM">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><rect width=%2224%22 height=%2224%22 rx=%224%22 fill=%22%23007acc%22/><text x=%2212%22 y=%2217%22 font-size=%2213%22 font-family=%22monospace%22 fill=%22white%22 text-anchor=%22middle%22>{}</text></svg>">
 <link rel="stylesheet" href="css/vendor/vs2015.min.css">
 <link rel="stylesheet" href="css/styles.css?v=8">
@@ -13,6 +20,12 @@
   ::highlight(busqueda-apuntes) { background-color: #f5c518; color: #000; }
   .sr-snippet { border-radius: 3px; }
   .sr-snippet:hover { background: rgba(255, 255, 255, 0.08); }
+  /* Botón «Instalar app»: .activity-icon fuerza display:flex, así que hay que respetar [hidden]. */
+  #btn-instalar[hidden] { display: none; }
+  #btn-instalar { color: var(--accent-strong); }
+  #btn-instalar:hover { color: var(--activitybar-fg); }
+  .instalar-intro { margin: 0 0 12px; font-size: 13px; color: var(--auth-muted, #9d9d9d); }
+  .instalar-pasos { margin: 0 0 16px; padding-left: 20px; font-size: 13px; line-height: 1.7; }
 </style>
 </head>
 <body>
@@ -39,6 +52,9 @@
     </button>
     <button class="activity-icon" id="nav-favoritos" data-view="favoritos" title="Favoritos" aria-label="Favoritos">
       <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.3 6.1 20.6l1.4-6.6-5-4.6 6.6-.7L12 2.5z"/></svg>
+    </button>
+    <button class="activity-icon" id="btn-instalar" type="button" title="Instalar app" aria-label="Instalar app" hidden>
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path fill="currentColor" d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
     </button>
     <div class="activity-spacer"></div>
     <!-- Cuenta: «Acceder» (sin sesión) / icono de perfil que abre «Mi cuenta» (con sesión) -->
@@ -172,6 +188,27 @@
   </div>
 </div>
 
+<!-- Modal «Instalar app»: guía manual cuando el navegador no ofrece instalación directa -->
+<div class="auth-modal" id="modal-instalar" role="dialog" aria-modal="true" aria-labelledby="instalar-title" hidden>
+  <div class="auth-backdrop" data-auth-cerrar></div>
+  <div class="auth-card">
+    <button type="button" class="auth-close" data-auth-cerrar aria-label="Cerrar">&times;</button>
+    <div class="auth-title" id="instalar-title">Instalar Apuntes DAM</div>
+    <p class="instalar-intro">Se añade a tu pantalla de inicio y se abre como una app, sin la barra del navegador.</p>
+    <ol class="instalar-pasos" id="instalar-ios" hidden>
+      <li>Pulsa el botón <strong>Compartir</strong> (el cuadrado con la flecha hacia arriba).</li>
+      <li>Desliza y elige <strong>Añadir a pantalla de inicio</strong>.</li>
+      <li>Pulsa <strong>Añadir</strong>.</li>
+    </ol>
+    <ol class="instalar-pasos" id="instalar-otros" hidden>
+      <li>Abre el menú del navegador (los tres puntos <strong>⋮</strong>).</li>
+      <li>Elige <strong>Instalar aplicación</strong> o <strong>Añadir a pantalla de inicio</strong>.</li>
+      <li>Confirma con <strong>Instalar</strong>.</li>
+    </ol>
+    <button type="button" class="auth-btn" data-auth-cerrar>Entendido</button>
+  </div>
+</div>
+
 <!-- Modal «Gestión de usuarios» (solo Admin Principal) -->
 <div class="auth-modal" id="modal-usuarios" role="dialog" aria-modal="true" aria-labelledby="usuarios-title" hidden>
   <div class="auth-backdrop" data-auth-cerrar></div>
@@ -236,6 +273,7 @@
 <script src="js/vendor/marked.min.js"></script>
 <script src="js/vendor/purify.min.js"></script>
 <script src="js/vendor/highlight.min.js"></script>
+<script type="module" src="js/pwa.js?v=2"></script>
 <script type="module" src="js/app.js?v=14"></script>
 </body>
 </html>

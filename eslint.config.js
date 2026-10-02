@@ -29,4 +29,9 @@ export default [
     languageOptions: { ecmaVersion: 2023, sourceType: 'module', globals: globals.node },
     rules: reglas,
   },
+  {
+    files: ['service-worker.js'],
+    languageOptions: { ecmaVersion: 2023, sourceType: 'script', globals: globals.serviceworker },
+    rules: reglas,
+  },
 ];
