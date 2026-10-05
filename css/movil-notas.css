@@ -1,0 +1,38 @@
+/* movil-notas.css — estilo móvil para Horario y Calendario (se aplica dentro de sus páginas).
+   Solo actúa con ≤700 px de ancho; en ordenador no cambia nada. */
+@media (max-width:700px){
+  html.note-page body{ background:#0E1015; color:#F2F3F7; padding:20px 16px 28px; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  html.note-page h1{ font-size:26px; font-weight:800; letter-spacing:-.5px; margin:0 0 4px; }
+  html.note-page h2{ font-size:18px; font-weight:800; margin:28px 0 12px; }
+  html.note-page .subtitle{ color:#9AA1B2; font-size:14px; margin:0 0 20px; }
+  html.note-page .auth-header--flotante{ display:none; }
+
+  /* Horario */
+  html.page-horario .schedule-scroll{ border:1px solid #232734; border-radius:18px; background:#171A22; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; }
+  html.page-horario .schedule{ min-width:0; width:max-content; grid-template-columns:48px repeat(5,112px); }
+  html.page-horario .time-cell{ position:sticky; left:0; z-index:1; background:#14171E; }
+  html.page-horario .head{ position:sticky; top:0; }
+  html.page-horario .filter-bar{ display:flex; flex-wrap:nowrap; overflow-x:auto; gap:8px; padding-bottom:6px; }
+  html.page-horario .chip{ flex:none; min-height:44px; padding:0 16px; border-radius:22px; }
+  html.page-horario table, html.page-horario tbody, html.page-horario tr, html.page-horario td{ display:block; width:auto; }
+  html.page-horario thead{ display:none; }
+  html.page-horario tr{ margin-bottom:10px; padding:14px 16px; border:1px solid #232734; border-radius:18px; background:#171A22; }
+  html.page-horario tr:nth-child(even) td{ background:none; }
+  html.page-horario td{ border:0; padding:2px 0; }
+  html.page-horario td:nth-child(1){ font-size:16px; font-weight:700; }
+  html.page-horario td:nth-child(2){ font-size:13px; color:#9AA1B2; }
+  html.page-horario td:nth-child(3){ font-size:13px; color:#9AA1B2; }
+  html.page-horario td:nth-child(3)::before{ content:"Docente: "; color:#FFC857; font-weight:700; }
+
+  /* Calendario */
+  html.page-calendario .cal-scroll{ overflow-x:visible; }
+  html.page-calendario .cal, html.page-calendario .cal-scroll .cal{ min-width:0; width:100%; }
+  html.page-calendario .cal-day{ min-height:52px; padding:4px; }
+  html.page-calendario .etiqueta-mini{ display:none; }
+  html.page-calendario #btnNuevoEvento{ width:100%; height:52px; border:0; border-radius:26px; background:#FFC857; color:#0E1015; font-size:15px; font-weight:800; }
+  html.page-calendario .mes-nav button{ width:48px; height:48px; border-radius:24px; }
+  html.page-calendario .leyenda{ gap:8px 14px; font-size:12px; }
+  html.page-calendario .examen-item, html.page-calendario .festivo-item, html.page-calendario .item{
+    margin-bottom:10px; padding:14px 16px; border:1px solid #232734; border-radius:18px; background:#171A22; }
+  html.page-calendario .tarea-check{ width:24px; height:24px; accent-color:#FFC857; }
+}
