@@ -1,0 +1,115 @@
+/* movil.css — interfaz móvil. Solo actúa con html.movil (lo pone js/movil.js a ≤700 px).
+   En ordenador no cambia nada. Para volver atrás basta con quitar este <link> y movil.js. */
+html.movil{
+  --m-bg:#0E1015; --m-card:#171A22; --m-line:#232734; --m-text:#F2F3F7; --m-muted:#9AA1B2;
+  --m-amber:#FFC857; --m-nav:84px; --m-top:64px;
+  --m-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+#movil-root{ display:none; }
+html.movil #movil-root{ display:block; font-family:var(--m-font); color:var(--m-text); }
+html.movil body{ background:var(--m-bg); }
+html.movil .titlebar, html.movil .activitybar, html.movil .sidebar, html.movil .statusbar,
+html.movil .tabbar, html.movil .breadcrumbs{ display:none !important; }
+html.movil .workbench{ display:block; height:auto; }
+html.movil .editor-area{ display:none; }
+html.movil[data-pantalla="lector"] .editor-area,
+html.movil[data-pantalla="horario"] .editor-area,
+html.movil[data-pantalla="calendario"] .editor-area{
+  display:flex; flex-direction:column; position:fixed; left:0; right:0; top:var(--m-top); bottom:0;
+  z-index:30; background:var(--m-bg);
+}
+html.movil[data-pantalla="horario"] .editor-area,
+html.movil[data-pantalla="calendario"] .editor-area{ bottom:var(--m-nav); }
+html.movil .editor-content{ flex:1; min-height:0; }
+
+/* Pantallas con scroll propio (el body de la app tiene overflow:hidden) */
+.m-pantalla{ position:fixed; left:0; right:0; top:0; bottom:var(--m-nav); overflow-y:auto; z-index:20; background:var(--m-bg); }
+html.movil[data-pantalla="buscar"] .m-pantalla#m-buscar{ bottom:0; }
+html.movil:not([data-pantalla="inicio"]) #m-inicio,
+html.movil:not([data-pantalla="apuntes"]) #m-apuntes,
+html.movil:not([data-pantalla="buscar"]) #m-buscar{ display:none; }
+.m-wrap{ padding:calc(env(safe-area-inset-top,0px) + 32px) 20px 24px; }
+.m-cab{ display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.m-sub{ font-size:14px; font-weight:500; color:var(--m-muted); }
+.m-h1{ margin:2px 0 0; font-size:28px; font-weight:800; letter-spacing:-.5px; }
+.m-h2{ margin:0; font-size:18px; font-weight:800; }
+.m-acciones{ display:flex; gap:8px; }
+.m-btn-ico{ width:48px; height:48px; border-radius:24px; border:1px solid var(--m-line); background:var(--m-card);
+  color:var(--m-text); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; }
+.m-ico{ fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.m-hero{ display:block; width:100%; margin-top:24px; padding:20px; border:0; border-radius:28px; background:var(--m-amber);
+  color:#0E1015; text-align:left; font:inherit; cursor:pointer; }
+.m-hero small{ display:block; font-size:12px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+.m-hero strong{ display:block; font-size:30px; font-weight:800; letter-spacing:-1px; line-height:1.15; margin-top:4px; }
+.m-hero span{ display:block; font-size:15px; font-weight:700; margin-top:2px; }
+.m-instalar{ display:none; width:100%; margin-top:12px; height:48px; border-radius:24px; border:1px solid var(--m-line);
+  background:var(--m-card); color:var(--m-amber); font:inherit; font-size:14px; font-weight:800; cursor:pointer; }
+.m-instalar.visible{ display:block; }
+.m-seccion{ display:flex; justify-content:space-between; align-items:baseline; padding:28px 0 12px; }
+.m-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.m-card{ height:112px; padding:14px; box-sizing:border-box; border:1px solid var(--m-line); border-radius:22px;
+  background:var(--m-card); color:inherit; font:inherit; text-align:left; display:flex; flex-direction:column;
+  justify-content:space-between; cursor:pointer; }
+.m-badge{ flex:none; width:32px; height:32px; border-radius:11px; color:#0E1015; font-size:13px; font-weight:800;
+  display:flex; align-items:center; justify-content:center; }
+.m-card b{ display:block; font-size:15px; font-weight:700; line-height:1.15; }
+.m-card i{ font-style:normal; font-size:12px; color:var(--m-muted); }
+.m-vacio{ padding:24px 0; color:var(--m-muted); font-size:14px; line-height:1.5; }
+
+/* Apuntes: acordeón */
+.m-lista{ display:flex; flex-direction:column; gap:10px; padding-top:20px; }
+.m-mat{ border:1px solid var(--m-line); border-radius:22px; background:var(--m-card); overflow:hidden; }
+.m-mat-cab{ display:flex; align-items:center; gap:14px; width:100%; min-height:64px; box-sizing:border-box; padding:0 16px;
+  border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+.m-mat-cab .m-badge{ width:36px; height:36px; }
+.m-mat-cab span.m-txt{ flex:1; }
+.m-mat-cab b{ display:block; font-size:16px; font-weight:700; }
+.m-mat-cab i{ font-style:normal; font-size:12px; color:var(--m-muted); }
+.m-mat-cab .m-ico{ color:var(--m-muted); flex:none; }
+.m-archivos{ display:none; }
+.m-mat.abierta .m-archivos{ display:block; }
+.m-archivo{ display:flex; align-items:center; gap:12px; min-height:56px; padding:0 4px 0 16px; border-top:1px solid var(--m-line); }
+.m-tipo{ flex:none; width:48px; text-align:center; padding:3px 0; border-radius:8px; background:var(--m-line); font-size:11px; font-weight:800; }
+.m-nombre{ flex:1; min-height:44px; border:0; background:none; color:inherit; font:inherit; font-size:15px; font-weight:700;
+  text-align:left; cursor:pointer; padding:0; }
+.m-fav{ flex:none; width:44px; height:44px; border:0; background:none; color:var(--m-muted); display:flex;
+  align-items:center; justify-content:center; cursor:pointer; padding:0; }
+.m-fav.activo{ color:var(--m-amber); }
+.m-fav.activo .m-ico{ fill:currentColor; }
+
+/* Barra superior (lector, horario, calendario) */
+.m-bar{ display:none; position:fixed; left:0; right:0; top:0; height:var(--m-top); box-sizing:border-box; z-index:40;
+  padding:env(safe-area-inset-top,0px) 12px 0; align-items:center; gap:8px; background:var(--m-bg);
+  border-bottom:1px solid var(--m-line); font-family:var(--m-font); color:var(--m-text); }
+html.movil[data-pantalla="lector"] .m-bar,
+html.movil[data-pantalla="horario"] .m-bar,
+html.movil[data-pantalla="calendario"] .m-bar{ display:flex; }
+.m-bar .m-btn-ico{ width:44px; height:44px; border-radius:22px; }
+.m-bar-titulo{ flex:1; min-width:0; font-size:17px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+html.movil:not([data-pantalla="lector"]) .m-bar .m-atras{ display:none; }
+
+/* Buscar */
+.m-buscar-cab{ display:flex; align-items:center; gap:8px; }
+#m-buscar .search-box{ flex:1; padding:0; display:flex; flex-direction:column; gap:8px; }
+#m-buscar .search-box input, #m-buscar .search-box select{ width:100%; box-sizing:border-box; height:48px; border-radius:24px;
+  border:1px solid var(--m-line); background:var(--m-card); color:var(--m-text); padding:0 18px; font:inherit; font-size:16px; }
+#m-buscar .search-status{ padding:12px 4px 4px; font-size:13px; color:var(--m-muted); }
+#m-buscar .search-results{ overflow:visible; }
+#m-buscar .search-result{ margin-top:10px; padding:14px 16px; border:1px solid var(--m-line); border-radius:18px; background:var(--m-card); }
+#m-buscar .search-result:hover{ background:var(--m-card); }
+#m-buscar .search-result .sr-name{ font-size:15px; font-weight:700; }
+#m-buscar .search-result .sr-snippet{ font-size:13px; margin-left:0; padding:8px 0 2px; }
+
+/* Barra de navegación inferior */
+.m-nav{ display:none; position:fixed; left:0; right:0; bottom:0; height:var(--m-nav); box-sizing:border-box; z-index:50;
+  padding:8px 8px calc(env(safe-area-inset-bottom,0px) + 12px); background:#14171E; border-top:1px solid var(--m-line); font-family:var(--m-font); }
+html.movil:not([data-pantalla="lector"]):not([data-pantalla="buscar"]) .m-nav{ display:flex; }
+.m-nav button{ flex:1; border:0; background:none; color:var(--m-muted); font:inherit; font-size:12px; font-weight:700;
+  display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; }
+.m-nav button span{ width:56px; height:28px; border-radius:14px; display:flex; align-items:center; justify-content:center; }
+.m-nav button[aria-current="page"]{ color:var(--m-amber); }
+.m-nav button[aria-current="page"] span{ background:rgba(255,200,87,.16); }
+
+/* Feedback ámbar al pulsar y mientras el modal de cuenta está abierto */
+.m-btn-ico:active, .m-btn-ico.activo{ color:var(--m-amber); border-color:var(--m-amber); background:rgba(255,200,87,.16); }
+.m-btn-ico:focus-visible, .m-card:focus-visible, .m-nav button:focus-visible{ outline:2px solid var(--m-amber); outline-offset:2px; }
