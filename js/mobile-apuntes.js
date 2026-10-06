@@ -30,6 +30,27 @@ async function cargar() {
   return asignaturas.map((a) => ({ ...a, files: porClave.get(a.clave) ?? [] }));
 }
 
+// Lector: el apunte se abre dentro de la app, con barra superior y botón Volver (también el «atrás» del móvil).
+function abrirLector(titulo, url) {
+  const raizApp = document.getElementById('mobile-app');
+  const volver = el('button', 'ma-volver', '‹');
+  volver.type = 'button';
+  volver.setAttribute('aria-label', 'Volver a Apuntes');
+  const barra = el('header', 'ma-barra');
+  barra.append(volver, el('span', 'ma-barra-titulo', titulo));
+  const marco = el('iframe', 'ma-marco');
+  marco.src = url;
+  marco.title = titulo;
+  const lector = el('div', 'ma-lector');
+  lector.append(barra, marco);
+  raizApp.append(lector);
+  history.pushState({ ma: 1 }, '');
+  const alAtras = () => { lector.remove(); window.removeEventListener('popstate', alAtras); };
+  window.addEventListener('popstate', alAtras);
+  volver.addEventListener('click', () => history.back());
+  volver.focus();
+}
+
 function crearAsignatura(a) {
   const caja = el('div', 'ma-mat');
   caja.dataset.clave = a.clave;
@@ -50,6 +71,7 @@ function crearAsignatura(a) {
     const enlace = el('a', 'ma-archivo');
     enlace.href = urlDe(f.path);
     enlace.append(el('span', 'ma-tipo', tipoArchivo(f.name)), el('span', 'ma-nom', nombreArchivo(f.name)));
+    enlace.addEventListener('click', (e) => { e.preventDefault(); abrirLector(nombreArchivo(f.name), enlace.href); });
     cuerpo.append(enlace);
   }
   cab.addEventListener('click', () => {

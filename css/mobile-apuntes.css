@@ -12,4 +12,11 @@
   #mobile-app .ma-archivo:active { background: var(--m-surface-2); }
   #mobile-app .ma-archivo:focus-visible { outline: 2px solid var(--m-accent); outline-offset: -2px; }
   #mobile-app .ma-tipo { flex: none; width: 48px; text-align: center; padding: 3px 0; border-radius: 8px; background: var(--m-surface-2); color: var(--m-accent); font-size: 11px; font-weight: 800; }
+  #mobile-app .ma-lector { position: fixed; inset: 0; z-index: 150; display: flex; flex-direction: column; background: var(--m-bg); }
+  #mobile-app .ma-barra { flex: none; display: flex; align-items: center; gap: 8px; min-height: 56px; padding: env(safe-area-inset-top, 0px) 12px 0; border-bottom: 1px solid var(--m-border); background: var(--m-bg); }
+  #mobile-app .ma-volver { width: 44px; height: 44px; border-radius: 22px; border: 1px solid var(--m-border); background: var(--m-surface); color: var(--m-text); font-size: 28px; line-height: 1; padding: 0 0 4px; cursor: pointer; }
+  #mobile-app .ma-volver:active, #mobile-app .ma-volver:focus-visible { color: var(--m-accent); border-color: var(--m-accent); outline: none; }
+  #mobile-app .ma-barra-titulo { flex: 1; min-width: 0; font-size: 17px; font-weight: 800; color: var(--m-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #mobile-app .ma-marco { flex: 1; min-height: 0; width: 100%; border: 0; background: #fff; }
 }
+
