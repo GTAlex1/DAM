@@ -1,6 +1,7 @@
 // mobile-ajustes.js — «Ajustes» en la pantalla Cuenta (móvil): tamaño de letra de los apuntes.
 // Usa la misma clave y el mismo rango que la web de escritorio (damNotesAjustes, 80–150 %).
 import { el } from './dom.js';
+import { iniciarCuenta } from './mobile-cuenta.js?v=1';
 
 const CLAVE = 'damNotesAjustes';
 const MIN = 80, MAX = 150, PASO = 10;
@@ -23,6 +24,7 @@ function guardar(v) {
 const raiz = document.getElementById('mobile-app');
 const slot = raiz?.querySelector('[data-m-slot="cuenta"]');
 if (slot) {
+  iniciarCuenta(raiz); // acceso / perfil (mobile-cuenta.js solo exporta la función; alguien tiene que llamarla)
   let valor = leer();
   const num = el('output', 'mj-valor', `${valor}%`);
   num.setAttribute('aria-live', 'polite');
