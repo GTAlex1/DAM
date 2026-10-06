@@ -15,7 +15,7 @@ function archivosDe(nodo, out = []) {
 
 async function cargar() {
   const [{ cargarAsignaturas }, { fetchGithubTree }] = await Promise.all([
-    import('./mobile-inicio.js?v=bdf10294'), import('./github-source.js?v=02537279'),
+    import('./mobile-inicio.js?v=bff7fc72'), import('./github-source.js?v=02537279'),
   ]);
   const [asignaturas, datos] = await Promise.all([cargarAsignaturas(), fetchGithubTree()]);
   const porClave = new Map();
@@ -41,6 +41,9 @@ function abrirLector(titulo, url) {
   const marco = el('iframe', 'ma-marco');
   marco.src = url;
   marco.title = titulo;
+  marco.addEventListener('load', () => { // el apunte hereda el tamaño de letra elegido en Cuenta
+    try { marco.contentDocument.documentElement.style.setProperty('--note-scale', document.documentElement.style.getPropertyValue('--note-scale') || '1'); } catch { /* otro origen */ }
+  });
   const lector = el('div', 'ma-lector');
   lector.append(barra, marco);
   raizApp.append(lector);
