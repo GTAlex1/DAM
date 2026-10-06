@@ -229,6 +229,7 @@ const detalleEl = $('detalle');
 const btnAnterior = $('mesAnterior');
 const btnSiguiente = $('mesSiguiente');
 const examenesListEl = $('examenesList');
+const tareasListEl = $('tareasList');
 const msgEl = $('msgCal');
 const btnNuevo = $('btnNuevoEvento');
 const avisoSesion = $('avisoSesion');
@@ -402,6 +403,7 @@ async function marcarTarea(id, hecha, checkbox) {
   const item = checkbox.closest('.item');
   item?.classList.toggle('item-hecha', hecha);
   pintaMes();
+  pintaExamenes();
   try {
     await guardarHecha(id, hecha);
   } catch (err) {
@@ -438,6 +440,25 @@ function textoCuenta(e) {
   return { n, texto: n === 0 ? 'hoy' : n === 1 ? 'mañana' : `en ${n} días` };
 }
 
+// «Próximas tareas»: pendientes primero, con barra de progreso.
+function pintaTareasProximas(inicioHoy) {
+  if (!tareasListEl) return;
+  const lista = eventosDin.filter(e => e.tipo === 'tarea' && e.ini >= inicioHoy)
+    .sort((a, b) => (hechas.has(a.id) - hechas.has(b.id)) || a.ini - b.ini || a.label.localeCompare(b.label, 'es'));
+  const n = lista.filter(e => hechas.has(e.id)).length;
+  const progreso = lista.length
+    ? `<div class="tareas-progreso"><progress max="${lista.length}" value="${n}"></progress><span>${n} de ${lista.length} hechas${n === lista.length ? ' 🎉' : ''}</span></div>` : '';
+  tareasListEl.innerHTML = progreso + (lista.map(e => {
+    const h = hechas.has(e.id);
+    const c = textoCuenta(e);
+    return `<div class="examen-item tarea-prox${h ? ' item-hecha' : ''}" role="button" tabindex="0" data-evid="${esc(e.id)}">
+      <span class="e-fecha">${formatoCorto(e.ini)}</span>
+      <span class="e-info"><span class="e-linea"><span class="e-label">${esc(e.label)}</span>${htmlInsignia(e)}</span></span>
+      <span class="e-cuenta${!h && c.n <= 3 ? ' pronto' : ''}">${h ? '¡Hecha!' : c.texto}</span>
+    </div>`;
+  }).join('') || `<p class="vacio">No hay tareas próximas.</p>`);
+}
+
 function pintaExamenes() {
   if (estadoEventos === 'cargando') {
     examenesListEl.innerHTML = `<p class="vacio">Cargando exámenes…</p>`;
@@ -468,6 +489,7 @@ function pintaExamenes() {
       <span class="e-cuenta${c.n <= 7 ? ' pronto' : ''}">${c.texto}</span>
     </div>`;
   }).join('') || `<p class="vacio">No hay exámenes próximos anotados.</p>`;
+  pintaTareasProximas(inicioHoy);
 }
 
 // Pulsar un examen de la lista lleva al día en el calendario y resalta su ficha, que es
@@ -487,6 +509,10 @@ function irAEvento(id) {
   }
 }
 examenesListEl.addEventListener('click', e => {
+  const it = e.target.closest('.examen-item[data-evid]');
+  if (it) irAEvento(it.dataset.evid);
+});
+tareasListEl?.addEventListener('click', e => {
   const it = e.target.closest('.examen-item[data-evid]');
   if (it) irAEvento(it.dataset.evid);
 });
