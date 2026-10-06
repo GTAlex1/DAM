@@ -1,5 +1,6 @@
 /* movil-notas.css — estilo móvil para Horario y Calendario (se aplica dentro de sus páginas).
    Solo actúa con ≤700 px de ancho; en ordenador no cambia nada. */
+html.page-horario .m-dias{ display:none; }
 @media (max-width:700px){
   html.note-page body{ background:#0E1015; color:#F2F3F7; padding:20px 16px 28px; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
   html.note-page h1{ font-size:26px; font-weight:800; letter-spacing:-.5px; margin:0 0 4px; }
@@ -9,9 +10,15 @@
 
   /* Horario */
   html.page-horario .schedule-scroll{ border:1px solid #232734; border-radius:18px; background:#171A22; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; }
-  html.page-horario .schedule{ min-width:0; width:max-content; grid-template-columns:48px repeat(5,112px); }
+  html.page-horario .schedule{ min-width:0; width:100%; grid-template-columns:64px 1fr; }
+  html.page-horario .schedule .head, html.page-horario .schedule .day-cell{ display:none; }
+  html.page-horario .schedule[data-dia="0"] .day-cell[data-day="0"], html.page-horario .schedule[data-dia="1"] .day-cell[data-day="1"],
+  html.page-horario .schedule[data-dia="2"] .day-cell[data-day="2"], html.page-horario .schedule[data-dia="3"] .day-cell[data-day="3"],
+  html.page-horario .schedule[data-dia="4"] .day-cell[data-day="4"]{ display:flex; border-right:none; }
+  html.page-horario .m-dias{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:0 0 16px; }
+  html.page-horario .m-dias button{ height:52px; border-radius:18px; border:1px solid #232734; background:#171A22; color:#F2F3F7; font:inherit; font-size:16px; font-weight:800; cursor:pointer; }
+  html.page-horario .m-dias button[aria-pressed="true"]{ background:#FFC857; border-color:#FFC857; color:#0E1015; }
   html.page-horario .time-cell{ position:sticky; left:0; z-index:1; background:#14171E; }
-  html.page-horario .head{ position:sticky; top:0; }
   html.page-horario .filter-bar{ display:flex; flex-wrap:nowrap; overflow-x:auto; gap:8px; padding-bottom:6px; }
   html.page-horario .chip{ flex:none; min-height:44px; padding:0 16px; border-radius:22px; }
   html.page-horario table, html.page-horario tbody, html.page-horario tr, html.page-horario td{ display:block; width:auto; }
