@@ -15,7 +15,7 @@ function archivosDe(nodo, out = []) {
 
 async function cargar() {
   const [{ cargarAsignaturas }, { fetchGithubTree }] = await Promise.all([
-    import('./mobile-inicio.js?v=bff7fc72'), import('./github-source.js?v=02537279'),
+    import('./mobile-inicio.js?v=bdf10294'), import('./github-source.js?v=02537279'),
   ]);
   const [asignaturas, datos] = await Promise.all([cargarAsignaturas(), fetchGithubTree()]);
   const porClave = new Map();
