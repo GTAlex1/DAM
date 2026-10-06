@@ -2,7 +2,7 @@
  "v": 1,
  "root": "DAM",
  "repo": "GTAlex1/DAM",
- "indice": "cc111c0429bb",
+ "indice": "938c96e42b02",
  "files": [
   {
    "path": "DAM/1-DAM/Bases-de-Datos/U1.html",
@@ -43,6 +43,14 @@
   {
    "path": "DAM/1-DAM/Programacion/Introducción.html",
    "h": "c0c06d1b66"
+  },
+  {
+   "path": "DAM/1-DAM/Programacion/Java/Ejercicios-java-bucles.html",
+   "h": "d9c08361a3"
+  },
+  {
+   "path": "DAM/1-DAM/Programacion/Java/Ejercicios-java.html",
+   "h": "ea2537dab7"
   },
   {
    "path": "DAM/1-DAM/Programacion/Java/Java.html",
