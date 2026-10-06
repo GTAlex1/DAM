@@ -159,6 +159,47 @@ modalesCuenta.forEach((m) => new MutationObserver(syncCuenta).observe(m, { attri
 const original = $('#btn-instalar');
   btnInstalar.classList.toggle('visible', !!original && !original.hidden);
 }
+// ---------- Próximo examen (exámenes de la clase, desde Firestore) ----------
+let examenes = []; // { fecha: Date, titulo, asignatura, hora }
+let examenesIniciado = false;
+const medianoche = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+function heroNode() {
+  const hoy = medianoche(new Date());
+  const prox = examenes.filter((e) => e.fecha >= hoy).sort((a, b) => a.fecha - b.fecha)[0];
+  if (!prox) {
+    return h('button', { type: 'button', class: 'm-hero', onclick: () => irATab('calendario') },
+      h('small', {}, 'Calendario'), h('strong', {}, 'Exámenes y tareas'), h('span', {}, 'Toca para ver lo próximo'));
+  }
+  const dias = Math.round((prox.fecha - hoy) / 86400000);
+  const cuando = dias === 0 ? 'Hoy' : dias === 1 ? 'Mañana' : `${dias} días`;
+  const fecha = prox.fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  const nombre = prox.asignatura ? `${prox.asignatura} — ${prox.titulo}` : prox.titulo;
+  return h('button', { type: 'button', class: 'm-hero', onclick: () => irATab('calendario') },
+    h('small', {}, 'Próximo examen'), h('strong', {}, cuando),
+    h('span', {}, `${nombre} · ${fecha}${prox.hora ? ` · ${prox.hora}` : ''}`));
+}
+async function escucharExamenes() {
+  try {
+    const [{ db }, fs] = await Promise.all([
+      import('./firebase-core.js?v=1'),
+      import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js'),
+    ]);
+    fs.onSnapshot(fs.query(fs.collection(db, 'calendario_eventos'), fs.where('ambito', '==', 'global')), (snap) => {
+      examenes = [];
+      snap.forEach((doc) => {
+        const d = doc.data();
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d.fecha ?? '');
+        const titulo = String(d.titulo ?? '').trim();
+        if (d.tipo !== 'examen' || !m || !titulo) return;
+        examenes.push({ fecha: new Date(+m[1], +m[2] - 1, +m[3]), titulo,
+          asignatura: String(d.asignatura ?? '').trim(), hora: typeof d.hora === 'string' ? d.hora : '' });
+      });
+      repintar();
+    }, (err) => console.warn('No se pudieron leer los exámenes:', err));
+  } catch (err) { console.warn('Firebase no disponible para la cuenta atrás:', err); }
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) repintar(); }); // cambia la cuenta al pasar el día
+
 function pintarInicio(materias) {
   const grid = h('div', { class: 'm-grid' });
   materias.forEach((m) => {
@@ -173,8 +214,7 @@ function pintarInicio(materias) {
       h('div', { class: 'm-acciones' },
         h('button', { type: 'button', class: 'm-btn-ico', 'aria-label': 'Buscar', onclick: abrirBuscar }, ico(I.buscar)),
         btnCuenta)),
-    h('button', { type: 'button', class: 'm-hero', onclick: () => irATab('calendario') },
-      h('small', {}, 'Calendario'), h('strong', {}, 'Exámenes y tareas'), h('span', {}, 'Toca para ver lo próximo')),
+    heroNode(),
     btnInstalar,
     h('div', { class: 'm-seccion' }, h('h2', { class: 'm-h2' }, 'Asignaturas'),
       h('span', { class: 'm-sub' }, plural(materias.length, 'asignatura', 'asignaturas'))),
@@ -279,7 +319,10 @@ if (original) new MutationObserver(sincronizarInstalar).observe(original, { attr
 
 function aplicar() {
   raizHtml.classList.toggle('movil', MQ.matches);
-  if (MQ.matches) { ir(pantalla === 'lector' ? 'apuntes' : pantalla); repintar(); }
+  if (MQ.matches) {
+    ir(pantalla === 'lector' ? 'apuntes' : pantalla); repintar();
+    if (!examenesIniciado) { examenesIniciado = true; escucharExamenes(); }
+  }
   else { restaurarBuscador(); delete raizHtml.dataset.pantalla; }
 }
 MQ.addEventListener('change', aplicar);
