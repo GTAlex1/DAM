@@ -181,7 +181,7 @@ function heroNode() {
 async function escucharExamenes() {
   try {
     const [{ db }, fs] = await Promise.all([
-      import('./firebase-core.js?v=1'),
+      import('./firebase-core.js?v=c4e3345d'),
       import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js'),
     ]);
     fs.onSnapshot(fs.query(fs.collection(db, 'calendario_eventos'), fs.where('ambito', '==', 'global')), (snap) => {
