@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="es" class="note-page page-introduccion page-ejercicios-pseint">
+<head>
+<meta charset="UTF-8">
+<title>Ejercicios Java: Estructuras Repetitivas (Condiciones de fin)</title>
+<link rel="stylesheet" href="/DAM/css/styles.css">
+</head>
+<body>
+
+<h1>Estructuras Repetitivas: Condiciones de fin</h1>
+<p class="subtitulo">15 Ejercicios interactivos con pista y solución</p>
+<p class="modulo">Programación · DAM 1º · Tema 2: Ejercicios en Java (Estructuras Repetitivas: Condiciones de fin)</p>
+
+<div class="caja">
+  <p>Lee cada enunciado e intenta resolverlo tú mismo en Java (con tu IDE o en la terminal) antes de pulsar los botones. <strong>Mostrar pista</strong> te da una idea de por dónde empezar sin dar la solución; <strong>Mostrar solución</strong> revela el código Java completo y su explicación. Todos los programas leen datos con <code>Scanner</code> (<code>import java.util.Scanner;</code>). Si al introducir decimales te da <code>InputMismatchException</code>, usa la coma como separador decimal (configuración regional española) o crea el scanner con <code>new Scanner(System.in).useLocale(java.util.Locale.US)</code>.</p>
+  <p>Los ejercicios 4, 5 y 8 son <strong>ampliaciones</strong> del 3, el 4 y el 7 respectivamente, por lo que conviene hacerlos en orden.</p>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 1 — Números pares menores de 100</h2>
+  <p class="enunciado">Programa que visualice los números pares menores de 100.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-1" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-1" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-1" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> Parte del primer par (2) y súmale 2 en cada vuelta. El bucle <code>while</code> debe repetirse mientras el número siga siendo menor que 100.</p>
+  </div>
+  <div id="solucion-1" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p>Ninguna</p></div>
+      <div class="card orange"><h4>Salida</h4><p>Los pares del 2 al 98</p></div>
+    </div>
+    <pre><code>import java.util.Scanner;
+
+public class ParesMenores100 {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int num = 2;
+
+        while (num &lt; 100) {
+            System.out.println(num);
+            num += 2;
+        }
+
+        sc.close();
+    }
+}</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> se usa un <strong>contador</strong> que arranca en el primer par y avanza de 2 en 2, así nunca hace falta comprobar si es par. La condición de fin es <code>num &lt; 100</code>. Se empieza en 2 al entender que el 0 no interesa; si lo quieres incluir, inicializa <code>num</code> a 0.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 2 — Suma de los 10 primeros enteros</h2>
+  <p class="enunciado">Programa que realice la suma de los 10 primeros números enteros.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-2" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-2" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-2" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> Necesitas dos variables: un <strong>contador</strong> que vaya de 1 a 10 y un <strong>acumulador</strong> que parta de 0 y vaya sumando el contador en cada vuelta.</p>
+  </div>
+  <div id="solucion-2" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p>Ninguna</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>suma</code> (resultado: 55)</p></div>
+    </div>
+    <pre><code>import java.util.Scanner;
+
+public class SumaDiezPrimeros {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int suma = 0;
+        int contador = 1;
+
+        while (contador &lt;= 10) {
+            suma += contador;
+            contador++;
+        }
+
+        System.out.println("La suma de los 10 primeros enteros es: " + suma);
+
+        sc.close();
+    }
+}</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> patrón clásico <strong>contador + acumulador</strong>. El acumulador se inicializa a 0 (elemento neutro de la suma) <em>antes</em> del bucle, y el contador se incrementa dentro para garantizar que el bucle termina.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 3 — Impares entre N1 y N2</h2>
+  <p class="enunciado">Visualizar todos los impares comprendidos entre N1 y N2, siendo N1 y N2 dos números cuya introducción se solicita por teclado.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-3" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-3" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-3" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> Antes del bucle, calcula el primer impar a partir de N1: si N1 ya es impar te sirve, y si es par, el siguiente es <code>N1 + 1</code>. Después avanza de 2 en 2 hasta pasar de N2. Un número es impar si <code>num % 2 != 0</code>.</p>
+  </div>
+  <div id="solucion-3" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>n1</code>, <code>n2</code> (por teclado)</p></div>
+      <div class="card orange"><h4>Salida</h4><p>Los impares entre <code>n1</code> y <code>n2</code></p></div>
+    </div>
+    <pre><code>import java.util.Scanner;
+
+public class ImparesEntre {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Introduce N1: ");
+        int n1 = sc.nextInt();
+        System.out.print("Introduce N2: ");
+        int n2 = sc.nextInt();
+
+        int impar;
+        if (n1 % 2 != 0) {
+            impar = n1;
+        } else {
+            impar = n1 + 1;
+        }
+
+        while (impar &lt;= n2) {
+            System.out.println(impar);
+            impar += 2;
+        }
+
+        sc.close();
+    }
+}</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> se ajusta el punto de partida para que sea impar y a partir de ahí se salta de 2 en 2, evitando comprobar la paridad en cada vuelta. Los extremos se incluyen si son impares. Si <code>n2 &lt; n1</code> el bucle no se ejecuta ninguna vez (es lo que corregirá el ejercicio siguiente).</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 4 — Forzar que N2 ≥ N1</h2>
+  <p class="enunciado">Modificar el programa anterior para obligar a que N2 sea igual o mayor a N1.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-4" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-4" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-4" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> Es una <strong>validación de entrada</strong>: hay que pedir N2 al menos una vez y repetir la petición mientras sea menor que N1. Eso es justo lo que hace un <code>do-while</code>.</p>
+  </div>
+  <div id="solucion-4" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>n1</code>, <code>n2</code> (con <code>n2 &gt;= n1</code>)</p></div>
+      <div class="card orange"><h4>Salida</h4><p>Los impares entre <code>n1</code> y <code>n2</code></p></div>
+    </div>
+    <pre><code>import java.util.Scanner;
+
+public class ImparesEntreValidado {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Introduce N1: ");
+        int n1 = sc.nextInt();
+        int n2;
+
+        do {
+            System.out.print("Introduce N2 (mayor o igual que N1): ");
+            n2 = sc.nextInt();
+            if (n2 &lt; n1) {
+                System.out.println("Error: N2 debe ser mayor o igual que N1");
+            }
+        } while (n2 &lt; n1);
+
+        int impar = (n1 % 2 != 0) ? n1 : n1 + 1;
+
+        while (impar &lt;= n2) {
+            System.out.println(impar);
+            impar += 2;
+        }
+
+        sc.close();
+    }
+}</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> el <code>do-while</code> es el bucle ideal para validar entradas porque el dato se pide <strong>siempre al menos una vez</strong> y la condición se comprueba después. Se declara <code>n2</code> fuera del bucle para poder usarla en la condición. El operador ternario <code>(cond) ? a : b</code> sustituye al <code>if-else</code> del ejercicio anterior.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 5 — Repetir hasta que N1 y N2 sean 0</h2>
+  <p class="enunciado">Además, este proceso se debe repetir una y otra vez. Finalizaremos cuando tanto N1 como N2 sean 0.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-5" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-5" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-5" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> Mete todo el programa anterior dentro de un <strong>bucle exterior</strong> <code>do-while</code>. La condición para <em>seguir</em> es la negación de "ambos son 0": <code>n1 != 0 || n2 != 0</code>.</p>
+  </div>
+  <div id="solucion-5" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>n1</code>, <code>n2</code> en cada ronda</p></div>
+      <div class="card orange"><h4>Salida</h4><p>Los impares de cada ronda, hasta introducir 0 y 0</p></div>
+    </div>
+    <pre><code>import java.util.Scanner;
+
+public class ImparesRepetido {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n1, n2;
+
+        do {
+            System.out.print("Introduce N1: ");
+            n1 = sc.nextInt();
+
+            do {
+                System.out.print("Introduce N2 (mayor o igual que N1): ");
+                n2 = sc.nextInt();
+                if (n2 &lt; n1) {
+                    System.out.println("Error: N2 debe ser mayor o igual que N1");
+                }
+            } while (n2 &lt; n1);
+
+            int impar = (n1 % 2 != 0) ? n1 : n1 + 1;
+            while (impar &lt;= n2) {
+                System.out.println(impar);
+                impar += 2;
+            }
+        } while (n1 != 0 || n2 != 0);
+
+        sc.close();
+    }
+}</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> <strong>bucles anidados</strong>: el exterior controla las rondas y el interior valida N2. Por la <strong>ley de De Morgan</strong>, "terminar cuando n1 = 0 <em>y</em> n2 = 0" equivale a "continuar mientras n1 ≠ 0 <em>o</em> n2 ≠ 0". Las variables <code>n1</code> y <code>n2</code> se declaran antes del bucle exterior porque se leen en su condición.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 6 — Mínimo y media de una serie</h2>
+  <p class="enunciado">Pedir la introducción de una serie de valores por teclado. Se deberá visualizar el valor mínimo y la media. El criterio para dejar de introducir valores será que se responda N (no) a la pregunta “¿Desea continuar introduciendo valores?”.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-6" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-6" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-6" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> Mantén tres variables: <code>suma</code>, <code>cantidad</code> y <code>minimo</code>. El mínimo no se puede inicializar a 0 (sería un valor falso si todos son positivos): asígnaselo con el <strong>primer</strong> valor leído.</p>
+  </div>
+  <div id="solucion-6" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p>Valores (por teclado) y respuesta S/N</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>minimo</code> y <code>media</code></p></div>
+    </div>
+    <pre><code>import java.util.Scanner;
+
+public class MinimoYMedia {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        double valor, minimo = 0, suma = 0;
+        int cantidad = 0;
+        String respuesta;
+
+        do {
+            System.out.print("Introduce un valor: ");
+            valor = sc.nextDouble();
+
+            if (cantidad == 0 || valor &lt; minimo) {
+                minimo = valor;
+            }
+            suma += valor;
+            cantidad++;
+
+            System.out.print("¿Desea continuar introduciendo valores? (S/N): ");
+            respuesta = sc.next();
+        } while (!respuesta.equalsIgnoreCase("N"));
+
+        double media = suma / cantidad;
+
+        System.out.println("Valor mínimo: " + minimo);
+        System.out.println("Media: " + media);
+
+        sc.close();
+    }
+}</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> bucle controlado por una <strong>respuesta del usuario</strong>. La condición <code>cantidad == 0</code> hace que el primer valor se convierta en el mínimo inicial. La media es <code>suma / cantidad</code> y es seguro dividir porque el <code>do-while</code> garantiza al menos un valor. Las cadenas se comparan con <code>equalsIgnoreCase()</code>, nunca con <code>==</code>.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 7 — Sumatorio con doble condición de fin</h2>
+  <p class="enunciado">Pedir la introducción de una serie de valores por teclado. Para cada uno de ellos se deberá visualizar su sumatorio. El criterio para dejar de introducir valores será o bien que ya hayamos introducido 20 o bien que el último sumatorio calculado sea mayor a 300.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-7" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-7" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-7" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> Hay <strong>dos</strong> razones para parar, pero el bucle se escribe con la condición para <em>continuar</em>, que debe cumplir ambas a la vez: todavía no van 20 valores <strong>y</strong> la suma aún no supera 300.</p>
+  </div>
+  <div id="solucion-7" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p>Valores (por teclado)</p></div>
+      <div class="card orange"><h4>Salida</h4><p>Sumatorio acumulado tras cada valor</p></div>
+    </div>
+    <pre><code>import java.util.Scanner;
+
+public class SumatorioLimite {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        double valor, suma = 0;
+        int contador = 0;
+
+        do {
+            System.out.print("Introduce un valor: ");
+            valor = sc.nextDouble();
+            suma += valor;
+            contador++;
+            System.out.println("Sumatorio actual: " + suma);
+        } while (contador &lt; 20 &amp;&amp; suma &lt;= 300);
+
+        System.out.println("Fin: " + contador + " valores introducidos, sumatorio " + suma);
+
+        sc.close();
+    }
+}</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> las condiciones de <em>fin</em> se combinan con <code>O</code> (basta una), así que la condición de <em>continuación</em> las niega y las une con <code>&amp;&amp;</code>: <code>!(contador == 20 || suma &gt; 300)</code> es lo mismo que <code>contador &lt; 20 &amp;&amp; suma &lt;= 300</code>.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 8 — Valores entre 5 y 100</h2>
+  <p class="enunciado">Modificar el programa anterior para obligar a que los números que se introduzcan por teclado estén comprendidos entre 5 y 100. En caso de introducirse algún valor erróneo (-20, 0, 140, etc), se visualizará el mensaje “Valor erróneo” y se pedirá repetitivamente otro valor hasta que éste sea válido.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-8" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-8" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-8" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> Añade un <code>do-while</code> <strong>interior</strong> que sustituya a la lectura simple del valor. Se repite mientras el valor sea menor que 5 <strong>o</strong> mayor que 100. El bucle exterior no cambia.</p>
+  </div>
+  <div id="solucion-8" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p>Valores entre 5 y 100 (por teclado)</p></div>
+      <div class="card orange"><h4>Salida</h4><p>Sumatorio tras cada valor válido</p></div>
+    </div>
+    <pre><code>import java.util.Scanner;
+
+public class SumatorioValidado {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        double valor, suma = 0;
+        int contador = 0;
+
+        do {
+            do {
+                System.out.print("Introduce un valor (5-100): ");
+                valor = sc.nextDouble();
+                if (valor &lt; 5 || valor &gt; 100) {
+                    System.out.println("Valor erróneo");
+                }
+            } while (valor &lt; 5 || valor &gt; 100);
+
+            suma += valor;
+            contador++;
+            System.out.println("Sumatorio actual: " + suma);
+        } while (contador &lt; 20 &amp;&amp; suma &lt;= 300);
+
+        System.out.println("Fin: " + contador + " valores introducidos, sumatorio " + suma);
+
+        sc.close();
+    }
+}</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> el patrón <strong>"leer con validación"</strong> (<code>do-while</code> interior) se encaja dentro del bucle del ejercicio anterior sin modificarlo. Los valores erróneos no incrementan el contador ni se suman, porque solo se sale del bucle interior cuando el dato ya es válido.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 9 — Contar las aes</h2>
+  <p class="enunciado">Pedir que se introduzcan caracteres por teclado ($ para terminar) y visualizar el número de aes introducidas (mayúsculas o minúsculas).</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-9" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-9" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-9" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> Lee los caracteres con <code>sc.next().charAt(0)</code>. Para no escribir dos comparaciones, pasa el carácter a minúscula con <code>Character.toLowerCase()</code> antes de comparar con <code>'a'</code>. El bucle termina al leer <code>'$'</code>.</p>
+  </div>
+  <div id="solucion-9" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p>Caracteres (por teclado), <code>$</code> para terminar</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>contA</code> (número de aes)</p></div>
+    </div>
+    <pre><code>import java.util.Scanner;
+
+public class ContarAes {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        char caracter;
+        int contA = 0;
+
+        do {
+            System.out.print("Introduce un carácter ($ para terminar): ");
+            caracter = sc.next().charAt(0);
+
+            if (Character.toLowerCase(caracter) == 'a') {
+                contA++;
+            }
+        } while (caracter != '$');
+
+        System.out.println("Número de aes introducidas: " + contA);
+
+        sc.close();
+    }
+}</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> bucle con <strong>centinela</strong> (<code>$</code>): un valor especial que indica el final y no forma parte de los datos. Los <code>char</code> se comparan con <code>==</code> y comillas simples. El <code>$</code> no se confunde con una 'a', así que no altera la cuenta.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 10 — Pesos hasta superar 200 kg</h2>
+  <p class="enunciado">Programa que pida la introducción de pesos, hasta que la suma supere los 200 Kg.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-10" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-10" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-10" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> Acumula cada peso en una variable. Mientras la suma sea <strong>menor o igual</strong> que 200 hay que seguir pidiendo (cuidado: "supere" significa estrictamente mayor).</p>
+  </div>
+  <div id="solucion-10" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p>Pesos en kg (por teclado)</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>total</code> acumulado</p></div>
+    </div>
+    <pre><code>import java.util.Scanner;
+
+public class PesosLimite {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        double peso, total = 0;
+
+        do {
+            System.out.print("Introduce un peso (kg): ");
+            peso = sc.nextDouble();
+            total += peso;
+        } while (total &lt;= 200);
+
+        System.out.println("Se ha superado el límite. Total: " + total + " kg");
+
+        sc.close();
+    }
+}</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> acumulador con condición de fin sobre el propio acumulador. Se usa <code>do-while</code> porque hay que pedir al menos un peso. La condición para seguir es <code>total &lt;= 200</code>: el bucle termina en cuanto <code>total &gt; 200</code>.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 11 — Pares e impares hasta introducir 0</h2>
+  <p class="enunciado">Aceptar números por teclado hasta que se introduzca un 0 y visualizar cuántos pares e impares se han introducido en la secuencia. Hacerlo con mientras y con repetir.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-11" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-11" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-11" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> Con <code>while</code> tienes que leer un primer número <strong>antes</strong> del bucle y volver a leer al final de cada vuelta. Con <code>do-while</code> basta una lectura dentro, pero ojo: el 0 final no debe contarse como par.</p>
+  </div>
+  <div id="solucion-11" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p>Números enteros (por teclado), <code>0</code> para terminar</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>pares</code> e <code>impares</code></p></div>
+    </div>
+    <p><strong>Versión con <code>while</code></strong></p>
+    <pre><code>import java.util.Scanner;
+
+public class ParesImparesWhile {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int num, pares = 0, impares = 0;
+
+        System.out.print("Introduce un número (0 para terminar): ");
+        num = sc.nextInt();
+
+        while (num != 0) {
+            if (num % 2 == 0) {
+                pares++;
+            } else {
+                impares++;
+            }
+            System.out.print("Introduce un número (0 para terminar): ");
+            num = sc.nextInt();
+        }
+
+        System.out.println("Pares: " + pares);
+        System.out.println("Impares: " + impares);
+
+        sc.close();
+    }
+}</code></pre>
+    <p><strong>Versión con <code>do-while</code></strong></p>
+    <pre><code>import java.util.Scanner;
+
+public class ParesImparesDoWhile {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int num, pares = 0, impares = 0;
+
+        do {
+            System.out.print("Introduce un número (0 para terminar): ");
+            num = sc.nextInt();
+
+            if (num != 0) {
+                if (num % 2 == 0) {
+                    pares++;
+                } else {
+                    impares++;
+                }
+            }
+        } while (num != 0);
+
+        System.out.println("Pares: " + pares);
+        System.out.println("Impares: " + impares);
+
+        sc.close();
+    }
+}</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> con <code>while</code> la condición se evalúa <em>antes</em>, por eso se necesita una <strong>lectura previa</strong> (cebado) y otra al final del cuerpo. Con <code>do-while</code> se evalúa <em>después</em>, así que la lectura va dentro, pero hay que proteger el 0 con <code>if (num != 0)</code>. Ambas versiones dan el mismo resultado.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 12 — Factorial de un número</h2>
+  <p class="enunciado">Calcular el factorial del número introducido por teclado.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-12" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-12" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-12" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> <code>n! = 1 · 2 · 3 · … · n</code>. Usa un acumulador que parta de <strong>1</strong> (no de 0, o todo daría 0) y multiplícalo por un contador que vaya de 2 a <code>n</code>. Recuerda que <code>0! = 1</code> y que los negativos no tienen factorial.</p>
+  </div>
+  <div id="solucion-12" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>n</code> (por teclado)</p></div>
+      <div class="card orange"><h4>Salida</h4><p><code>factorial</code> de <code>n</code></p></div>
+    </div>
+    <pre><code>import java.util.Scanner;
+
+public class Factorial {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Introduce un número: ");
+        int n = sc.nextInt();
+
+        if (n &lt; 0) {
+            System.out.println("Error: el factorial no está definido para negativos");
+        } else {
+            long factorial = 1;
+            int i = 2;
+
+            while (i &lt;= n) {
+                factorial *= i;
+                i++;
+            }
+
+            System.out.println(n + "! = " + factorial);
+        }
+
+        sc.close();
+    }
+}</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> acumulador <strong>multiplicativo</strong>, inicializado a 1 (elemento neutro del producto). Para <code>n = 0</code> y <code>n = 1</code> el bucle no se ejecuta y se obtiene 1, que es correcto. Se usa <code>long</code> porque el factorial crece muy rápido: con <code>int</code> se desborda a partir de 13!, y con <code>long</code> a partir de 21!.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 13 — Adivina el número</h2>
+  <p class="enunciado">Pedir un número por teclado que habrá que adivinar posteriormente de la siguiente forma: se leerán números hasta que uno sea igual al número a adivinar o hasta que se alcancen 5 intentos. Mientras no se adivine el número habrá que visualizar “El número a adivinar es mayor (o menor) que el que acabas de introducir”. Finalmente, escribir la cantidad de intentos en que se adivinó el número.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-13" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-13" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-13" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> El bucle tiene <strong>dos condiciones de fin</strong>: acertar o llegar a 5 intentos. Usa una variable booleana <code>acertado</code> y un contador <code>intentos</code>. Al salir, comprueba <code>acertado</code> para saber por cuál de las dos razones terminó.</p>
+  </div>
+  <div id="solucion-13" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>secreto</code> y los intentos (por teclado)</p></div>
+      <div class="card orange"><h4>Salida</h4><p>Pistas mayor/menor y número de intentos</p></div>
+    </div>
+    <pre><code>import java.util.Scanner;
+
+public class AdivinaNumero {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Jugador 1, introduce el número a adivinar: ");
+        int secreto = sc.nextInt();
+
+        int intento, intentos = 0;
+        boolean acertado = false;
+
+        do {
+            System.out.print("Jugador 2, introduce un número: ");
+            intento = sc.nextInt();
+            intentos++;
+
+            if (intento == secreto) {
+                acertado = true;
+            } else if (secreto &gt; intento) {
+                System.out.println("El número a adivinar es mayor que el que acabas de introducir");
+            } else {
+                System.out.println("El número a adivinar es menor que el que acabas de introducir");
+            }
+        } while (!acertado &amp;&amp; intentos &lt; 5);
+
+        if (acertado) {
+            System.out.println("¡Acertaste en " + intentos + " intentos!");
+        } else {
+            System.out.println("Has agotado los 5 intentos. El número era " + secreto);
+        }
+
+        sc.close();
+    }
+}</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> usa una <strong>bandera booleana</strong> (<code>acertado</code>) para recordar por qué terminó el bucle. La condición de continuación <code>!acertado &amp;&amp; intentos &lt; 5</code> es la negación de "acertó o se acabaron los intentos". Las pistas solo se muestran en la rama de fallo.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 14 — N primeros divisores de M</h2>
+  <p class="enunciado">Generar los N primeros divisores de M.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-14" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-14" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-14" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> Prueba candidatos desde 1 en adelante: un número <code>d</code> divide a <code>M</code> si <code>M % d == 0</code>. Cuenta cuántos divisores llevas encontrados y para al llegar a N. Pero ojo, ¿qué pasa si M tiene menos de N divisores? Limita también el candidato a <code>M</code>.</p>
+  </div>
+  <div id="solucion-14" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>n</code>, <code>m</code> (por teclado)</p></div>
+      <div class="card orange"><h4>Salida</h4><p>Los <code>n</code> primeros divisores de <code>m</code></p></div>
+    </div>
+    <pre><code>import java.util.Scanner;
+
+public class PrimerosDivisores {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("¿Cuántos divisores quieres (N)? ");
+        int n = sc.nextInt();
+        System.out.print("Introduce M: ");
+        int m = sc.nextInt();
+
+        int candidato = 1;
+        int encontrados = 0;
+
+        while (encontrados &lt; n &amp;&amp; candidato &lt;= m) {
+            if (m % candidato == 0) {
+                System.out.println(candidato);
+                encontrados++;
+            }
+            candidato++;
+        }
+
+        if (encontrados &lt; n) {
+            System.out.println("M solo tiene " + encontrados + " divisores");
+        }
+
+        sc.close();
+    }
+}</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> se recorren los candidatos de 1 a M y se cuenta cada divisor hallado. El bucle tiene de nuevo <strong>dos condiciones de fin</strong>: ya se encontraron N divisores, o ya no quedan candidatos (<code>candidato &gt; m</code>). Sin la segunda, un valor de N demasiado grande causaría un bucle infinito. Se asume <code>m &gt; 0</code>; con <code>m = 0</code> el bucle no se ejecuta.</p>
+  </div>
+</div>
+
+<div class="ejercicio">
+  <h2>Ejercicio 15 — Número perfecto</h2>
+  <p class="enunciado">Programa que nos diga si el número introducido es perfecto (un número es perfecto si es igual a la suma de sus divisores propios). Ejemplos: 6 (1+2+3), 28 (1+2+4+7+14); 496 y 8128 son los siguientes en la lista.</p>
+  <div class="ejercicio-acciones">
+    <button class="btn-toggle btn-pista" data-toggle="pista-15" data-mostrar="💡 Mostrar pista" data-ocultar="💡 Ocultar pista"><span class="texto-btn">💡 Mostrar pista</span><span class="icono-toggle">▾</span></button>
+    <button class="btn-toggle btn-solucion" data-toggle="solucion-15" data-mostrar="✅ Mostrar solución" data-ocultar="✅ Ocultar solución"><span class="texto-btn">✅ Mostrar solución</span><span class="icono-toggle">▾</span></button>
+  </div>
+  <div id="pista-15" class="bloque-pista" hidden>
+    <p><strong>Pista:</strong> Recorre los posibles divisores desde 1 hasta <code>num / 2</code> (ningún divisor propio puede ser mayor que la mitad), acumula los que dividan exactamente y, al terminar, compara la suma con el número. Los divisores no incluyen al propio número.</p>
+  </div>
+  <div id="solucion-15" class="bloque-solucion" hidden>
+    <div class="grid grid-2">
+      <div class="card blue"><h4>Entrada</h4><p><code>num</code> (por teclado)</p></div>
+      <div class="card orange"><h4>Salida</h4><p>Mensaje: es perfecto / no es perfecto</p></div>
+    </div>
+    <pre><code>import java.util.Scanner;
+
+public class NumeroPerfecto {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Introduce un número: ");
+        int num = sc.nextInt();
+
+        int suma = 0;
+        int divisor = 1;
+
+        while (divisor &lt;= num / 2) {
+            if (num % divisor == 0) {
+                suma += divisor;
+            }
+            divisor++;
+        }
+
+        if (num &gt; 0 &amp;&amp; suma == num) {
+            System.out.println(num + " es un número perfecto");
+        } else {
+            System.out.println(num + " no es un número perfecto");
+        }
+
+        sc.close();
+    }
+}</code></pre>
+    <p class="nota-pie"><strong>Lógica:</strong> se acumulan los <strong>divisores propios</strong> (todos menos el propio número) recorriendo hasta <code>num / 2</code>. Si la suma coincide con el número, es perfecto. La comprobación <code>num &gt; 0</code> evita que 0 pase como perfecto (su suma sería 0). Prueba con 6, 28, 496 y 8128.</p>
+  </div>
+</div>
+
+<script src="../../../../js/ejercicios-pseint.js"></script>
+</body>
+</html>
