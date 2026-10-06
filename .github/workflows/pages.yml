@@ -1,0 +1,54 @@
+# Publica la web en GitHub Pages con una Action (Settings > Pages > Source: «GitHub Actions»).
+# Genera «?v=», manifest e índice en el propio runner, así lo publicado siempre está al día
+# aunque el commit del bot de build-index.yml llegue después (ese commit no relanza workflows).
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias
+        run: npm ci --omit=dev
+
+      - name: Generar «?v=», manifest e índice
+        run: |
+          node scripts/versionar.mjs
+          node scripts/build-index.mjs
+
+      - name: Preparar carpeta a publicar
+        run: |
+          mkdir _site
+          rsync -a --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='_site' \
+            --exclude='scripts' --exclude='tests' ./ _site/
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
