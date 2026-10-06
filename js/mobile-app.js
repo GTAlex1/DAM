@@ -8,7 +8,7 @@
 //   · La comunicación con los futuros componentes se hace con CustomEvent, sin eval ni handlers inline
 //     (la CSP del proyecto ya bloquea orígenes externos).
 
-const VISTAS = Object.freeze(['inicio', 'apuntes', 'horario', 'calendario']);
+const VISTAS = Object.freeze(['inicio', 'apuntes', 'horario', 'calendario', 'cuenta']);
 const ACCIONES = Object.freeze(['buscar']);
 const CLAVE_VISTA = 'm-vista';
 
@@ -94,7 +94,7 @@ function cargarInicioSiProcede(raiz) {
   const intentar = () => {
     if (cargado || !mq.matches) return;
     cargado = true;
-    import('./mobile-inicio.js?v=bdf10294')
+    import('./mobile-inicio.js?v=bff7fc72')
       .then((m) => m.iniciarInicio(raiz))
       .catch((err) => { cargado = false; console.error('No se pudo cargar la pantalla Inicio', err); });
   };
