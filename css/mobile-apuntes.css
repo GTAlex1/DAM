@@ -1,0 +1,15 @@
+@media (max-width: 1100px) {
+  #mobile-app .ma-mat { margin-top: 10px; border: 1px solid var(--m-border); border-radius: 20px; background: var(--m-surface); overflow: hidden; }
+  #mobile-app .ma-cab { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 64px; padding: 0 16px; border: 0; background: none; color: var(--m-text); font: inherit; text-align: left; cursor: pointer; }
+  #mobile-app .ma-cab:focus-visible { outline: 2px solid var(--m-accent); outline-offset: -2px; }
+  #mobile-app .ma-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  #mobile-app .ma-nombre { font-size: 16px; font-weight: 700; }
+  #mobile-app .ma-meta { font-size: 12px; color: var(--m-muted); }
+  #mobile-app .ma-flecha { color: var(--m-muted); font-size: 22px; transition: transform .15s; }
+  #mobile-app .ma-mat.abierta .ma-flecha { transform: rotate(90deg); }
+  #mobile-app .ma-archivos[hidden] { display: none; }
+  #mobile-app .ma-archivo { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px; border-top: 1px solid var(--m-border); color: var(--m-text); text-decoration: none; font-size: 15px; font-weight: 600; }
+  #mobile-app .ma-archivo:active { background: var(--m-surface-2); }
+  #mobile-app .ma-archivo:focus-visible { outline: 2px solid var(--m-accent); outline-offset: -2px; }
+  #mobile-app .ma-tipo { flex: none; width: 48px; text-align: center; padding: 3px 0; border-radius: 8px; background: var(--m-surface-2); color: var(--m-accent); font-size: 11px; font-weight: 800; }
+}
