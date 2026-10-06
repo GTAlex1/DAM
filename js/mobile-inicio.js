@@ -74,7 +74,7 @@ let promesaAsignaturas = null;
 export function cargarAsignaturas() {
   if (!promesaAsignaturas) {
     promesaAsignaturas = fetchGithubTree()
-      .then(async (datos) => (await import('./mobile-orden.js?v=1')).ordenar(extraerAsignaturas(datos.root), datos.root))
+      .then(async (datos) => (await import('./mobile-orden.js?v=b8340efc')).ordenar(extraerAsignaturas(datos.root), datos.root))
       .catch((err) => { promesaAsignaturas = null; throw err; }); // permite reintentar
   }
   return promesaAsignaturas;
