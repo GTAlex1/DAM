@@ -271,7 +271,7 @@ service cloud.firestore {
     // bajo cualquier «sello» inventado. AL PUBLICAR UNA APP NUEVA (o un sello nuevo en
     // APP.sello), añade aquí su valor exacto.
     function selloPermitido(sello) {
-      return sello in ['2026-09-04-ed-dam-curso-completo'];
+      return sello in ['2026-09-04-ed-dam-curso-completo', 'lm-dam-curso'];
     }
 
     function progresoValido(d) {

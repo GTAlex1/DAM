@@ -1321,8 +1321,19 @@ function seccionesDe(txt) {
 /* ============================================================
    Progreso del alumno (mismo formato y clave que el curso original)
    ============================================================ */
-const CLAVE = 'ed.dam.v1';
-const CLAVE_NUBE = 'ed-dam-progreso';
+/* Firestore: progreso/{SELLO_NUBE}/usuarios/{uid}. Necesita sesión iniciada en la web.
+   Pega aquí el MISMO firebaseConfig que usa firebase-core.js. */
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyCOU5RrEN0LA_cvnOXexBUJAxC8Md2NvE8',
+  authDomain: 'damm-29df1.firebaseapp.com',
+  projectId: 'damm-29df1',
+  storageBucket: 'damm-29df1.firebasestorage.app',
+  messagingSenderId: '44798070440',
+  appId: '1:44798070440:web:e6a1ff169820c4a9ff3c9d'
+};
+const SELLO_NUBE = '2026-09-04-ed-dam-curso-completo';  // ya permitido en selloPermitido() de las reglas
+const CLAVE_ANTIGUA = 'ed.dam.v1';                      // solo para migrar lo que había en este navegador
+const FB_URL = 'https://www.gstatic.com/firebasejs/10.13.0/';
 function molde() { return { v: 1, alumno: '', ej: {}, q: {}, ts: 0 }; }
 function sanea(x) {
   const m = molde();
@@ -1343,35 +1354,66 @@ function sanea(x) {
   }
   return m;
 }
-function guardaLocal() {
-  APP.estado.ts = Date.now();
-  try {
-    const prev = localStorage.getItem(CLAVE);
-    if (prev) localStorage.setItem(CLAVE + '.prev', prev);
-    localStorage.setItem(CLAVE, JSON.stringify(APP.estado));
-  } catch (e) { tosta('No se ha podido guardar en este navegador. Exporta tu progreso.', true); }
+let fb = null, nubeLista = false, avisoSesion = false, temporizadorNube = null;
+async function iniciaFirebase() {
+  if (fb) return fb;
+  const [A, Au, F] = await Promise.all([
+    import(FB_URL + 'firebase-app.js'), import(FB_URL + 'firebase-auth.js'), import(FB_URL + 'firebase-firestore.js')
+  ]);
+  const app = A.getApps().length ? A.getApp() : A.initializeApp(FIREBASE_CONFIG);
+  const auth = Au.getAuth(app), db = F.getFirestore(app);
+  const user = await new Promise(res => {
+    let primero = true;
+    const t = setTimeout(() => res(auth.currentUser), 8000);
+    Au.onAuthStateChanged(auth, u => {
+      if (primero) { primero = false; clearTimeout(t); res(u); }
+      else if (!fb || !fb.user || !u || u.uid !== fb.user.uid) location.reload();
+    });
+  });
+  fb = { auth, db, F, user };
+  return fb;
 }
+function refProgreso() { return fb.F.doc(fb.db, 'progreso', SELLO_NUBE, 'usuarios', fb.user.uid); }
 async function guardaNube() {
-  if (!window.storage || !window.storage.set) return;
+  if (!nubeLista) return false;
   for (let i = 0; i < 3; i++) {
-    try { await window.storage.set(CLAVE_NUBE, JSON.stringify(APP.estado), false); return true; }
-    catch (e) { await sleep(400 * Math.pow(2, i)); }
+    try { await fb.F.setDoc(refProgreso(), APP.estado); return true; }
+    catch (e) { await new Promise(r => setTimeout(r, 400 * Math.pow(2, i))); }
   }
+  tosta('No se ha podido guardar en Firebase. Exporta tu progreso.', true);
   return false;
 }
-let temporizadorNube = null;
-function guarda() { guardaLocal(); clearTimeout(temporizadorNube); temporizadorNube = setTimeout(() => { guardaNube(); }, 1500); }
-async function carga() {
-  let local = null;
-  try { local = JSON.parse(localStorage.getItem(CLAVE) || 'null'); } catch (e) { }
-  let nube = null;
-  if (window.storage && window.storage.get) {
-    try { const r = await window.storage.get(CLAVE_NUBE, false); if (r && r.value) nube = JSON.parse(r.value); } catch (e) { }
+function guarda() {
+  APP.estado.ts = Date.now();
+  if (!nubeLista) {
+    if (!avisoSesion) { avisoSesion = true; tosta('Inicia sesión en la web para que se guarde tu progreso.', true); }
+    return;
   }
-  const a = sanea(local), b = sanea(nube);
-  APP.estado = (b.ts > a.ts) ? b : a;
+  clearTimeout(temporizadorNube);
+  temporizadorNube = setTimeout(guardaNube, 800);
 }
-function localDisponible() { try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); return true; } catch (e) { return false; } }
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && temporizadorNube) { clearTimeout(temporizadorNube); temporizadorNube = null; guardaNube(); }
+});
+async function carga() {
+  APP.estado = molde();
+  try {
+    await iniciaFirebase();
+    if (!fb.user) { tosta('Sin sesión: inicia sesión en la web para cargar y guardar tu progreso.', true); return; }
+    const snap = await fb.F.getDoc(refProgreso());
+    nubeLista = true;
+    if (snap.exists()) { APP.estado = sanea(snap.data()); return; }
+    let local = null;
+    try { local = sanea(JSON.parse(localStorage.getItem(CLAVE_ANTIGUA) || 'null')); } catch (e) { }
+    if (local && local.ts > 0) {
+      APP.estado = local;
+      if (await guardaNube()) { try { localStorage.removeItem(CLAVE_ANTIGUA); localStorage.removeItem(CLAVE_ANTIGUA + '.prev'); } catch (e) { } }
+    }
+  } catch (e) {
+    nubeLista = false;
+    tosta('No se ha podido conectar con Firebase.', true);
+  }
+}
 function tosta(txt, mal) {
   const d = document.createElement('div');
   d.className = 'toast' + (mal ? ' bad' : '');
@@ -5304,10 +5346,10 @@ function vistaProgreso() {
     hh += `</div>`;
   }
   hh += secH('copia', 'Copia de seguridad', 'upload');
-  hh += `<p class="muted" style="max-width:70ch">El navegador puede borrar sus datos si se limpia el historial o si usas el modo incógnito. Exporta de vez en cuando: es la única copia que no depende de nadie.</p>
+  hh += `<p class="muted" style="max-width:70ch">Tu progreso se guarda en tu cuenta de Firebase. Exporta de vez en cuando por si acaso: es una copia que no depende de nadie.</p>
   <div class="row" style="margin-top:12px"><button class="btn" data-acc="exportar">Exportar a un archivo</button><button class="btn ghost" data-acc="copiar">Copiar como texto</button><button class="btn ghost" data-acc="importar">Importar desde un archivo</button><button class="btn ghost" data-acc="pegar">Pegar texto</button><button class="btn ghost" data-acc="borrar">Borrar mi progreso</button></div>
   <div data-zona="borrado"></div>
-  <p class="stamp">Versión ${esc(APP.sello)} · ${APP.sesiones.length} sesiones · ${APP.conceptos.length} fichas de referencia · ${Object.keys(LABS).length} laboratorios · almacenamiento local ${localDisponible() ? 'disponible' : 'NO disponible'}${window.storage ? ' · copia en la nube disponible' : ''}</p>`;
+  <p class="stamp">Versión ${esc(APP.sello)} · ${APP.sesiones.length} sesiones · ${APP.conceptos.length} fichas de referencia · ${Object.keys(LABS).length} laboratorios · progreso en Firebase ${nubeLista ? 'conectado' : 'SIN conexión'}</p>`;
   return hh;
 }
 function datosExport() { return JSON.stringify({ app: 'entornos-desarrollo', sello: APP.sello, estado: APP.estado }, null, 1); }
