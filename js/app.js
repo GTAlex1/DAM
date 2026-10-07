@@ -740,7 +740,7 @@ function opcionesFetch() {
 // origen con la web y puede leer la sesión de Firebase (incluida la del administrador),
 // así que ese permiso se reserva a las notas de esta lista, que SÍ lo necesitan:
 //   - horario / calendario / entornos-desarrollo: usan la cuenta de Firebase.
-//   - lenguajes-de-marcas: guarda el progreso en localStorage.
+//   - Lenguajes-de-Marcas/Libro.html: guarda el progreso en Firestore (cuenta de Firebase).
 // Cualquier otra nota (incluida una nueva) se ejecuta sin `allow-same-origin`: puede
 // mostrar contenido y ejecutar sus scripts, pero en un origen aislado sin acceso a la sesión.
 // Estas rutas deben coincidir EXACTAMENTE con las del repo. Revisa cualquier cambio en
@@ -748,8 +748,8 @@ function opcionesFetch() {
 const NOTAS_CONFIABLES = new Set([
   'DAM/1-DAM/Horario.html',
   'DAM/1-DAM/Calendario.html',
-  'DAM/1-DAM/Entornos-de-Desarrollo/entornos-desarrollo.html',
-  'DAM/1-DAM/Lenguajes-de-Marcas/lenguajes-de-marcas.html',
+  'DAM/1-DAM/Entornos-de-Desarrollo/Libro.html',
+  'DAM/1-DAM/Lenguajes-de-Marcas/Libro.html',
 ]);
 
 const SANDBOX_CONFIABLE = 'allow-same-origin allow-scripts allow-popups allow-forms';
