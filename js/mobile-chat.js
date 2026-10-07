@@ -1,5 +1,5 @@
 // mobile-chat.js — conecta el chat con la pestaña «Chat» de la app móvil.
-import { montarChat } from './chat-ui.js?v=1';
+import { montarChat } from './chat-ui.js?v=0e35f8b6';
 
 const raiz = document.getElementById('mobile-app');
 if (raiz) {
