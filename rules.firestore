@@ -333,5 +333,57 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if false;
     }
+
+    // ====================== CHAT ======================
+    // Grupo «general» (todos los usuarios con sesión) + grupos de 2 a 30 personas. Sin chats privados
+    // aparte de esos grupos, nadie sale de un grupo y cada uno solo borra sus propios mensajes.
+    function chatLogueado() { return request.auth != null; }
+    function chatMiembro(chatId) {
+      return chatLogueado() && (chatId == 'general'
+        || request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.miembros);
+    }
+
+    // Directorio: solo el nombre visible (sin correo) para poder elegir compañeros al crear un grupo.
+    match /directorio/{uid} {
+      allow read: if chatLogueado();
+      allow create, update: if chatLogueado() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['nombre'])
+        && request.resource.data.nombre is string
+        && request.resource.data.nombre.size() >= 1 && request.resource.data.nombre.size() <= 60;
+      allow delete: if false;
+    }
+
+    match /chats/{chatId} {
+      allow read: if chatLogueado() && chatId != 'general' && request.auth.uid in resource.data.miembros;
+      allow create: if chatLogueado() && chatId != 'general'
+        && request.resource.data.keys().hasOnly(['nombre','miembros','creador','creado'])
+        && request.resource.data.creador == request.auth.uid
+        && request.resource.data.nombre is string
+        && request.resource.data.nombre.size() >= 1 && request.resource.data.nombre.size() <= 40
+        && request.resource.data.miembros is list
+        && request.resource.data.miembros.size() >= 2 && request.resource.data.miembros.size() <= 30
+        && request.auth.uid in request.resource.data.miembros
+        && request.resource.data.creado == request.time;
+      allow update, delete: if false;
+    }
+
+    match /chats/{chatId}/mensajes/{msgId} {
+      allow read: if chatMiembro(chatId);
+      allow create: if chatMiembro(chatId)
+        && request.resource.data.keys().hasOnly(['uid','autor','texto','archivo','creado'])
+        && request.resource.data.keys().hasAll(['uid','autor','texto','creado'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.autor is string
+        && request.resource.data.autor.size() >= 1 && request.resource.data.autor.size() <= 60
+        && request.resource.data.texto is string && request.resource.data.texto.size() <= 2000
+        && (request.resource.data.texto.size() > 0 || 'archivo' in request.resource.data)
+        && (!('archivo' in request.resource.data) || (request.resource.data.archivo is map
+            && request.resource.data.archivo.keys().hasOnly(['url','nombre','tam'])
+            && request.resource.data.archivo.url is string
+            && request.resource.data.archivo.url.matches('https://res[.]cloudinary[.]com/vagm1bzj/.*')))
+        && request.resource.data.creado == request.time;
+      allow delete: if chatLogueado() && resource.data.uid == request.auth.uid;
+      allow update: if false;
+    }
   }
 }
