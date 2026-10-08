@@ -17,5 +17,5 @@ export {
   cargarFavoritosNube, guardarFavoritosNube,
 } from "./firebase-core.js?v=c4e3345d";
 export { crearControlModal } from "./modal.js?v=f80c8666";
-export { crearPanelSubida } from "./apuntes.js?v=5b7124a9";
+export { crearPanelSubida } from "./apuntes.js?v=e4349a76";
 import "./acceso-ui.js?v=615a42e9"; // solo efectos: pinta y activa la interfaz de cuenta

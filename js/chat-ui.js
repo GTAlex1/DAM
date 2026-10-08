@@ -1,7 +1,7 @@
 // mobile-chat.js — Chat (móvil), fase 1: grupo «General» + grupos de 2 a 30 personas. Solo texto.
 // Texto con formato seguro (sin innerHTML): [texto](https://…), enlaces sueltos, **negrita**, *cursiva*, `código`.
 import { el } from './dom.js';
-import { cargarFirebase, nombreDe, UID_ADMIN } from './chat-core.js?v=07eafb64';
+import { cargarFirebase, nombreDe, UID_ADMIN } from './chat-core.js?v=4e0072bd';
 
 const PAGINA = 50, MAX_TEXTO = 2000, MAX_GRUPO = 30;
 const COLORES = ['#6AA9FF', '#7BE0A8', '#FFA45C', '#C58BFF', '#FF7A8A', '#5FD6D6'];

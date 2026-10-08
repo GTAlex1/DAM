@@ -21,7 +21,7 @@
 // `eventosFijos` (más abajo). Exámenes y tareas NO están en el código: salen
 // únicamente de Firestore.
 
-import { auth, watchAuth, isAuthorized } from './firebase-init.js?v=11feeaf4';
+import { auth, watchAuth, isAuthorized } from './firebase-init.js?v=165a238c';
 import {
   getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc,
   deleteField, onSnapshot, query, where, serverTimestamp,

@@ -1,7 +1,7 @@
 // mobile-ajustes.js — «Ajustes» en la pantalla Cuenta (móvil): tamaño de letra de los apuntes.
 // Usa la misma clave y el mismo rango que la web de escritorio (damNotesAjustes, 80–150 %).
 import { el } from './dom.js';
-import { iniciarCuenta } from './mobile-cuenta.js?v=d5e817ca';
+import { iniciarCuenta } from './mobile-cuenta.js?v=46cd8102';
 
 const CLAVE = 'damNotesAjustes';
 const MIN = 80, MAX = 150, PASO = 10;

@@ -15,7 +15,7 @@ let promesa = null;
 export function cargarFirebase() {
   promesa ??= (async () => {
     const [fi, fs, fa] = await Promise.all([
-      import('./firebase-init.js?v=11feeaf4'), import(`${SDK}firebase-firestore.js`), import(`${SDK}firebase-auth.js`)]);
+      import('./firebase-init.js?v=165a238c'), import(`${SDK}firebase-firestore.js`), import(`${SDK}firebase-auth.js`)]);
     return { fi, auth: fi.auth, fs, fa, db: fs.getFirestore(fi.auth.app), yo: null, admin: false };
   })().catch((err) => { promesa = null; throw err; });
   return promesa;
