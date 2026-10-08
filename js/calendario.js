@@ -40,7 +40,7 @@ const ASIGNATURAS = [
   'Entornos de Desarrollo',
   'Lenguajes de Marcas',
   'Sistemas Informáticos',
-  'FOL',
+  'Digitalizacion',
 ];
 const OTRA = '__otra';
 

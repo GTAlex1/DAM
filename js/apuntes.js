@@ -56,11 +56,11 @@ const SIN_CLASIFICAR = "Sin clasificar";
 // no esté aquí siguen apareciendo en la vista general.
 const ASIGNATURAS = [
   "Programacion",
-  "Bases de Datos",
-  "Entornos de Desarrollo",
-  "Lenguajes de Marcas",
-  "Sistemas Informaticos",
-  "FOL",
+  "Bases-de-Datos",
+  "Entornos-de-Desarrollo",
+  "Lenguajes-de-Marcas",
+  "Sistemas-Informaticos",
+  "Digitalizacion",
 ];
 
 /** Error devuelto por Cloudinary (para distinguirlo de fallos de Firestore o de red). */
