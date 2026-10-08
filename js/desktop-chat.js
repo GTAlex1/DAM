@@ -1,6 +1,6 @@
 // desktop-chat.js — Chat en la web de escritorio: botón debajo de la estrella (favoritos) que abre un panel lateral.
 import { el } from './dom.js';
-import { montarChat } from './chat-ui.js?v=0c0964db';
+import { montarChat } from './chat-ui.js?v=77e5abda';
 
 const favoritos = document.getElementById('nav-favoritos');
 if (favoritos && !document.getElementById('nav-chat')) {
