@@ -128,7 +128,8 @@ service cloud.firestore {
                 && (d.hora == '' || d.hora.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$'))
                 && textoOpcional(d.lugar, 60)
                 && textoOpcional(d.temario, 1500)
-              : d.keys().hasOnly(['tipo', 'fecha', 'asignatura', 'titulo', 'ambito', 'usuario_uid', 'creado']));
+              : d.keys().hasOnly(['tipo', 'fecha', 'asignatura', 'titulo', 'descripcion', 'ambito', 'usuario_uid', 'creado'])
+                && (!('descripcion' in d) || textoOpcional(d.descripcion, 1500)));
     }
     // ¿Puede quien hace la petición editar/borrar este evento (`e` = datos actuales)?
     function puedeGestionarEvento(e) {

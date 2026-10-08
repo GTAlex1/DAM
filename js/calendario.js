@@ -169,6 +169,7 @@ function normalizarEvento(id, d) {
     hora: typeof d.hora === 'string' ? d.hora : '',
     lugar: typeof d.lugar === 'string' ? d.lugar : '',
     temario: typeof d.temario === 'string' ? d.temario : '',
+    descripcion: typeof d.descripcion === 'string' ? d.descripcion : '', // solo tareas
     usuario_uid: typeof d.usuario_uid === 'string' ? d.usuario_uid : '',
   };
 }
@@ -353,6 +354,7 @@ function htmlItemDetalle(e) {
       <div class="item-linea">
         <label class="tarea-check"><input type="checkbox" data-hecha="${esc(e.id)}"${hecha ? ' checked' : ''}><span class="tarea-label">${esc(e.label)}</span></label>${htmlInsignia(e)}
       </div>
+      ${e.descripcion ? `<div class="item-explicacion"><span class="meta-k">Descripción</span>${esc(e.descripcion)}</div>` : ''}
     </div>${htmlAcciones(e)}</div>`;
   }
 
@@ -667,6 +669,7 @@ function abrirModal({ fecha, evento } = {}) {
     campos.hora.value = evento.hora;
     campos.lugar.value = evento.lugar;
     campos.temario.value = evento.temario;
+    campos.descripcion.value = evento.descripcion;
   } else {
     const hoyClave = claveFecha(new Date());
     const porDefecto = fecha && fecha >= FECHA_MIN && fecha <= FECHA_MAX ? fecha
@@ -713,6 +716,13 @@ function leerFormulario() {
     datos.temario = campos.temario.value.trim();
     if (datos.lugar.length > 60) return { error: 'El lugar admite 60 caracteres como máximo.', campo: campos.lugar };
     if (datos.temario.length > 1500) return { error: 'El temario admite 1500 caracteres como máximo.', campo: campos.temario };
+  } else {
+    const descripcion = campos.descripcion.value.trim();
+    if (descripcion.length > 1500) return { error: 'La descripción admite 1500 caracteres como máximo.', campo: campos.descripcion };
+    // Sin descripción no se guarda el campo (así las tareas siguen valiendo con las reglas antiguas);
+    // al editar, si se vacía una descripción que existía, se borra.
+    if (descripcion) datos.descripcion = descripcion;
+    else if (editando?.descripcion) datos.descripcion = deleteField();
   }
   return { datos };
 }
