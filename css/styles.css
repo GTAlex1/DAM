@@ -2810,3 +2810,7 @@ html.page-introduccion{
     .m-tab-pill { transition: none; }
   }
 }
+/* Calendario: selector «Toda la clase / Solo para mí» (admins). */
+.page-calendario .cal-tipo[hidden]{ display:none; }
+.page-calendario .cal-tipo-op--global input:checked + span{ border-color:#4fc1ff; background:rgba(79,193,255,.12); }
+.page-calendario .cal-tipo-op--personal input:checked + span{ border-color:#dcdcaa; background:rgba(220,220,170,.12); }

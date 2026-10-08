@@ -90,6 +90,12 @@
       <label class="cal-tipo-op cal-tipo-op--tarea"><input type="radio" name="tipo" value="tarea"><span>Tarea</span></label>
     </div>
 
+    <!-- Solo para admins al crear un evento (lo muestra calendario.js): a quién va dirigido -->
+    <div class="cal-tipo" id="grupoAmbito" role="radiogroup" aria-label="Quién lo verá" hidden>
+      <label class="cal-tipo-op cal-tipo-op--global"><input type="radio" name="ambito" value="global" checked><span>Toda la clase</span></label>
+      <label class="cal-tipo-op cal-tipo-op--personal"><input type="radio" name="ambito" value="personal"><span>Solo para mí</span></label>
+    </div>
+
     <p class="cal-ambito-aviso" id="avisoAmbito" role="note"></p>
 
     <div class="cal-campos">

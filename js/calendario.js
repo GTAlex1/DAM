@@ -21,7 +21,7 @@
 // `eventosFijos` (más abajo). Exámenes y tareas NO están en el código: salen
 // únicamente de Firestore.
 
-import { auth, watchAuth, isAuthorized } from './firebase-init.js?v=165a238c';
+import { auth, watchAuth, puedeGestionarCalendarioGlobal } from './firebase-init.js?v=165a238c';
 import {
   getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc,
   deleteField, onSnapshot, query, where, serverTimestamp,
@@ -192,12 +192,17 @@ function eventosDelDia(fecha) {
 let user = null;          // usuario de Firebase o null
 let hechas = new Set();   // ids de tareas marcadas por el usuario actual
 
-// Editar/borrar: el dueño del evento o, si el evento es global, el admin.
+let esAdmin = false; // Admin Principal o Admin inferior: pueden publicar para toda la clase (se comprueba al iniciar sesión)
+// Editar/borrar: el dueño del evento o, si el evento es global, cualquier admin.
 // (Solo controla qué botones se ven; el permiso real lo aplican las reglas de Firestore.)
 const puedeGestionar = e => !!user && !!e.dinamico &&
-  (e.usuario_uid === user.uid || (e.ambito === 'global' && isAuthorized(user)));
-// Ámbito con el que se guarda un evento nuevo: el admin publica para toda la clase; el alumno, para sí mismo.
-const ambitoNuevo = () => (isAuthorized(user) ? 'global' : 'personal');
+  (e.usuario_uid === user.uid || (e.ambito === 'global' && esAdmin));
+// Ámbito con el que se guarda un evento nuevo: el alumno, siempre personal; el admin elige en el formulario
+// («Toda la clase» por defecto). Las reglas de Firestore vuelven a comprobarlo.
+const ambitoNuevo = () => {
+  if (!esAdmin) return 'personal';
+  return form.querySelector('input[name="ambito"]:checked')?.value === 'personal' ? 'personal' : 'global';
+};
 const embebido = () => document.documentElement.classList.contains('auth-embebido');
 
 function leerHechasLocal() {
@@ -626,6 +631,16 @@ form.addEventListener('change', e => {
 
 function mostrarErrorForm(texto) { errorEl.textContent = texto; errorEl.hidden = !texto; }
 
+// Deja claro quién verá el evento.
+function pintarAvisoAmbito() {
+  const ambito = editando ? editando.ambito : ambitoNuevo();
+  avisoAmbito.dataset.ambito = ambito;
+  avisoAmbito.textContent = ambito === 'global'
+    ? 'Evento de la clase: lo verán todos los alumnos.'
+    : 'Evento personal: solo lo verás tú.';
+}
+$('grupoAmbito').addEventListener('change', pintarAvisoAmbito);
+
 function abrirModal({ fecha, evento } = {}) {
   if (!user) { mostrarMsg('Inicia sesión para añadir o editar exámenes y tareas.', 'err'); return; }
   if (evento && !puedeGestionar(evento)) return;
@@ -640,12 +655,9 @@ function abrirModal({ fecha, evento } = {}) {
     : 'Añadir evento';
   btnGuardar.textContent = 'Guardar';
 
-  // Deja claro quién verá el evento: el admin publica para toda la clase; el alumno, solo para sí.
-  const ambito = evento ? evento.ambito : ambitoNuevo();
-  avisoAmbito.dataset.ambito = ambito;
-  avisoAmbito.textContent = ambito === 'global'
-    ? 'Evento de la clase: lo verán todos los alumnos.'
-    : 'Evento personal: solo lo verás tú.';
+  // Los admins eligen quién lo verá (toda la clase / solo ellos); el alumno solo crea personales.
+  $('grupoAmbito').hidden = !(esAdmin && !evento);
+  pintarAvisoAmbito();
 
   if (evento) {
     campos.fecha.value = evento.fechaClave;
@@ -814,10 +826,20 @@ function actualizarInterfazSesion() {
   }
 }
 
+// Averigua si la sesión es de un admin (principal o inferior) y repinta los botones si cambia.
+async function comprobarAdmin(u) {
+  let admin = false;
+  try { admin = !!u && await puedeGestionarCalendarioGlobal(u); } catch { /* sin rol: se trata como alumno */ }
+  if ((user?.uid ?? null) !== (u?.uid ?? null)) return; // la sesión cambió mientras se comprobaba
+  if (admin !== esAdmin) { esAdmin = admin; pintaMes(); pintaDetalle(); }
+}
+
 let primeraVez = true;
 watchAuth(u => {
   const cambio = (u?.uid ?? null) !== (user?.uid ?? null);
   user = u || null;
+  if (cambio) esAdmin = false;
+  if (primeraVez || cambio) comprobarAdmin(user);
   actualizarInterfazSesion();
   if (primeraVez || cambio) { cargarHechas(); iniciarEscuchaPersonal(); }
   // Los eventos de la clase se leen desde que se conoce la sesión y se reintentan si un
