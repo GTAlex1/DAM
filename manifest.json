@@ -6,71 +6,88 @@
  "files": [
   {
    "path": "DAM/1-DAM/Bases-de-Datos/U1.html",
-   "h": "06cac617a7"
+   "h": "06cac617a7",
+   "s": 21195
   },
   {
    "path": "DAM/1-DAM/Bases-de-Datos/U2.html",
-   "h": "4f00f9bbd2"
+   "h": "4f00f9bbd2",
+   "s": 28614
   },
   {
    "path": "DAM/1-DAM/Calendario.html",
-   "h": "118180d8d4"
+   "h": "118180d8d4",
+   "s": 9394
   },
   {
    "path": "DAM/1-DAM/Digitalización/loquesea.md",
-   "h": "e3b0c44298"
+   "h": "e3b0c44298",
+   "s": 0
   },
   {
    "path": "DAM/1-DAM/Entornos-de-Desarrollo/Funcionamiento_Interno.html",
-   "h": "f004ecb0ba"
+   "h": "f004ecb0ba",
+   "s": 4439
   },
   {
    "path": "DAM/1-DAM/Entornos-de-Desarrollo/Libro.html",
-   "h": "37e5430935"
+   "h": "37e5430935",
+   "s": 1172550
   },
   {
    "path": "DAM/1-DAM/Horario.html",
-   "h": "a4a2b7fa00"
+   "h": "a4a2b7fa00",
+   "s": 4846
   },
   {
    "path": "DAM/1-DAM/Lenguajes-de-Marcas/FrontvsBack.html",
-   "h": "29bdcf8c3e"
+   "h": "29bdcf8c3e",
+   "s": 4402
   },
   {
    "path": "DAM/1-DAM/Lenguajes-de-Marcas/Libro.html",
-   "h": "683eb32ef3"
+   "h": "683eb32ef3",
+   "s": 919913
   },
   {
    "path": "DAM/1-DAM/Programacion/Introducción.html",
-   "h": "c0c06d1b66"
+   "h": "c0c06d1b66",
+   "s": 12664
   },
   {
    "path": "DAM/1-DAM/Programacion/Java/Ejercicios-java-bucles.html",
-   "h": "d9c08361a3"
+   "h": "d9c08361a3",
+   "s": 38924
   },
   {
    "path": "DAM/1-DAM/Programacion/Java/Ejercicios-java.html",
-   "h": "ea2537dab7"
+   "h": "ea2537dab7",
+   "s": 43514
   },
   {
    "path": "DAM/1-DAM/Programacion/Java/Java.html",
-   "h": "32fa438881"
+   "h": "32fa438881",
+   "s": 16858
   },
   {
    "path": "DAM/1-DAM/Programacion/Pseint/Ejercicios-pseint.html",
-   "h": "879542a6bc"
+   "h": "879542a6bc",
+   "s": 38624
   },
   {
    "path": "DAM/1-DAM/Sistemas-Informaticos/Temporización.html",
-   "h": "f45ea933c8"
+   "h": "f45ea933c8",
+   "s": 5495
   },
   {
    "path": "DAM/1-DAM/Sistemas-Informaticos/Unidad1.html",
-   "h": "a5a2e82982"
+   "h": "a5a2e82982",
+   "s": 16094
   },
   {
    "path": "DAM/1-DAM/Sistemas-Informaticos/UnidadesMedida.html",
-   "h": "61e6702b0c"
+   "h": "61e6702b0c",
+   "s": 7177
   }
  ]
 }

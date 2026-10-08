@@ -1,5 +1,5 @@
 // mobile-chat.js — conecta el chat con la pestaña «Chat» de la app móvil.
-import { montarChat } from './chat-ui.js?v=c558312c';
+import { montarChat } from './chat-ui.js?v=d746f1ba';
 
 const raiz = document.getElementById('mobile-app');
 if (raiz) {
@@ -10,5 +10,5 @@ if (raiz) {
 
 // Escritorio: botón del chat debajo de la estrella de favoritos.
 if (document.getElementById('nav-favoritos')) {
-  import('./desktop-chat.js?v=76bd8dab').catch((err) => console.warn('Chat de escritorio no disponible', err));
+  import('./desktop-chat.js?v=f03b91da').catch((err) => console.warn('Chat de escritorio no disponible', err));
 }
