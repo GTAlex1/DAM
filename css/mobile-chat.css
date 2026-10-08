@@ -71,3 +71,45 @@
 .mch .mch-archivo-ico { color: var(--c-accent); font-weight: 800; }
 .mch .mch-archivo-nom { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
 .mch .mch-archivo-tam { font-size: 12px; color: var(--c-muted); }
+
+/* ---- Chat de escritorio con estilo VS Code (solo dentro de .chat-panel; el móvil no cambia) ---- */
+.chat-panel.mch { --c-bg: #1e1e1e; --c-surface: #252526; --c-surface-2: #2d2d30; --c-border: #3c3c3c; --c-text: #cccccc; --c-muted: #858585; --c-accent: #3794ff; --c-accent-soft: rgba(0, 122, 204, .18);
+  width: min(380px, 100vw); font-family: var(--font-ui, "Segoe UI", system-ui, sans-serif); font-size: 13px; box-shadow: -4px 0 12px rgba(0, 0, 0, .4); }
+.chat-panel .chat-panel-cab { min-height: 35px; padding: 0 10px 0 20px; background: var(--c-surface); border-bottom: 0; }
+.chat-panel .chat-panel-cab h2 { font-size: 11px; font-weight: 400; letter-spacing: .5px; text-transform: uppercase; }
+.chat-panel .chat-panel-btn { width: 24px; height: 24px; border: 0; border-radius: 3px; background: transparent; font-size: 16px; }
+.chat-panel .chat-panel-btn:hover { background: rgba(90, 93, 94, .31); color: var(--c-text); }
+.chat-panel .chat-panel-cuerpo { padding: 0; }
+.chat-panel .mch-lista { gap: 0; margin: 0; }
+.chat-panel .mch-tarjeta { min-height: 30px; padding: 0 12px 0 20px; gap: 10px; border: 0; border-radius: 0; background: transparent; }
+.chat-panel .mch-tarjeta:hover { background: #2a2d2e; }
+.chat-panel .mch-chip { width: 20px; height: 20px; border-radius: 3px; font-size: 9px; }
+.chat-panel .mch-tarjeta-txt { flex-direction: row; align-items: baseline; gap: 8px; }
+.chat-panel .mch-tarjeta-nombre { font-size: 13px; font-weight: 400; }
+.chat-panel .mch-tarjeta-sub { font-size: 11px; }
+.chat-panel .m-vacio { padding: 12px 20px; font-size: 12px; }
+.chat-panel .mch-cab { min-height: 35px; padding: 0 8px; gap: 6px; background: var(--c-surface); border-bottom: 1px solid var(--c-border); }
+.chat-panel .mch-atras { width: 24px; height: 24px; border: 0; border-radius: 3px; background: transparent; font-size: 20px; padding: 0 0 2px; }
+.chat-panel .mch-atras:hover { background: rgba(90, 93, 94, .31); }
+.chat-panel .mch-cab-nombre { font-size: 13px; font-weight: 600; }
+.chat-panel .mch-msgs { padding: 8px 0; gap: 0; }
+.chat-panel .mch-dia { align-self: stretch; margin: 10px 14px 4px; padding: 0; border-radius: 0; background: transparent; font-size: 11px; letter-spacing: .5px; text-transform: uppercase; text-align: center; }
+.chat-panel .mch-burbuja { align-self: stretch; max-width: none; padding: 3px 16px 3px 14px; border: 0; border-left: 2px solid transparent; border-radius: 0; background: transparent; }
+.chat-panel .mch-burbuja:hover { background: #2a2d2e; }
+.chat-panel .mch-burbuja.mio { border-left-color: var(--c-accent); background: transparent; padding-right: 30px; }
+.chat-panel .mch-texto { font-size: 13px; }
+.chat-panel .mch-hora { text-align: left; font-size: 10px; }
+.chat-panel .mch-comp { padding: 8px 12px; gap: 6px; background: var(--c-surface); border-top: 1px solid var(--c-border); }
+.chat-panel .mch-caja { min-height: 30px; padding: 5px 8px; border: 1px solid transparent; border-radius: 2px; background: #3c3c3c; font-size: 13px; }
+.chat-panel .mch-caja:focus-visible { outline: 1px solid #007fd4; outline-offset: -1px; }
+.chat-panel .mch-adjuntar, .chat-panel .mch-enviar { width: 30px; height: 30px; border: 0; border-radius: 2px; font-size: 14px; }
+.chat-panel .mch-adjuntar { background: transparent; }
+.chat-panel .mch-enviar, .chat-panel .mch-btn { background: #0e639c; color: #fff; border-radius: 2px; }
+.chat-panel .mch-enviar:hover:not(:disabled), .chat-panel .mch-btn:hover:not(:disabled) { background: #1177bb; }
+.chat-panel .mch-btn-sec { background: #3a3d41; }
+.chat-panel .mch-mas { border-radius: 2px; min-height: 28px; }
+.chat-panel .mch-dialogo { width: min(88%, 340px); padding: 16px; border: 1px solid #454545; border-radius: 4px; background: #252526; }
+.chat-panel .mch-input { min-height: 30px; padding: 0 8px; border-radius: 2px; background: #3c3c3c; font-size: 13px; }
+.chat-panel .mch-miembro { min-height: 30px; border-radius: 0; background: transparent; }
+.chat-panel .mch-miembro:hover { background: #2a2d2e; }
+.chat-panel .mch-archivo { border-radius: 2px; }
