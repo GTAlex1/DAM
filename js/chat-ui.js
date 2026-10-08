@@ -1,22 +1,28 @@
 // mobile-chat.js — Chat (móvil), fase 1: grupo «General» + grupos de 2 a 30 personas. Solo texto.
 // Texto con formato seguro (sin innerHTML): [texto](https://…), enlaces sueltos, **negrita**, *cursiva*, `código`.
 import { el } from './dom.js';
-import { cargarFirebase, nombreDe, UID_ADMIN } from './chat-core.js?v=07eafb64';
+import { cargarFirebase, nombreDe, UID_ADMIN } from './chat-core.js?v=1';
 
 const PAGINA = 50, MAX_TEXTO = 2000, MAX_GRUPO = 30;
 const COLORES = ['#6AA9FF', '#7BE0A8', '#FFA45C', '#C58BFF', '#FF7A8A', '#5FD6D6'];
 const colorDe = (s) => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return COLORES[h % COLORES.length]; };
-const PATRON = /\[([^\]\n]{1,100})\]\((https?:\/\/[^\s)]{1,500})\)|(https?:\/\/[^\s<]{0,499}[^\s<.,;:!?)])|\*\*([^*\n]+)\*\*|`([^`\n]+)`|\*([^*\n]+)\*/g;
+const PATRON = /\[([^\]\n]{1,100})\]\(([^\s)]{1,500})\)|(https?:\/\/[^\s<]{0,499}[^\s<.,;:!?)])|\*\*([^*\n]+)\*\*|`([^`\n]+)`|\*([^*\n]+)\*/g;
 
+// Acepta «https://sitio.com», «http://…» y también «sitio.com/ruta» (se le añade https://).
+function normalizarUrl(u) {
+  if (/^https?:\/\//i.test(u)) return u;
+  return /^[\w-]+(\.[\w-]+)+(:\d+)?([/?#]\S*)?$/.test(u) ? `https://${u}` : null;
+}
 function enlace(texto, url) {
+  const limpia = normalizarUrl(url);
   let u;
-  try { u = new URL(url); } catch { return null; }
+  try { u = new URL(limpia); } catch { return null; }
   if (u.protocol !== 'https:' && u.protocol !== 'http:') return null; // nada de javascript:, data:…
   const a = el('a', 'mch-enlace', texto);
   a.href = u.href; a.target = '_blank'; a.rel = 'noopener noreferrer nofollow';
   return a;
 }
-function formatear(texto, destino) {
+function formatearLinea(texto, destino) {
   let i = 0;
   for (const m of texto.matchAll(PATRON)) {
     if (m.index > i) destino.append(texto.slice(i, m.index));
@@ -27,6 +33,30 @@ function formatear(texto, destino) {
   }
   if (i < texto.length) destino.append(texto.slice(i));
 }
+
+// Bloques: «# título» (1 a 3 #) y ``` bloques de código ``` ; el resto, línea a línea con formato en línea.
+function formatear(texto, destino) {
+  let codigo = null;
+  let enLinea = false;
+  const cerrar = () => { const pre = el('pre', 'mch-bloque'); pre.append(el('code', '', codigo.join('\n'))); destino.append(pre); codigo = null; enLinea = false; };
+  for (const linea of texto.split('\n')) {
+    if (/^```/.test(linea)) { if (codigo === null) codigo = []; else cerrar(); continue; }
+    if (codigo) { codigo.push(linea); continue; }
+    const h = /^(#{1,3})\s+(.+)$/.exec(linea);
+    if (h) { const t = el('div', `mch-h mch-h${h[1].length}`); formatearLinea(h[2], t); destino.append(t); enLinea = false; continue; }
+    if (enLinea) destino.append('\n');
+    formatearLinea(linea, destino);
+    enLinea = true;
+  }
+  if (codigo) cerrar();
+}
+
+// Archivos (solo descarga) por Cloudinary. Para usar otro preset sin firmar, cambia PRESET.
+const CLOUD = 'vagm1bzj', PRESET = 'DAMChat', MAX_MB = 10;
+const PREFIJO_CLOUD = `https://res.cloudinary.com/${CLOUD}/`;
+const EXT_OK = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'zip', 'rar', '7z', 'png', 'jpg', 'jpeg', 'gif', 'webp'];
+const tamano = (b) => (b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
+const urlDescarga = (u) => u.replace('/upload/', '/upload/fl_attachment/');
 
 // Monta el chat dentro de `slot`. `anfitrion` es donde se abren la conversación y los diálogos
 // (móvil: #mobile-app; escritorio: el panel del chat). Devuelve { iniciar }.
@@ -155,8 +185,12 @@ export function montarChat({ slot, btnNuevo, anfitrion }) {
     caja.rows = 1; caja.maxLength = MAX_TEXTO; caja.placeholder = 'Escribe un mensaje…'; caja.setAttribute('aria-label', 'Mensaje');
     const enviar = el('button', 'mch-enviar', '➤');
     enviar.type = 'button'; enviar.setAttribute('aria-label', 'Enviar'); enviar.disabled = true;
+    const adjuntar = el('button', 'mch-adjuntar', '📎');
+    adjuntar.type = 'button'; adjuntar.setAttribute('aria-label', 'Adjuntar archivo'); adjuntar.title = `Adjuntar archivo (máx. ${MAX_MB} MB)`;
+    const entrada = el('input', '');
+    entrada.type = 'file'; entrada.hidden = true; entrada.accept = EXT_OK.map((e) => `.${e}`).join(',');
     const comp = el('div', 'mch-comp');
-    comp.append(...(fb.admin ? [el('p', 'mch-aviso', 'Modo administrador: solo lectura')] : [caja, enviar]));
+    comp.append(...(fb.admin ? [el('p', 'mch-aviso', 'Modo administrador: solo lectura')] : [adjuntar, entrada, caja, enviar]));
     const conv = el('div', 'mch-conv');
     conv.append(cab, msgs, comp);
     raiz.append(conv);
@@ -184,7 +218,7 @@ export function montarChat({ slot, btnNuevo, anfitrion }) {
       for (const m of todos()) {
         const f = new Date(m.t);
         const d = f.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-        if (d !== dia) { dia = d; autor = ''; frag.append(el('p', 'mch-dia', d)); }
+        if (d !== dia) { dia = d; autor = ''; frag.append(el('p', 'mch-dia', d.charAt(0).toUpperCase() + d.slice(1))); }
         const mio = m.uid === yo.uid;
         const burbuja = el('div', `mch-burbuja${mio ? ' mio' : ''}`);
         if (!mio && m.autor !== autor) {
@@ -193,7 +227,15 @@ export function montarChat({ slot, btnNuevo, anfitrion }) {
         autor = m.autor;
         const cuerpo = el('span', 'mch-texto', '');
         formatear(m.texto, cuerpo);
-        burbuja.append(cuerpo, el('span', 'mch-hora', f.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })));
+        burbuja.append(cuerpo);
+        if (m.archivo && typeof m.archivo.url === 'string' && m.archivo.url.startsWith(PREFIJO_CLOUD)) {
+          const a = el('a', 'mch-archivo');
+          a.href = urlDescarga(m.archivo.url); a.target = '_blank'; a.rel = 'noopener noreferrer';
+          a.append(el('span', 'mch-archivo-ico', '⬇'), el('span', 'mch-archivo-nom', String(m.archivo.nombre || 'archivo').slice(0, 80)),
+            el('span', 'mch-archivo-tam', tamano(Number(m.archivo.tam) || 0)));
+          burbuja.append(a);
+        }
+        burbuja.append(el('span', 'mch-hora', f.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })));
         if (mio) {
           const x = el('button', 'mch-borrar', '×');
           x.type = 'button'; x.setAttribute('aria-label', 'Eliminar mensaje');
@@ -237,6 +279,27 @@ export function montarChat({ slot, btnNuevo, anfitrion }) {
       } catch (err) { console.error(err); caja.placeholder = 'No se pudo enviar. Inténtalo de nuevo'; enviar.disabled = false; }
     }
     enviar.addEventListener('click', mandar);
+    adjuntar.addEventListener('click', () => entrada.click());
+    entrada.addEventListener('change', async () => {
+      const f = entrada.files?.[0];
+      entrada.value = '';
+      if (!f) return;
+      if (!EXT_OK.includes(f.name.split('.').pop().toLowerCase())) { caja.placeholder = 'Tipo de archivo no permitido'; return; }
+      if (f.size > MAX_MB * 1048576) { caja.placeholder = `Máximo ${MAX_MB} MB por archivo`; return; }
+      adjuntar.disabled = enviar.disabled = true;
+      caja.placeholder = 'Subiendo archivo…';
+      try {
+        const datos = new FormData();
+        datos.append('file', f); datos.append('upload_preset', PRESET);
+        const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/auto/upload`, { method: 'POST', body: datos });
+        const j = await r.json();
+        if (!r.ok || typeof j.secure_url !== 'string' || !j.secure_url.startsWith(PREFIJO_CLOUD)) throw new Error(j?.error?.message || 'subida fallida');
+        await fs.addDoc(coleccion, { uid: yo.uid, autor: nombreDe(yo).slice(0, 60), texto: caja.value.trim().slice(0, MAX_TEXTO),
+          archivo: { url: j.secure_url, nombre: f.name.slice(0, 100), tam: f.size }, creado: fs.serverTimestamp() });
+        caja.value = ''; caja.placeholder = 'Escribe un mensaje…'; pintar(true);
+      } catch (err) { console.error(err); caja.placeholder = 'No se pudo subir el archivo'; }
+      finally { adjuntar.disabled = false; ajustar(); }
+    });
 
     const cerrar = () => { bajaConv?.(); bajaConv = null; conv.remove(); window.removeEventListener('popstate', cerrar); };
     window.addEventListener('popstate', cerrar);
