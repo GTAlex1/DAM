@@ -10,5 +10,5 @@ if (raiz) {
 
 // Escritorio: botón del chat debajo de la estrella de favoritos.
 if (document.getElementById('nav-favoritos')) {
-  import('./desktop-chat.js?v=1').catch((err) => console.warn('Chat de escritorio no disponible', err));
+  import('./desktop-chat.js?v=b3c887df').catch((err) => console.warn('Chat de escritorio no disponible', err));
 }
