@@ -191,8 +191,13 @@ export function montarChat({ slot, btnNuevo, anfitrion }) {
     entrada.type = 'file'; entrada.hidden = true; entrada.accept = EXT_OK.map((e) => `.${e}`).join(',');
     const comp = el('div', 'mch-comp');
     comp.append(...(fb.admin ? [el('p', 'mch-aviso', 'Modo administrador: solo lectura')] : [adjuntar, entrada, caja, enviar]));
+    const avisoRed = el('p', 'mch-aviso', 'Sin conexión: no se pueden enviar mensajes hasta que vuelva.');
+    avisoRed.style.margin = '0'; avisoRed.style.padding = '6px 12px'; avisoRed.style.textAlign = 'center';
+    const actualizarRed = () => { avisoRed.hidden = navigator.onLine; };
+    actualizarRed();
+    window.addEventListener('online', actualizarRed); window.addEventListener('offline', actualizarRed);
     const conv = el('div', 'mch-conv');
-    conv.append(cab, msgs, comp);
+    conv.append(cab, msgs, avisoRed, comp);
     raiz.append(conv);
     history.pushState({ mch: 1 }, '');
 
@@ -214,17 +219,18 @@ export function montarChat({ slot, btnNuevo, anfitrion }) {
         mas.addEventListener('click', cargarAntiguos);
         frag.append(mas);
       }
-      let dia = '', autor = '';
+      let dia = '', quien = '';
       for (const m of todos()) {
         const f = new Date(m.t);
         const d = f.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-        if (d !== dia) { dia = d; autor = ''; frag.append(el('p', 'mch-dia', d.charAt(0).toUpperCase() + d.slice(1))); }
+        if (d !== dia) { dia = d; quien = ''; frag.append(el('p', 'mch-dia', d.charAt(0).toUpperCase() + d.slice(1))); }
         const mio = m.uid === yo.uid;
-        const burbuja = el('div', `mch-burbuja${mio ? ' mio' : ''}`);
-        if (!mio && m.autor !== autor) {
+        const seguido = m.uid === quien; // consecutivo del mismo autor: sin nombre y con la hora solo al pasar el ratón
+        const burbuja = el('div', `mch-burbuja${mio ? ' mio' : ''}${seguido ? ' seguido' : ''}`);
+        if (!mio && !seguido) {
           const n = el('span', 'mch-autor', m.autor); n.style.color = colorDe(m.uid); burbuja.append(n);
         }
-        autor = m.autor;
+        quien = m.uid;
         const cuerpo = el('span', 'mch-texto', '');
         formatear(m.texto, cuerpo);
         burbuja.append(cuerpo);
@@ -236,6 +242,7 @@ export function montarChat({ slot, btnNuevo, anfitrion }) {
           burbuja.append(a);
         }
         burbuja.append(el('span', 'mch-hora', f.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })));
+        if (seguido) burbuja.addEventListener('click', (e) => { if (!e.target.closest('a, button')) burbuja.classList.toggle('ver-hora'); }); // en táctil: tocar el mensaje
         if (mio) {
           const x = el('button', 'mch-borrar', '×');
           x.type = 'button'; x.setAttribute('aria-label', 'Eliminar mensaje');
@@ -272,6 +279,7 @@ export function montarChat({ slot, btnNuevo, anfitrion }) {
     async function mandar() {
       const texto = caja.value.trim().slice(0, MAX_TEXTO);
       if (!texto) return;
+      if (!navigator.onLine) { actualizarRed(); return; } // el texto se conserva en la caja
       enviar.disabled = true;
       try {
         await fs.addDoc(coleccion, { uid: yo.uid, autor: nombreDe(yo).slice(0, 60), texto, creado: fs.serverTimestamp() });
@@ -279,11 +287,18 @@ export function montarChat({ slot, btnNuevo, anfitrion }) {
       } catch (err) { console.error(err); caja.placeholder = 'No se pudo enviar. Inténtalo de nuevo'; enviar.disabled = false; }
     }
     enviar.addEventListener('click', mandar);
+    // Intro envía (Mayús+Intro = salto de línea). Solo con ratón/teclado: en el móvil, Intro sigue haciendo salto de línea.
+    caja.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' || e.shiftKey || e.isComposing || !matchMedia('(pointer: fine)').matches) return;
+      e.preventDefault();
+      if (caja.value.trim() && !enviar.disabled) mandar(); // vacío o ya enviando: no hace nada
+    });
     adjuntar.addEventListener('click', () => entrada.click());
     entrada.addEventListener('change', async () => {
       const f = entrada.files?.[0];
       entrada.value = '';
       if (!f) return;
+      if (!navigator.onLine) { actualizarRed(); return; }
       if (!EXT_OK.includes(f.name.split('.').pop().toLowerCase())) { caja.placeholder = 'Tipo de archivo no permitido'; return; }
       if (f.size > MAX_MB * 1048576) { caja.placeholder = `Máximo ${MAX_MB} MB por archivo`; return; }
       adjuntar.disabled = enviar.disabled = true;
@@ -301,7 +316,7 @@ export function montarChat({ slot, btnNuevo, anfitrion }) {
       finally { adjuntar.disabled = false; ajustar(); }
     });
 
-    const cerrar = () => { bajaConv?.(); bajaConv = null; conv.remove(); window.removeEventListener('popstate', cerrar); };
+    const cerrar = () => { bajaConv?.(); bajaConv = null; conv.remove(); window.removeEventListener('popstate', cerrar); window.removeEventListener('online', actualizarRed); window.removeEventListener('offline', actualizarRed); };
     window.addEventListener('popstate', cerrar);
     atras.addEventListener('click', () => history.back());
     if (!fb.admin) caja.focus();

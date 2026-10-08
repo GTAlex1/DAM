@@ -43,7 +43,7 @@ const files = [];
 const docs = {};
 for (const ruta of rutas) {
   const bytes = await readFile(ruta);
-  files.push({ path: ruta, h: sha256(bytes).slice(0, 10) });
+  files.push({ path: ruta, h: sha256(bytes).slice(0, 10), s: bytes.length }); // s = bytes (el service worker decide qué guardar offline)
   const ext = extensionDe(ruta);
   if (INDEXABLES.includes(ext)) {
     const crudo = bytes.toString('utf8');

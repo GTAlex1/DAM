@@ -113,3 +113,9 @@
 .chat-panel .mch-miembro { min-height: 30px; border-radius: 0; background: transparent; }
 .chat-panel .mch-miembro:hover { background: #2a2d2e; }
 .chat-panel .mch-archivo { border-radius: 2px; }
+/* Mensajes seguidos del mismo autor: la hora solo se ve al pasar el ratón (o al tocar el mensaje). */
+.mch .mch-burbuja.seguido .mch-hora { display: none; }
+.mch .mch-burbuja.seguido:hover .mch-hora,
+.mch .mch-burbuja.seguido.ver-hora .mch-hora { display: block; }
+.chat-panel .mch-burbuja.seguido .mch-hora { position: absolute; top: 3px; right: 10px; margin: 0; padding: 0 4px; background: #2a2d2e; }
+.chat-panel .mch-burbuja.mio.seguido .mch-hora { right: 32px; }
