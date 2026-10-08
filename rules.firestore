@@ -357,7 +357,7 @@ service cloud.firestore {
     }
 
     match /chats/{chatId} {
-      allow read: if esPropietario() || (chatLogueado() && chatId != 'general' && request.auth.uid in resource.data.miembros);
+      allow read: if esPropietario() || (chatLogueado() && request.auth.uid in resource.data.miembros);
       allow create: if chatLogueado() && !esPropietario() && chatId != 'general'
         && request.resource.data.keys().hasOnly(['nombre','miembros','creador','creado'])
         && request.resource.data.creador == request.auth.uid

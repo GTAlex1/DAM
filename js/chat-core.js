@@ -5,15 +5,20 @@
 //    todos los usuarios que aún no estén.
 const SDK = 'https://www.gstatic.com/firebasejs/10.13.0/';
 
+// UID del Admin Principal (el mismo que en rules.firestore). Nunca aparece en el directorio del chat.
+export const UID_ADMIN = 'KxbZfGljpRdTIQlnOPDqjUs61v73';
+
 export const nombreDe = (u) => (u.displayName || '').trim() || (u.email || '').split('@')[0] || 'Alumno';
 
-let fb = null;
-export async function cargarFirebase() {
-  if (fb) return fb;
-  const [fi, fs, fa] = await Promise.all([
-    import('./firebase-init.js?v=11feeaf4'), import(`${SDK}firebase-firestore.js`), import(`${SDK}firebase-auth.js`)]);
-  fb = { fi, auth: fi.auth, fs, fa, db: fs.getFirestore(fi.auth.app), yo: null, admin: false };
-  return fb;
+// Una sola carga compartida (si dos módulos la pedían a la vez se creaban dos copias y el usuario quedaba a null).
+let promesa = null;
+export function cargarFirebase() {
+  promesa ??= (async () => {
+    const [fi, fs, fa] = await Promise.all([
+      import('./firebase-init.js?v=11feeaf4'), import(`${SDK}firebase-firestore.js`), import(`${SDK}firebase-auth.js`)]);
+    return { fi, auth: fi.auth, fs, fa, db: fs.getFirestore(fi.auth.app), yo: null, admin: false };
+  })().catch((err) => { promesa = null; throw err; });
+  return promesa;
 }
 
 async function sincronizar(f, u) {

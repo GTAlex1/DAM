@@ -1,7 +1,7 @@
 // mobile-chat.js — Chat (móvil), fase 1: grupo «General» + grupos de 2 a 30 personas. Solo texto.
 // Texto con formato seguro (sin innerHTML): [texto](https://…), enlaces sueltos, **negrita**, *cursiva*, `código`.
 import { el } from './dom.js';
-import { cargarFirebase, nombreDe } from './chat-core.js?v=fc05ddc9';
+import { cargarFirebase, nombreDe, UID_ADMIN } from './chat-core.js?v=1';
 
 const PAGINA = 50, MAX_TEXTO = 2000, MAX_GRUPO = 30;
 const COLORES = ['#6AA9FF', '#7BE0A8', '#FFA45C', '#C58BFF', '#FF7A8A', '#5FD6D6'];
@@ -71,6 +71,8 @@ export function montarChat({ slot, btnNuevo, anfitrion }) {
       const { auth, fs, fa, db } = fb;
       fa.onAuthStateChanged(auth, async (u) => {
         bajaGrupos?.(); bajaGrupos = null;
+        fb.yo = u;
+        fb.admin = !!u && fb.fi?.isAuthorized?.(u) === true;
         if (btnNuevo) btnNuevo.hidden = !u || fb.admin;
         if (!u) {
           const b = el('button', 'mch-btn', 'Iniciar sesión');
@@ -113,7 +115,7 @@ export function montarChat({ slot, btnNuevo, anfitrion }) {
     dlg.showModal();
     try {
       const snap = await fs.getDocs(fs.collection(db, 'directorio'));
-      const alumnos = snap.docs.filter((d) => d.id !== yo.uid).map((d) => ({ uid: d.id, nombre: String(d.data().nombre || 'Alumno') }))
+      const alumnos = snap.docs.filter((d) => d.id !== yo.uid && d.id !== UID_ADMIN).map((d) => ({ uid: d.id, nombre: String(d.data().nombre || 'Alumno') }))
         .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
       msg.textContent = alumnos.length ? `Elige entre 1 y ${MAX_GRUPO - 1} compañeros` : 'Aún no hay compañeros registrados: aparecen cuando inician sesión una vez.';
       for (const a of alumnos) {
