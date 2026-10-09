@@ -1,6 +1,7 @@
 // mobile-apuntes.js — pantalla Apuntes (móvil): asignaturas desplegables con sus archivos.
 // Reutiliza cargarAsignaturas() de mobile-inicio.js. Sin innerHTML; los módulos pesados se cargan bajo demanda.
 import { el } from './dom.js';
+import { sandboxPara, conBase, esConfiable } from './notas.js?v=00000000';
 
 const claveDe = (n) => n.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 const nombreArchivo = (n) => n.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
@@ -31,7 +32,20 @@ async function cargar() {
 }
 
 // Lector: el apunte se abre dentro de la app, con barra superior y botón Volver (también el «atrás» del móvil).
-function abrirLector(titulo, url) {
+// Una nota que no es de confianza va aislada (sin allow-same-origin), como en escritorio. Un iframe aislado no deja
+// que la web le cambie el tamaño de letra desde fuera, así que se descarga y se le inyecta en el srcdoc.
+async function cargarAislada(marco, url, ruta) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const escala = document.documentElement.style.getPropertyValue('--note-scale') || '1';
+    marco.srcdoc = conBase(await res.text(), ruta, escala);
+  } catch {
+    marco.srcdoc = '<p style="font:14px sans-serif;color:#f48771;padding:16px">No se pudo cargar el apunte.</p>';
+  }
+}
+
+function abrirLector(titulo, url, ruta) {
   const raizApp = document.getElementById('mobile-app');
   const volver = el('button', 'ma-volver', '‹');
   volver.type = 'button';
@@ -39,7 +53,8 @@ function abrirLector(titulo, url) {
   const barra = el('header', 'ma-barra');
   barra.append(volver, el('span', 'ma-barra-titulo', titulo));
   const marco = el('iframe', 'ma-marco');
-  marco.src = url;
+  marco.sandbox = sandboxPara(ruta); // debe fijarse ANTES de src/srcdoc
+  if (esConfiable(ruta)) marco.src = url; else cargarAislada(marco, url, ruta);
   marco.title = titulo;
   marco.addEventListener('load', () => { // el apunte hereda el tamaño de letra elegido en Cuenta
     try { marco.contentDocument.documentElement.style.setProperty('--note-scale', document.documentElement.style.getPropertyValue('--note-scale') || '1'); } catch { /* otro origen */ }
@@ -74,7 +89,7 @@ function crearAsignatura(a) {
     const enlace = el('a', 'ma-archivo');
     enlace.href = urlDe(f.path);
     enlace.append(el('span', 'ma-tipo', tipoArchivo(f.name)), el('span', 'ma-nom', nombreArchivo(f.name)));
-    enlace.addEventListener('click', (e) => { e.preventDefault(); abrirLector(nombreArchivo(f.name), enlace.href); });
+    enlace.addEventListener('click', (e) => { e.preventDefault(); abrirLector(nombreArchivo(f.name), enlace.href, f.path); });
     cuerpo.append(enlace);
   }
   cab.addEventListener('click', () => {

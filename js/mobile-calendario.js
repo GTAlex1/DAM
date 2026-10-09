@@ -1,6 +1,7 @@
 // mobile-calendario.js — pantalla Calendario (móvil). Incrusta la página Calendario.html de la web, que ya
 // trae TODAS las funciones (vista de mes, eventos personales con sesión, tareas hechas, añadir examen o tarea).
 import { el } from './dom.js';
+import { sandboxPara } from './notas.js?v=00000000';
 
 const urlDe = (ruta) => new URL(ruta.split('/').map(encodeURIComponent).join('/'), document.baseURI).href;
 function buscar(nodo) {
@@ -27,6 +28,7 @@ if (raiz) {
       const nodo = buscar((await fetchGithubTree()).root);
       if (!nodo) throw new Error('Calendario.html no encontrado');
       const marco = el('iframe', 'mc-marco');
+      marco.sandbox = sandboxPara(nodo.path); // Calendario.html es de confianza (usa la sesión de Firebase); antes de src
       marco.src = urlDe(nodo.path);
       marco.title = 'Calendario';
       Object.assign(marco.style, { display: 'block', width: '100%', height: 'calc(100dvh - 210px)', minHeight: '420px',
