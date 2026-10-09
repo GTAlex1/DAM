@@ -6,7 +6,7 @@
 import { el } from './dom.js';
 import {
   evaluar, formatearNumero, convertirBase, capacidad, binarioATexto, textoABytes, bytesABinario, desglose,
-} from './calculadoras.js?v=00000000';
+} from './calculadoras.js?v=1cf92497';
 
 const MAX_FILAS = 64; // filas del desglose byte a byte
 
