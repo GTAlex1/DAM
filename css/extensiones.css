@@ -1,0 +1,50 @@
+/* Panel «Extensiones» (escritorio): misma apariencia que el panel del chat. */
+.ext-panel { --c-bg: #1e1e1e; --c-surface: #252526; --c-border: #3c3c3c; --c-text: #cccccc; --c-muted: #858585; --c-accent: #3794ff;
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 150; width: min(380px, 100vw); display: flex; flex-direction: column;
+  background: var(--c-bg); color: var(--c-text); border-left: 1px solid var(--c-border); box-shadow: -12px 0 32px rgba(0, 0, 0, .45); font-size: 13px; }
+.ext-panel[hidden], .ext-panel [hidden] { display: none !important; }
+.ext-cab { display: flex; align-items: center; gap: 4px; min-height: 35px; padding: 0 10px 0 12px; background: var(--c-surface); }
+.ext-cab h2 { flex: 1; margin: 0; font-size: 11px; font-weight: 400; letter-spacing: .5px; text-transform: uppercase; }
+.ext-btn { width: 24px; height: 24px; border: 0; border-radius: 3px; background: transparent; color: inherit; font-size: 16px; line-height: 1; cursor: pointer; }
+.ext-btn:hover { background: rgba(90, 93, 94, .31); }
+.ext-cuerpo { flex: 1; min-height: 0; overflow-y: auto; }
+
+/* Lista de extensiones */
+.ext-filtro { display: block; width: calc(100% - 24px); margin: 10px 12px; }
+.ext-lista { list-style: none; margin: 0; padding: 0; }
+.ext-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 12px; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ext-item:hover { background: #2a2d2e; }
+.ext-chip { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 4px; background: #0e639c; color: #fff; font-weight: 700; font-size: 13px; }
+.ext-item-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ext-item-nom { font-weight: 600; color: #fff; }
+.ext-item-desc { color: var(--c-muted); font-size: 12px; }
+
+/* Herramientas */
+.ext-vista { padding: 12px; }
+.ext-panel input, .ext-panel select, .ext-panel textarea { box-sizing: border-box; width: 100%; padding: 6px 8px; border: 1px solid var(--c-border); border-radius: 3px; background: #3c3c3c; color: var(--c-text); font: inherit; }
+.ext-panel textarea { resize: vertical; font-family: Consolas, 'Courier New', monospace; }
+.ext-panel input:focus, .ext-panel select:focus, .ext-panel textarea:focus { outline: 1px solid var(--c-accent); outline-offset: -1px; }
+.ext-campo { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.ext-campo > span { color: var(--c-muted); font-size: 12px; }
+.ext-res { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--c-border); }
+.ext-res > span { color: var(--c-muted); flex: none; }
+.ext-res code { font-family: Consolas, 'Courier New', monospace; text-align: right; word-break: break-all; cursor: copy; }
+.ext-res code.copiado { color: #89d185; }
+.ext-msg { min-height: 1.2em; margin: 8px 0 0; color: #f48771; }
+.ext-nota { margin: 8px 0; color: var(--c-muted); font-size: 12px; }
+
+/* Calculadora normal */
+.ext-calc-pantalla { font-size: 22px; text-align: right; font-family: Consolas, 'Courier New', monospace; }
+.ext-calc-salida { min-height: 20px; margin: 4px 0 10px; text-align: right; color: var(--c-muted); }
+.ext-calc-salida.err { color: #f48771; }
+.ext-teclas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.ext-tecla { padding: 12px 0; border: 0; border-radius: 4px; background: #3c3c3c; color: #fff; font-size: 16px; cursor: pointer; }
+.ext-tecla:hover { background: #4a4a4a; }
+.ext-tecla.op { background: #0e639c; }
+.ext-tecla.op:hover { background: #1177bb; }
+.ext-tecla.ancha { grid-column: 1 / -1; }
+
+/* Binario ↔ ASCII */
+.ext-tabla { width: 100%; margin-top: 10px; border-collapse: collapse; font-family: Consolas, 'Courier New', monospace; font-size: 12px; }
+.ext-tabla th, .ext-tabla td { padding: 3px 6px; border-bottom: 1px solid var(--c-border); text-align: left; }
+.ext-tabla th { color: var(--c-muted); font-weight: 400; }
