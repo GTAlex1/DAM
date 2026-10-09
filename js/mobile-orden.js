@@ -4,7 +4,7 @@ const claveDe = (n) => n.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowe
 export async function ordenar(lista, root) {
   let guardado = {};
   try {
-    const { loadOrder } = await import('./firebase-init.js?v=165a238c');
+    const { loadOrder } = await import('./firebase-init.js?v=aaf9a4ae');
     guardado = (await loadOrder()) ?? {};
   } catch { /* sin orden guardado: se mantiene el orden natural */ }
 

@@ -1,7 +1,7 @@
 // mobile-calendario.js — pantalla Calendario (móvil). Incrusta la página Calendario.html de la web, que ya
 // trae TODAS las funciones (vista de mes, eventos personales con sesión, tareas hechas, añadir examen o tarea).
 import { el } from './dom.js';
-import { sandboxPara } from './notas.js?v=00000000';
+import { sandboxPara } from './notas.js?v=5558ec18';
 
 const urlDe = (ruta) => new URL(ruta.split('/').map(encodeURIComponent).join('/'), document.baseURI).href;
 function buscar(nodo) {

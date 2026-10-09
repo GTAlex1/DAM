@@ -1,7 +1,7 @@
 // mobile-apuntes.js — pantalla Apuntes (móvil): asignaturas desplegables con sus archivos.
 // Reutiliza cargarAsignaturas() de mobile-inicio.js. Sin innerHTML; los módulos pesados se cargan bajo demanda.
 import { el } from './dom.js';
-import { sandboxPara, conBase, esConfiable } from './notas.js?v=00000000';
+import { sandboxPara, conBase, esConfiable } from './notas.js?v=5558ec18';
 
 const claveDe = (n) => n.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 const nombreArchivo = (n) => n.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
@@ -16,7 +16,7 @@ function archivosDe(nodo, out = []) {
 
 async function cargar() {
   const [{ cargarAsignaturas }, { fetchGithubTree }] = await Promise.all([
-    import('./mobile-inicio.js?v=ce385fe2'), import('./github-source.js?v=02537279'),
+    import('./mobile-inicio.js?v=0092ed7d'), import('./github-source.js?v=02537279'),
   ]);
   const [asignaturas, datos] = await Promise.all([cargarAsignaturas(), fetchGithubTree()]);
   const porClave = new Map();

@@ -94,7 +94,7 @@ function cargarInicioSiProcede(raiz) {
   const intentar = () => {
     if (cargado || !mq.matches) return;
     cargado = true;
-    import('./mobile-inicio.js?v=ce385fe2')
+    import('./mobile-inicio.js?v=0092ed7d')
       .then((m) => m.iniciarInicio(raiz))
       .catch((err) => { cargado = false; console.error('No se pudo cargar la pantalla Inicio', err); });
   };

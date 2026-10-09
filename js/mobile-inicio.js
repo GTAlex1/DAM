@@ -12,7 +12,7 @@
 
 import { el } from './dom.js';
 import { fetchGithubTree } from './github-source.js?v=02537279';
-import { auth, watchAuth } from './firebase-init.js?v=165a238c'; // misma URL que app.js: comparte instancia
+import { auth, watchAuth } from './firebase-init.js?v=aaf9a4ae'; // misma URL que app.js: comparte instancia
 import {
   getFirestore, collection, onSnapshot, query, where,
 } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
@@ -74,7 +74,7 @@ let promesaAsignaturas = null;
 export function cargarAsignaturas() {
   if (!promesaAsignaturas) {
     promesaAsignaturas = fetchGithubTree()
-      .then(async (datos) => (await import('./mobile-orden.js?v=15e1694e')).ordenar(extraerAsignaturas(datos.root), datos.root))
+      .then(async (datos) => (await import('./mobile-orden.js?v=ac6dff1e')).ordenar(extraerAsignaturas(datos.root), datos.root))
       .catch((err) => { promesaAsignaturas = null; throw err; }); // permite reintentar
   }
   return promesaAsignaturas;

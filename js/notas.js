@@ -2,7 +2,7 @@
 // Cómo se muestra una nota HTML dentro de un <iframe>: qué permisos tiene (sandbox) y cómo se prepara el srcdoc.
 // Lo usan la web de escritorio (app.js) y la de móvil (mobile-apuntes.js, mobile-calendario.js), para que
 // las dos apliquen EXACTAMENTE la misma lista de notas de confianza.
-import { esc, localizarOcurrencia } from './utils.js?v=4733983d';
+import { esc, localizarOcurrencia } from './utils.js?v=87294434';
 
 // Las notas HTML se pintan en un <iframe srcdoc>. Con `allow-same-origin` la nota comparte
 // origen con la web y puede leer la sesión de Firebase (incluida la del administrador),

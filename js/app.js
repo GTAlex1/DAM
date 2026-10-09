@@ -1,10 +1,10 @@
 import {
   isAuthorized, watchAuth, loadOrder, saveOrderForPath, crearPanelSubida, crearControlModal,
   cargarFavoritosNube, guardarFavoritosNube,
-} from './firebase-init.js?v=165a238c';
+} from './firebase-init.js?v=aaf9a4ae';
 import { fetchGithubTree } from './github-source.js?v=02537279';
-import { esc, htmlAPlano, posicionesDe, localizarOcurrencia } from './utils.js?v=4733983d';
-import { sandboxPara, conBase } from './notas.js?v=00000000';
+import { esc, htmlAPlano, posicionesDe, localizarOcurrencia } from './utils.js?v=87294434';
+import { sandboxPara, conBase } from './notas.js?v=5558ec18';
 
 // ---------- Config ----------
 marked.setOptions({ breaks: false });

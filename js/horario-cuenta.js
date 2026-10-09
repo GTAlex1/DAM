@@ -12,7 +12,7 @@ import {
   getFirestore, doc, getDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 // Misma URL (con ?v) que la del <script> de horario.html: así es un único módulo.
-import { auth, watchAuth } from "./firebase-init.js?v=165a238c";
+import { auth, watchAuth } from "./firebase-init.js?v=aaf9a4ae";
 
 // Misma app de Firebase que usa firebase-init.js (no se inicializa otra).
 const db = getFirestore(auth.app);

@@ -8,7 +8,7 @@ import {
   auth, db, watchAuth, isAuthorized,
 } from "./firebase-core.js?v=c4e3345d";
 import { el } from "./dom.js?v=fab76259";
-import { planReordenPropio } from "./utils.js?v=4733983d";
+import { planReordenPropio } from "./utils.js?v=87294434";
 
 /* ==========================================================================
    MÓDULO DE APUNTES  (archivos en Cloudinary + metadatos en Firestore)

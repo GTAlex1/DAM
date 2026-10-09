@@ -14,7 +14,7 @@
 import { el } from './dom.js';
 import {
   auth, watchAuth, isAuthorized, nombreVisible, correoVisible, logout, ROL, getRol,
-} from './firebase-init.js?v=165a238c'; // misma URL que app.js: comparte instancia
+} from './firebase-init.js?v=aaf9a4ae'; // misma URL que app.js: comparte instancia
 
 const ACCIONES = Object.freeze(['acceder', 'perfil', 'salir', 'instalar']);
 const ETIQUETA_ROL = Object.freeze({
