@@ -6,7 +6,7 @@
 import { el } from './dom.js';
 import {
   evaluar, formatearNumero, convertirBase, capacidad, binarioATexto, textoABytes, bytesABinario, desglose,
-} from './calculadoras.js?v=1cf92497';
+} from './calculadoras.js?v=00000000';
 
 const MAX_FILAS = 64; // filas del desglose byte a byte
 
@@ -50,34 +50,74 @@ function resultado(etiqueta) {
   return { nodo, poner: (t) => { valor.textContent = t || '—'; } };
 }
 
-// ---------- 1. Calculadora normal ----------
+// ---------- 1. Calculadora (normal + científica) ----------
+const TECLAS_CIENTIFICAS = [ // [texto del botón, lo que escribe]; null = alterna grados/radianes
+  ['DEG', null], ['π', 'π'], ['e', 'e'], ['Ans', 'ans'], ['xʸ', '^'],
+  ['sin', 'sin('], ['cos', 'cos('], ['tan', 'tan('], ['ln', 'ln('], ['log', 'log('],
+  ['sin⁻¹', 'asin('], ['cos⁻¹', 'acos('], ['tan⁻¹', 'atan('], ['√', '√('], ['x²', '^2'],
+  ['x!', '!'], ['|x|', 'abs('], ['∛', 'cbrt('], ['eˣ', 'exp('], ['1/x', '1/('],
+];
+const BORRAR = /([a-z][a-z0-9]*\(|[a-z]+|.)$/; // borra de golpe «sin(», «ans», «pi»…
+
 function montarCalculadora() {
   const raiz = el('div', 'ext-form');
   const pantalla = entrada('', 'Operación');
   pantalla.className = 'ext-calc-pantalla'; pantalla.placeholder = '0';
   const salida = el('div', 'ext-calc-salida'); salida.setAttribute('aria-live', 'polite');
-  const teclas = el('div', 'ext-teclas');
+  let grados = true; // sin, cos y tan en grados (DEG) o en radianes (RAD)
+  let ans = 0;       // último resultado calculado
+  const opciones = () => ({ grados, ans });
 
   const mostrar = (texto, error = false) => { salida.textContent = texto; salida.classList.toggle('err', error); };
   function igual() {
     try {
-      const r = evaluar(pantalla.value);
+      const r = evaluar(pantalla.value, opciones());
       mostrar(`${pantalla.value} =`);
+      ans = r;
       pantalla.value = formatearNumero(r);
     } catch (e) { mostrar(e.message, true); }
   }
+  function vistaPrevia() { // resultado provisional mientras escribes (sin errores)
+    try { if (pantalla.value.trim()) mostrar(`= ${formatearNumero(evaluar(pantalla.value, opciones()))}`); else mostrar(''); }
+    catch { mostrar(''); }
+  }
+  function insertar(t) {
+    const a = pantalla.selectionStart ?? pantalla.value.length;
+    pantalla.setRangeText(t, a, pantalla.selectionEnd ?? a, 'end');
+  }
+  function borrar() {
+    const a = pantalla.selectionStart ?? pantalla.value.length, b = pantalla.selectionEnd ?? a;
+    if (a !== b) { pantalla.setRangeText('', a, b, 'end'); return; }
+    const antes = pantalla.value.slice(0, a).replace(BORRAR, '');
+    pantalla.value = antes + pantalla.value.slice(a);
+    pantalla.setSelectionRange(antes.length, antes.length);
+  }
   function pulsar(t) {
     if (t === 'C') { pantalla.value = ''; mostrar(''); }
-    else if (t === '⌫') { pantalla.value = pantalla.value.slice(0, -1); }
-    else if (t === '=') { igual(); return; }
-    else { pantalla.value += t; }
+    else if (t === '⌫') borrar();
+    else insertar(t);
     vistaPrevia();
     pantalla.focus();
   }
-  function vistaPrevia() { // resultado provisional mientras escribes (sin errores)
-    try { if (pantalla.value.trim()) mostrar(`= ${formatearNumero(evaluar(pantalla.value))}`); else mostrar(''); }
-    catch { mostrar(''); }
+
+  const cientificas = el('div', 'ext-teclas sci');
+  for (const [texto, escribe] of TECLAS_CIENTIFICAS) {
+    if (escribe === null) {
+      const modo = boton('DEG', 'Grados o radianes (clic para cambiar)', 'ext-tecla sci-tecla modo');
+      modo.addEventListener('click', () => {
+        grados = !grados;
+        modo.textContent = grados ? 'DEG' : 'RAD';
+        vistaPrevia(); pantalla.focus();
+      });
+      cientificas.append(modo);
+      continue;
+    }
+    const b = boton(texto, texto, 'ext-tecla sci-tecla');
+    b.addEventListener('click', () => pulsar(escribe));
+    cientificas.append(b);
   }
+
+  const teclas = el('div', 'ext-teclas');
   const DISPOSICION = ['C', '(', ')', '⌫', '7', '8', '9', '÷', '4', '5', '6', '×', '1', '2', '3', '−', '0', ',', '%', '+'];
   for (const t of DISPOSICION) {
     const b = boton(t, t === '⌫' ? 'Borrar' : t, `ext-tecla${'÷×−+'.includes(t) ? ' op' : ''}`);
@@ -90,7 +130,10 @@ function montarCalculadora() {
 
   pantalla.addEventListener('input', vistaPrevia);
   pantalla.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); igual(); } });
-  raiz.append(pantalla, salida, teclas);
+  raiz.append(
+    pantalla, salida, cientificas, teclas,
+    el('p', 'ext-nota', 'También puedes escribir: sin cos tan asin acos atan sinh cosh tanh sqrt cbrt ln log log2 exp abs floor ceil round · pi e ans · ^ potencia · ! factorial · 2pi y 3(4+1) multiplican solos.'),
+  );
   return raiz;
 }
 

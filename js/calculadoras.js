@@ -2,44 +2,101 @@
 // Lógica pura de las herramientas de «Extensiones» (sin DOM, para poder probarla en tests/).
 // La interfaz está en extensiones.js.
 
-// ---------- Calculadora normal ----------
-// + − × ÷ con paréntesis, decimales (punto o coma), % (= dividir entre 100) y menos unario.
+// ---------- Calculadora (normal + científica) ----------
+// + − × ÷ ^ ! % con paréntesis, decimales (punto o coma), constantes (pi, e, ans) y funciones.
 // Es un analizador propio: no usa eval().
-export function evaluar(texto) {
-  const t = String(texto).replace(/\s+/g, '').replace(/,/g, '.')
-    .replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
-  const fallo = () => { throw new Error('Operación no válida'); };
+// Opciones: grados (true por defecto: sin/cos/tan y sus inversas trabajan en grados; false = radianes)
+// y ans (último resultado, para la constante «ans»).
+const FUNCIONES = {
+  sqrt: Math.sqrt, cbrt: Math.cbrt, ln: Math.log, log: Math.log10, log2: Math.log2, exp: Math.exp, abs: Math.abs,
+  floor: Math.floor, ceil: Math.ceil, round: Math.round, sinh: Math.sinh, cosh: Math.cosh, tanh: Math.tanh,
+};
+const TRIGONOMETRICAS = ['sin', 'cos', 'tan', 'asin', 'acos', 'atan'];
+const limpia = (x) => (Math.abs(x) < 1e-12 ? 0 : x); // sin(180°) = 1,2e-16 → 0
+
+export function factorial(n) {
+  if (!Number.isInteger(n) || n < 0 || n > 170) throw new Error('El factorial solo existe para enteros entre 0 y 170');
+  let r = 1;
+  for (let k = 2; k <= n; k++) r *= k;
+  return r;
+}
+
+export function evaluar(texto, { grados = true, ans = 0 } = {}) {
+  const t = String(texto).toLowerCase().replace(/\s+/g, '').replace(/,/g, '.')
+    .replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-')
+    .replace(/π/g, 'pi').replace(/√/g, 'sqrt').replace(/²/g, '^2').replace(/³/g, '^3');
+  const fallo = (mensaje = 'Operación no válida') => { throw new Error(mensaje); };
   if (!t || t.length > 200) fallo();
   if (/[\d.,]\s+[\d.,]/.test(String(texto))) fallo(); // «2 3» no es 23
   let i = 0;
+  const rad = (x) => (grados ? (x * Math.PI) / 180 : x);
+  const aAngulo = (x) => (grados ? (x * 180) / Math.PI : x);
 
-  const porcentaje = (v) => { while (t[i] === '%') { i++; v /= 100; } return v; };
+  function funcion(nombre, x) {
+    if (Object.hasOwn(FUNCIONES, nombre)) return FUNCIONES[nombre](x);
+    switch (nombre) {
+      case 'sin': return limpia(Math.sin(rad(x)));
+      case 'cos': return limpia(Math.cos(rad(x)));
+      case 'tan':
+        if (Math.abs(Math.cos(rad(x))) < 1e-12) fallo('La tangente no está definida en ese ángulo');
+        return limpia(Math.tan(rad(x)));
+      case 'asin': return aAngulo(Math.asin(x));
+      case 'acos': return aAngulo(Math.acos(x));
+      default: return aAngulo(Math.atan(x));
+    }
+  }
   function primario() {
     if (t[i] === '(') {
       i++;
       const v = suma();
       if (t[i] !== ')') fallo();
       i++;
-      return porcentaje(v);
+      return v;
     }
-    const m = /^(\d+\.?\d*|\.\d+)/.exec(t.slice(i));
-    if (!m) fallo();
-    i += m[0].length;
-    return porcentaje(Number(m[0]));
+    const num = /^(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?/.exec(t.slice(i)); // admite 1e-7 (así se escriben los resultados pequeños)
+    if (num) { i += num[0].length; return Number(num[0]); }
+    const nom = /^(?:log2|[a-z]+)/.exec(t.slice(i));
+    if (!nom) fallo();
+    const n = nom[0];
+    i += n.length;
+    if (n === 'pi') return Math.PI;
+    if (n === 'e') return Math.E;
+    if (n === 'ans') return ans;
+    if (!Object.hasOwn(FUNCIONES, n) && !TRIGONOMETRICAS.includes(n)) fallo(`Función desconocida: ${n}`);
+    if (t[i] !== '(') fallo(`Falta el paréntesis después de ${n}`);
+    i++;
+    const x = suma();
+    if (t[i] !== ')') fallo();
+    i++;
+    return funcion(n, x);
   }
-  function unario() {
+  function postfijo() { // 5!  50%
+    let v = primario();
+    while (t[i] === '%' || t[i] === '!') v = t[i++] === '%' ? v / 100 : factorial(v);
+    return v;
+  }
+  function potencia() { // asociativa por la derecha: 2^3^2 = 2^9
+    const base = postfijo();
+    if (t[i] !== '^') return base;
+    i++;
+    return base ** unario();
+  }
+  function unario() { // -2^2 = -(2^2)
     if (t[i] === '-') { i++; return -unario(); }
     if (t[i] === '+') { i++; return unario(); }
-    return primario();
+    return potencia();
   }
+  const empiezaFactor = () => t[i] === '(' || (t[i] >= 'a' && t[i] <= 'z');
   function producto() {
     let v = unario();
-    while (t[i] === '*' || t[i] === '/') {
-      const op = t[i++];
-      const d = unario();
-      v = op === '*' ? v * d : v / d;
+    for (;;) {
+      if (t[i] === '*' || t[i] === '/') {
+        const op = t[i++];
+        const d = unario();
+        v = op === '*' ? v * d : v / d;
+      } else if (empiezaFactor()) v *= unario(); // multiplicación implícita: 2pi, 3(4+1), 2sin(30)
+      else return v;
     }
-    return v;
   }
   function suma() {
     let v = producto();
@@ -53,7 +110,8 @@ export function evaluar(texto) {
 
   const r = suma();
   if (i < t.length) fallo();
-  if (!Number.isFinite(r)) throw new Error('No se puede dividir entre cero');
+  if (Number.isNaN(r)) fallo('Resultado fuera del dominio (p. ej. la raíz de un negativo)');
+  if (!Number.isFinite(r)) fallo('División entre cero o número demasiado grande');
   return Number(r.toPrecision(12)); // quita ruido como 0.1 + 0.2 = 0.30000000000000004
 }
 

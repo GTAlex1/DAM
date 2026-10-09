@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  evaluar, convertirBase, capacidad, agrupar, textoABytes, bytesABinario, binarioATexto, desglose,
+  evaluar, factorial, convertirBase, capacidad, agrupar, textoABytes, bytesABinario, binarioATexto, desglose,
 } from '../js/calculadoras.js';
 
 test('evaluar: precedencia, paréntesis y decimales', () => {
@@ -74,4 +74,51 @@ test('desglose: carácter, decimal, hexadecimal y binario', () => {
   ]);
   assert.equal(desglose([10])[0].car, 'LF');
   assert.equal(desglose([200])[0].car, 'UTF-8');
+});
+
+test('evaluar: potencias, factorial, porcentaje y constantes', () => {
+  assert.equal(evaluar('5^2'), 25);
+  assert.equal(evaluar('5²'), 25);
+  assert.equal(evaluar('2^3^2'), 512); // asociativa por la derecha
+  assert.equal(evaluar('-2^2'), -4);
+  assert.equal(evaluar('2^-2'), 0.25);
+  assert.equal(evaluar('5!'), 120);
+  assert.equal(evaluar('0!'), 1);
+  assert.equal(evaluar('3!+2'), 8);
+  assert.equal(evaluar('pi'), 3.14159265359);
+  assert.equal(evaluar('2π'), 6.28318530718);
+  assert.equal(evaluar('e'), 2.71828182846);
+  assert.equal(evaluar('ans*2', { ans: 21 }), 42);
+  assert.equal(evaluar('1e-7'), 1e-7); // así se muestran los resultados muy pequeños
+  assert.equal(evaluar('2e3'), 2000);
+  assert.equal(evaluar('2e'), 5.43656365692); // 2·e
+  assert.equal(factorial(170) > 1e306, true);
+});
+
+test('evaluar: funciones (grados por defecto)', () => {
+  const casos = {
+    'sin(30)': 0.5, 'cos(60)': 0.5, 'tan(45)': 1, 'sin(180)': 0, 'cos(90)': 0,
+    'asin(0.5)': 30, 'acos(0.5)': 60, 'atan(1)': 45,
+    'sqrt(16)': 4, '√(81)': 9, 'cbrt(27)': 3, 'ln(e)': 1, 'log(1000)': 3, 'log2(8)': 3,
+    'exp(0)': 1, 'abs(-5)': 5, 'floor(2.7)': 2, 'ceil(2.1)': 3, 'round(2.5)': 3, 'sinh(0)': 0,
+    '2sin(30)': 1, '3(4+1)': 15, 'sqrt(9)sqrt(4)': 6, 'SIN(30)': 0.5, 'sqrt(2)^2': 2,
+  };
+  for (const [expr, esperado] of Object.entries(casos)) assert.equal(evaluar(expr), esperado, expr);
+});
+
+test('evaluar: radianes', () => {
+  const rad = { grados: false };
+  assert.equal(evaluar('sin(pi/2)', rad), 1);
+  assert.equal(evaluar('cos(pi)', rad), -1);
+  assert.equal(evaluar('sin(pi)', rad), 0);
+  assert.equal(evaluar('atan(1)', rad), 0.785398163397);
+});
+
+test('evaluar: errores de dominio y sintaxis', () => {
+  for (const mala of ['sqrt(-1)', 'ln(0)', 'asin(2)', '171!', '2.5!', '(-3)!', 'tan(90)', 'foo(2)',
+    'sin30', 'constructor(2)', 'sin(', '2^', '10^400']) {
+    assert.throws(() => evaluar(mala), mala);
+  }
+  assert.throws(() => evaluar('tan(pi/2)', { grados: false }));
+  assert.throws(() => evaluar('foo(2)'), /desconocida/);
 });
