@@ -96,3 +96,18 @@ export function localizarOcurrencia(raiz, q, k) {
   el.scrollIntoView({ block: 'center' });
   return true;
 }
+
+// Reordenar archivos PROPIOS (quien no es admin solo puede escribir en sus documentos): cambia de sitio un archivo
+// con el siguiente (delta = 1) o el anterior (-1) de SUS archivos del grupo, intercambiando sus «orden».
+// Devuelve las escrituras necesarias [{ id, orden }]; nunca incluye archivos ajenos.
+export function planReordenPropio(grupo, id, delta, uid) {
+  const propios = grupo.filter((x) => x.creado_por === uid);
+  const i = propios.findIndex((x) => x.id === id);
+  const j = i + delta;
+  if (i < 0 || j < 0 || j >= propios.length) return [];
+  const [a, b] = [propios[i], propios[j]];
+  const oa = Number.isInteger(a.orden) ? a.orden : 0;
+  const ob = Number.isInteger(b.orden) ? b.orden : 0;
+  if (oa !== ob) return [{ id: a.id, orden: ob }, { id: b.id, orden: oa }];
+  return delta < 0 ? [{ id: b.id, orden: oa + 1 }] : [{ id: a.id, orden: ob + 1 }]; // empate: se desempata
+}

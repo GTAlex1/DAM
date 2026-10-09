@@ -44,9 +44,13 @@ service cloud.firestore {
     // SUBIR (create): cualquier usuario con sesión, con la forma exacta que genera el JS.
     // OJO: el registro es abierto, así que cualquiera puede crearse una cuenta y subir.
     // Si prefieres que solo suba el propietario, cambia puedeSubirApunte() por esPropietario().
-    // MOVER, REORDENAR y ELIMINAR: SOLO el propietario (mismo UID que firebase-init.js).
+    // MOVER, REORDENAR y ELIMINAR: el propietario (mismo UID que firebase-init.js) y, solo de SUS archivos, quien los subió.
     function puedeSubirApunte() {
       return request.auth != null;
+    }
+    // Gestionar (mover, reordenar, quitar de la lista) un archivo YA subido: el propietario o su autor.
+    function puedeGestionarApunte() {
+      return esPropietario() || (request.auth != null && resource.data.creado_por == request.auth.uid);
     }
 
     match /apuntes/{docId} {
@@ -73,7 +77,7 @@ service cloud.firestore {
 
       // Mover de asignatura y reordenar: solo pueden cambiar "asignatura" y
       // "orden". Nombre, url, tipo, autor y fecha quedan inmutables.
-      allow update: if esPropietario()
+      allow update: if puedeGestionarApunte()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['asignatura', 'orden'])
         && request.resource.data.asignatura is string
         && request.resource.data.asignatura.size() > 0
@@ -81,7 +85,7 @@ service cloud.firestore {
         && request.resource.data.orden is int
         && request.resource.data.orden >= 0;
 
-      allow delete: if esPropietario();
+      allow delete: if puedeGestionarApunte();
     }
 
     // ------------------------------------------------------------------
@@ -128,8 +132,7 @@ service cloud.firestore {
                 && (d.hora == '' || d.hora.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$'))
                 && textoOpcional(d.lugar, 60)
                 && textoOpcional(d.temario, 1500)
-              : d.keys().hasOnly(['tipo', 'fecha', 'asignatura', 'titulo', 'descripcion', 'ambito', 'usuario_uid', 'creado'])
-                && (!('descripcion' in d) || textoOpcional(d.descripcion, 1500)));
+              : d.keys().hasOnly(['tipo', 'fecha', 'asignatura', 'titulo', 'ambito', 'usuario_uid', 'creado']));
     }
     // ¿Puede quien hace la petición editar/borrar este evento (`e` = datos actuales)?
     function puedeGestionarEvento(e) {
