@@ -1,10 +1,10 @@
 import {
   isAuthorized, watchAuth, loadOrder, saveOrderForPath, crearPanelSubida, crearControlModal,
   cargarFavoritosNube, guardarFavoritosNube,
-} from './firebase-init.js?v=aaf9a4ae';
+} from './firebase-init.js?v=165a238c';
 import { fetchGithubTree } from './github-source.js?v=02537279';
-import { esc, htmlAPlano, posicionesDe, localizarOcurrencia } from './utils.js?v=87294434';
-import { sandboxPara, conBase } from './notas.js?v=5558ec18';
+import { esc, htmlAPlano, posicionesDe, localizarOcurrencia } from './utils.js?v=4733983d';
+import { sandboxPara, conBase } from './notas.js?v=00000000';
 
 // ---------- Config ----------
 marked.setOptions({ breaks: false });
@@ -737,7 +737,23 @@ function opcionesFetch() {
 }
 
 // ---------- Notas HTML: niveles de confianza ----------
+// Un PDF no se descarga como texto: lo muestra el visor de PDF del navegador dentro de la pestaña.
+function mostrarPdf(path) {
+  statusLangEl.textContent = 'PDF';
+  busquedaPendiente = null;
+  if (window.CSS && CSS.highlights) CSS.highlights.delete('busqueda-apuntes');
+  editorContentEl.classList.add('full-bleed');
+  editorContentEl.classList.remove('loading');
+  editorContentEl.innerHTML = '';
+  const marco = document.createElement('iframe');
+  marco.className = 'html-frame'; // mismo tamaño que las notas HTML
+  marco.title = path;
+  marco.src = contenidoUrl(path);
+  editorContentEl.append(marco);
+}
+
 async function renderEditor(path) {
+  if (/\.pdf$/i.test(path)) { mostrarPdf(path); return; }
   const isHtml = /\.(html?|HTML?)$/.test(path);
   editorContentEl.classList.add('loading');
   statusLangEl.textContent = isHtml ? 'HTML' : 'Markdown';

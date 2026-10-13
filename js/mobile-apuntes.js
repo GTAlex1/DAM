@@ -1,7 +1,7 @@
 // mobile-apuntes.js — pantalla Apuntes (móvil): asignaturas desplegables con sus archivos.
 // Reutiliza cargarAsignaturas() de mobile-inicio.js. Sin innerHTML; los módulos pesados se cargan bajo demanda.
 import { el } from './dom.js';
-import { sandboxPara, conBase, esConfiable } from './notas.js?v=5558ec18';
+import { sandboxPara, conBase, esConfiable } from './notas.js?v=00000000';
 
 const claveDe = (n) => n.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 const nombreArchivo = (n) => n.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
@@ -16,7 +16,7 @@ function archivosDe(nodo, out = []) {
 
 async function cargar() {
   const [{ cargarAsignaturas }, { fetchGithubTree }] = await Promise.all([
-    import('./mobile-inicio.js?v=0092ed7d'), import('./github-source.js?v=02537279'),
+    import('./mobile-inicio.js?v=ce385fe2'), import('./github-source.js?v=02537279'),
   ]);
   const [asignaturas, datos] = await Promise.all([cargarAsignaturas(), fetchGithubTree()]);
   const porClave = new Map();
@@ -52,9 +52,19 @@ function abrirLector(titulo, url, ruta) {
   volver.setAttribute('aria-label', 'Volver a Apuntes');
   const barra = el('header', 'ma-barra');
   barra.append(volver, el('span', 'ma-barra-titulo', titulo));
+  if (/\.pdf$/i.test(ruta)) { // algunos navegadores móviles no muestran PDFs dentro de la página
+    const abrir = el('a', '', 'Abrir ↗');
+    abrir.href = url; abrir.target = '_blank'; abrir.rel = 'noopener';
+    abrir.style.cssText = 'margin-left:auto;padding:0 12px;color:inherit;font-size:13px;white-space:nowrap';
+    barra.append(abrir);
+  }
   const marco = el('iframe', 'ma-marco');
-  marco.sandbox = sandboxPara(ruta); // debe fijarse ANTES de src/srcdoc
-  if (esConfiable(ruta)) marco.src = url; else cargarAislada(marco, url, ruta);
+  const esPdf = /\.pdf$/i.test(ruta);
+  if (esPdf) marco.src = url; // un PDF no es código: lo muestra el visor del navegador (un sandbox lo bloquearía)
+  else {
+    marco.sandbox = sandboxPara(ruta); // debe fijarse ANTES de src/srcdoc
+    if (esConfiable(ruta)) marco.src = url; else cargarAislada(marco, url, ruta);
+  }
   marco.title = titulo;
   marco.addEventListener('load', () => { // el apunte hereda el tamaño de letra elegido en Cuenta
     try { marco.contentDocument.documentElement.style.setProperty('--note-scale', document.documentElement.style.getPropertyValue('--note-scale') || '1'); } catch { /* otro origen */ }

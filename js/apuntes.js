@@ -8,7 +8,6 @@ import {
   auth, db, watchAuth, isAuthorized,
 } from "./firebase-core.js?v=c4e3345d";
 import { el } from "./dom.js?v=fab76259";
-import { planReordenPropio } from "./utils.js?v=87294434";
 
 /* ==========================================================================
    MÓDULO DE APUNTES  (archivos en Cloudinary + metadatos en Firestore)
@@ -204,15 +203,6 @@ async function reordenarApunte(grupo, id, delta) {
   await batch.commit();
 }
 
-/** Reordenar para el AUTOR de los archivos (no admin): solo escribe en documentos suyos. */
-async function reordenarPropio(grupo, id, delta, uid) {
-  const cambios = planReordenPropio(grupo, id, delta, uid);
-  if (!cambios.length) return;
-  const batch = writeBatch(db);
-  for (const c of cambios) batch.update(doc(db, APUNTES_COLECCION, c.id), { orden: c.orden });
-  await batch.commit();
-}
-
 /** Cambia un archivo de asignatura y lo deja al final de la nueva. */
 async function moverApunte(id, destino) {
   await updateDoc(doc(db, APUNTES_COLECCION, id), {
@@ -403,7 +393,7 @@ function initApuntes(root) {
 
   /* --- Estado --- */
   let user = null;
-  let autorizado = false; // Admin Principal (AUTHORIZED_UID): gestiona TODOS los archivos
+  let autorizado = false; // solo el Admin Principal (AUTHORIZED_UID) gestiona archivos
   let items = [];
   let ocupado = false;
   let foco = null; // { id, accion } para devolver el foco tras repintar
@@ -423,15 +413,7 @@ function initApuntes(root) {
   // El inicio de sesión vive en el modal global (#modal-auth): ver MÓDULO DE ACCESO.
 
   /* --- Listado en tiempo real --- */
-  // Gestionar un archivo (mover, reordenar, quitar): el Admin Principal o quien lo subió.
-  const esMio = (it) => !!user && it.creado_por === user.uid;
-  const puedeGestionar = (it) => autorizado || esMio(it);
-
   function crearControles(it, posicion, total) {
-    // El autor (no admin) solo reordena entre SUS archivos: los extremos se miden entre ellos.
-    const propios = autorizado ? null : grupoDe(it.asignatura || SIN_CLASIFICAR).filter(esMio);
-    const lugar = propios ? propios.findIndex((x) => x.id === it.id) : posicion;
-    const cuantos = propios ? propios.length : total;
     const gestion = el("div", "fbap-manage");
 
     const btnSubirPos = el("button", "fbap-btn fbap-icon-btn");
@@ -440,7 +422,7 @@ function initApuntes(root) {
     btnSubirPos.title = "Subir posición";
     btnSubirPos.setAttribute("aria-label", "Subir posición");
     btnSubirPos.innerHTML = ICONO_SUBIR;
-    btnSubirPos.disabled = lugar === 0;
+    btnSubirPos.disabled = posicion === 0;
 
     const btnBajarPos = el("button", "fbap-btn fbap-icon-btn");
     btnBajarPos.type = "button";
@@ -448,7 +430,7 @@ function initApuntes(root) {
     btnBajarPos.title = "Bajar posición";
     btnBajarPos.setAttribute("aria-label", "Bajar posición");
     btnBajarPos.innerHTML = ICONO_BAJAR;
-    btnBajarPos.disabled = lugar === cuantos - 1;
+    btnBajarPos.disabled = posicion === total - 1;
 
     const pos = el("span", "fbap-pos", `${posicion + 1}/${total}`);
     pos.title = "Posición en la asignatura";
@@ -499,7 +481,7 @@ function initApuntes(root) {
     acciones.append(abrir, descargar);
     li.append(acciones);
 
-    if (puedeGestionar(it)) li.append(crearControles(it, posicion, total));
+    if (autorizado) li.append(crearControles(it, posicion, total));
     return li;
   }
 
@@ -605,9 +587,9 @@ function initApuntes(root) {
 
     // Subir / bajar posición
     const boton = e.target.closest("button[data-accion]");
-    if (!boton || ocupado) return;
+    if (!boton || ocupado || !autorizado) return;
     const it = items.find((x) => x.id === boton.closest("li")?.dataset.id);
-    if (!it || !puedeGestionar(it)) return;
+    if (!it) return;
     if (boton.dataset.accion === "eliminar") {
       if (!confirm(`¿Quitar «${it.nombre}» de la lista?\n\nEl archivo seguirá en Cloudinary; solo desaparece de la web.`)) return;
       foco = null;
@@ -615,10 +597,8 @@ function initApuntes(root) {
       return;
     }
     foco = { id: it.id, accion: boton.dataset.accion };
-    const grupo = grupoDe(it.asignatura || SIN_CLASIFICAR);
-    const delta = boton.dataset.accion === "subir" ? -1 : 1;
     await ejecutar(
-      () => (autorizado ? reordenarApunte(grupo, it.id, delta) : reordenarPropio(grupo, it.id, delta, user.uid)),
+      () => reordenarApunte(grupoDe(it.asignatura || SIN_CLASIFICAR), it.id, boton.dataset.accion === "subir" ? -1 : 1),
       "Posición actualizada."
     );
   });
@@ -626,10 +606,10 @@ function initApuntes(root) {
   // Mover a otra asignatura
   grupos.addEventListener("change", async (e) => {
     const select = e.target.closest("select[data-accion='mover']");
-    if (!select || !select.value || ocupado) return;
+    if (!select || !select.value || ocupado || !autorizado) return;
     const destino = select.value;
     const it = items.find((x) => x.id === select.closest("li")?.dataset.id);
-    if (!it || !DESTINOS.includes(destino) || !puedeGestionar(it)) return;
+    if (!it || !DESTINOS.includes(destino)) return;
     foco = { id: it.id, accion: "mover" };
     await ejecutar(() => moverApunte(it.id, destino), `Movido a «${destino}».`);
     select.value = "";
