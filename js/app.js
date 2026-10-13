@@ -4,7 +4,7 @@ import {
 } from './firebase-init.js?v=165a238c';
 import { fetchGithubTree } from './github-source.js?v=02537279';
 import { esc, htmlAPlano, posicionesDe, localizarOcurrencia } from './utils.js?v=4733983d';
-import { sandboxPara, conBase } from './notas.js?v=00000000';
+import { sandboxPara, conBase } from './notas.js?v=d7ad2b3c';
 
 // ---------- Config ----------
 marked.setOptions({ breaks: false });

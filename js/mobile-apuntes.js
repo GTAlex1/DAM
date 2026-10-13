@@ -1,7 +1,7 @@
 // mobile-apuntes.js — pantalla Apuntes (móvil): asignaturas desplegables con sus archivos.
 // Reutiliza cargarAsignaturas() de mobile-inicio.js. Sin innerHTML; los módulos pesados se cargan bajo demanda.
 import { el } from './dom.js';
-import { sandboxPara, conBase, esConfiable } from './notas.js?v=00000000';
+import { sandboxPara, conBase, esConfiable } from './notas.js?v=d7ad2b3c';
 
 const claveDe = (n) => n.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 const nombreArchivo = (n) => n.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
