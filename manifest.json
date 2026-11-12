@@ -2,7 +2,7 @@
  "v": 1,
  "root": "DAM",
  "repo": "GTAlex1/DAM",
- "indice": "7069473aefac",
+ "indice": "5cdf01d460c9",
  "files": [
   {
    "path": "DAM/1-DAM/Bases-de-Datos/U1.html",
@@ -31,8 +31,8 @@
   },
   {
    "path": "DAM/1-DAM/Entornos-de-Desarrollo/Libro.html",
-   "h": "37e5430935",
-   "s": 1172550
+   "h": "11882692c4",
+   "s": 467
   },
   {
    "path": "DAM/1-DAM/Horario.html",
@@ -46,8 +46,8 @@
   },
   {
    "path": "DAM/1-DAM/Lenguajes-de-Marcas/Libro.html",
-   "h": "683eb32ef3",
-   "s": 919913
+   "h": "1b01e1bb89",
+   "s": 456
   },
   {
    "path": "DAM/1-DAM/Programacion/Introducción.html",
