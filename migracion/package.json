@@ -1,0 +1,12 @@
+{
+  "name": "migracion-firebase-a-supabase",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Exporta los datos del proyecto Firebase damm-29df1 (Firestore y Authentication) a archivos JSON.",
+  "scripts": {
+    "exportar": "node exportar-firebase.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  }
+}
