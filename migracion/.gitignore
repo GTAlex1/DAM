@@ -1,6 +1,8 @@
-# NUNCA subir al repo: contienen datos personales de los alumnos o claves con control total del proyecto.
+# NUNCA subir al repo: contienen datos personales de los alumnos o claves con control total.
 salida/
 serviceAccountKey*.json
 *-key.json
+supabase-service.json
+parametros-hash.json
 .env
 node_modules/
