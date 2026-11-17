@@ -3,6 +3,7 @@ salida/
 serviceAccountKey*.json
 *-key.json
 supabase-service.json
+supabase-api.json
 parametros-hash.json
 .env
 node_modules/
