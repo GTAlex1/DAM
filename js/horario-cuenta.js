@@ -6,27 +6,25 @@
    El acceso (header, modal, login y registro) ya NO vive aquí: lo gestiona
    firebase-init.js para todas las páginas (mismas cuentas que en el resto).
    Este módulo solo escucha la sesión: con sesión muestra el botón 🎓 y carga
-   /guarda las convalidadas del usuario (rules: convalidaciones/{uid}).
+   /guarda las convalidadas del usuario (tabla convalidaciones de Supabase, con RLS por usuario).
    ============================================================ */
-import {
-  getFirestore, doc, getDoc, setDoc
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 // Misma URL (con ?v) que la del <script> de horario.html: así es un único módulo.
-import { auth, watchAuth } from "./firebase-init.js?v=165a238c";
+import { auth, watchAuth, supabase } from "./firebase-init.js?v=165a238c";
 
-// Misma app de Firebase que usa firebase-init.js (no se inicializa otra).
-const db = getFirestore(auth.app);
-
-function convalidacionesRef(uid) { return doc(db, 'convalidaciones', uid); }
+// Tabla `convalidaciones` de Supabase: una fila por usuario { user_id, materias[], ts }.
 async function cargarConvalidadas(uid) {
   try {
-    const snap = await getDoc(convalidacionesRef(uid));
-    return snap.exists() ? (snap.data().materias || []) : [];
+    const { data, error } = await supabase.from('convalidaciones').select('materias').eq('user_id', uid).maybeSingle();
+    if (error) throw error;
+    return data?.materias || [];
   } catch (e) { console.warn('No se pudo leer convalidaciones:', e); return []; }
 }
 async function guardarConvalidadas(uid, lista) {
-  try { await setDoc(convalidacionesRef(uid), { materias: lista, ts: Date.now() }); return true; }
-  catch (e) { console.warn('No se pudo guardar convalidaciones:', e); return false; }
+  try {
+    const { error } = await supabase.from('convalidaciones').upsert({ user_id: uid, materias: lista, ts: Date.now() });
+    if (error) throw error;
+    return true;
+  } catch (e) { console.warn('No se pudo guardar convalidaciones:', e); return false; }
 }
 
 let convalidadas = new Set();

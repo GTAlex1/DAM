@@ -11,7 +11,7 @@
 
 // Lista explícita: es la API pública de siempre. Lo demás de firebase-core.js es interno.
 export {
-  AUTHORIZED_UID, auth, isAuthorized, watchAuth, nombreVisible, correoVisible,
+  AUTHORIZED_UID, auth, supabase, isAuthorized, watchAuth, nombreVisible, correoVisible,
   login, register, logout, loadOrder, saveOrderForPath,
   ROL, getRol, guardarNombrePerfil, puedeGestionarCalendarioGlobal, listarUsuarios, fijarAdminInferior,
   cargarFavoritosNube, guardarFavoritosNube,

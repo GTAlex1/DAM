@@ -12,7 +12,8 @@ Decisiones:
 - El cliente se carga como módulo ES desde jsDelivr con versión fija (supabase-js 2.117.3).
 - `js/firebase-core.js` conserva su nombre y su API pública, pero ahora es el núcleo de Supabase
   (se renombrará en la fase E). Exporta `db = null` como pieza TEMPORAL hasta migrar los módulos
-  que aún usan Firestore.
+  que aún usan Firestore. `js/firebase-init.js` también exporta `supabase` para el resto de módulos
+  (importar siempre desde firebase-init.js, no desde firebase-core.js, para no duplicar el cliente).
 - Para probar desde la rama hay que desactivar «Confirm email» en Supabase (las cuentas «por
   usuario» tienen un correo ficticio que no recibe mensajes). YA DESACTIVADO.
 - Los `?v=` de los imports los recalcula la Action al fusionar; en la rama pueden quedar
@@ -26,8 +27,12 @@ Decisiones:
       borrar). PENDIENTE: que el usuario pruebe inicio de sesión, registro de una cuenta nueva y
       «Mi cuenta». Plan B si el registro rechaza el dominio ficticio `.local`: crear las cuentas
       nuevas con una función de servidor.
-- [ ] **B. Calendario y horario.** `js/calendario.js`, `js/horario-cuenta.js`,
-      `DAM/1-DAM/Calendario.html`, `DAM/1-DAM/Horario.html`.
+- [~] **B. Calendario y horario.**
+      HECHO: `js/horario-cuenta.js` (convalidaciones en Supabase; antes rompió la página del
+      horario porque usaba `auth.app` de Firebase).
+      PENDIENTE: `js/calendario.js` (902 líneas: eventos globales/personales, tareas hechas) y
+      comprobar `DAM/1-DAM/Calendario.html`. Recordar: `calendario_hechas` guarda ids de evento
+      NUEVOS (uuid); los eventos tienen `firebase_id` con el id antiguo.
 - [ ] **C. Chat.** `js/chat-core.js`, `js/chat-ui.js` con Realtime.
 - [ ] **D. Apuntes y subida de archivos.** `js/apuntes.js`, subida a Storage, visor de HTML con
       `srcdoc`, progreso de las apps de apuntes.
