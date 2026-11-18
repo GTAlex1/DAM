@@ -14,14 +14,18 @@ Decisiones:
   (se renombrará en la fase E). Exporta `db = null` como pieza TEMPORAL hasta migrar los módulos
   que aún usan Firestore.
 - Para probar desde la rama hay que desactivar «Confirm email» en Supabase (las cuentas «por
-  usuario» tienen un correo ficticio que no recibe mensajes).
+  usuario» tienen un correo ficticio que no recibe mensajes). YA DESACTIVADO.
+- Los `?v=` de los imports los recalcula la Action al fusionar; en la rama pueden quedar
+  desactualizados (no afecta a las pruebas). El service worker está en la versión `v3`.
 
 ## Fases (marcar al terminar cada una)
 
-- [~] **A. Núcleo y cuentas.** HECHO: `js/firebase-core.js` (inicio de sesión, registro, cierre de
-      sesión, perfil, roles, favoritos, orden del árbol) y `migracion/parche-fase-a.mjs` (CSP de
-      `index.html` y `service-worker.js`). PENDIENTE: ejecutar el parche, desactivar «Confirm email»
-      y probar inicio de sesión, registro y «Mi cuenta».
+- [~] **A. Núcleo y cuentas.** HECHO y subido: `js/firebase-core.js` (inicio de sesión, registro,
+      cierre de sesión, perfil, roles, favoritos, orden del árbol), CSP de `index.html` y
+      `service-worker.js` (el parche `migracion/parche-fase-a.mjs` ya está aplicado; se puede
+      borrar). PENDIENTE: que el usuario pruebe inicio de sesión, registro de una cuenta nueva y
+      «Mi cuenta». Plan B si el registro rechaza el dominio ficticio `.local`: crear las cuentas
+      nuevas con una función de servidor.
 - [ ] **B. Calendario y horario.** `js/calendario.js`, `js/horario-cuenta.js`,
       `DAM/1-DAM/Calendario.html`, `DAM/1-DAM/Horario.html`.
 - [ ] **C. Chat.** `js/chat-core.js`, `js/chat-ui.js` con Realtime.
