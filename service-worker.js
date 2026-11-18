@@ -15,7 +15,7 @@
 //
 // Al cambiar ESTE archivo, sube VERSION para que los móviles descarten la caché anterior.
 
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = `apuntes-dam-${VERSION}`;
 const ESPERA_RED_MS = 4000; // con mala cobertura, tras 4 s se usa la copia guardada
 const LIMITE_PRECACHE = 300 * 1024; // bytes: los apuntes más pequeños se guardan para uso offline
@@ -154,7 +154,9 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  const esSdk = url.origin === 'https://www.gstatic.com' && url.pathname.startsWith('/firebasejs/');
+  const esSdk =
+    (url.origin === 'https://www.gstatic.com' && url.pathname.startsWith('/firebasejs/')) ||
+    (url.origin === 'https://cdn.jsdelivr.net' && url.pathname.startsWith('/npm/@supabase/')); // versión fija en la URL
   if (esSdk) { event.respondWith(cachePrimeroSdk(req)); return; }
   if (url.origin !== self.location.origin) return; // Firebase (datos), GitHub API, Cloudinary…: sin tocar
 
