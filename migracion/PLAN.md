@@ -10,14 +10,18 @@ Decisiones:
 - Supabase sirve los `.html` de Storage como texto plano: los apuntes HTML se muestran descargando
   el texto y metiéndolo en un `iframe` con `sandbox` y `srcdoc`.
 - El cliente se carga como módulo ES desde jsDelivr con versión fija (supabase-js 2.117.3).
-- Se mantiene la misma API pública que `firebase-core.js`/`firebase-init.js` para tocar lo mínimo
-  en el resto de archivos.
+- `js/firebase-core.js` conserva su nombre y su API pública, pero ahora es el núcleo de Supabase
+  (se renombrará en la fase E). Exporta `db = null` como pieza TEMPORAL hasta migrar los módulos
+  que aún usan Firestore.
+- Para probar desde la rama hay que desactivar «Confirm email» en Supabase (las cuentas «por
+  usuario» tienen un correo ficticio que no recibe mensajes).
 
 ## Fases (marcar al terminar cada una)
 
-- [ ] **A. Núcleo y cuentas.** `js/supabase-core.js` (inicio de sesión, registro, cierre de sesión,
-      perfil, roles, favoritos, orden del árbol), `js/firebase-init.js` pasa a reexportar desde él,
-      CSP de `index.html` y de las páginas de `DAM/1-DAM/`, `service-worker.js`.
+- [~] **A. Núcleo y cuentas.** HECHO: `js/firebase-core.js` (inicio de sesión, registro, cierre de
+      sesión, perfil, roles, favoritos, orden del árbol) y `migracion/parche-fase-a.mjs` (CSP de
+      `index.html` y `service-worker.js`). PENDIENTE: ejecutar el parche, desactivar «Confirm email»
+      y probar inicio de sesión, registro y «Mi cuenta».
 - [ ] **B. Calendario y horario.** `js/calendario.js`, `js/horario-cuenta.js`,
       `DAM/1-DAM/Calendario.html`, `DAM/1-DAM/Horario.html`.
 - [ ] **C. Chat.** `js/chat-core.js`, `js/chat-ui.js` con Realtime.
