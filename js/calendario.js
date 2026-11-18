@@ -1,4 +1,4 @@
-// calendario.js — Calendario escolar con exámenes y tareas reales en Firestore.
+// calendario.js — Calendario escolar con exámenes y tareas reales en Supabase (tablas calendario_eventos y calendario_hechas).
 //
 // Se carga como MÓDULO (<script type="module">) porque reutiliza la sesión y la
 // conexión de firebase-init.js en vez de abrir otra propia:
@@ -21,13 +21,28 @@
 // `eventosFijos` (más abajo). Exámenes y tareas NO están en el código: salen
 // únicamente de Firestore.
 
-import { auth, watchAuth, puedeGestionarCalendarioGlobal } from './firebase-init.js?v=165a238c';
-import {
-  getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc,
-  deleteField, onSnapshot, query, where, serverTimestamp,
-} from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+import { watchAuth, puedeGestionarCalendarioGlobal, supabase } from './firebase-init.js?v=165a238c';
 
-const db = getFirestore(auth.app);
+// «Observar» una consulta: la carga al empezar y la repite cuando Supabase avisa de un cambio
+// (Realtime). Devuelve una función para dejar de observar; su propiedad .refrescar vuelve a cargar.
+function observar(canal, tabla, filtro, cargar, alRecibir, alFallar) {
+  let activo = true;
+  const refrescar = async () => {
+    try {
+      const resultado = await cargar();
+      if (activo) alRecibir(resultado);
+    } catch (err) {
+      if (activo) alFallar(err);
+    }
+  };
+  refrescar();
+  const cambio = { event: '*', schema: 'public', table: tabla };
+  if (filtro) cambio.filter = filtro;
+  const suscripcion = supabase.channel(canal).on('postgres_changes', cambio, refrescar).subscribe();
+  const cancelar = () => { activo = false; supabase.removeChannel(suscripcion); };
+  cancelar.refrescar = refrescar;
+  return cancelar;
+}
 
 const COL_EVENTOS = 'calendario_eventos';
 const COL_HECHAS = 'calendario_hechas';
@@ -253,10 +268,10 @@ function mostrarMsg(texto, tipo = 'ok') {
 }
 
 function mensajeError(err, accion) {
-  if (err?.code === 'permission-denied') {
-    return `No tienes permiso para ${accion}. Comprueba que has iniciado sesión y que las reglas de Firestore (firestore.rules) están publicadas.`;
+  if (err?.code === 'permission-denied' || err?.code === '42501') {
+    return `No tienes permiso para ${accion}. Comprueba que has iniciado sesión.`;
   }
-  if (err?.code === 'unavailable') return 'Sin conexión con Firestore. Inténtalo de nuevo en unos segundos.';
+  if (err?.code === 'unavailable' || /fetch|network/i.test(err?.message || '')) return 'Sin conexión con el servidor. Inténtalo de nuevo en unos segundos.';
   return `No se pudo ${accion}. Revisa la consola del navegador.`;
 }
 
@@ -393,10 +408,14 @@ detalleEl.addEventListener('change', e => {
 // ordenador y las reglas lo hacen privado. Sin sesión → localStorage del navegador.
 async function guardarHecha(id, hecha) {
   if (user) {
-    await setDoc(doc(db, COL_HECHAS, user.uid), {
-      hechas: { [id]: hecha ? true : deleteField() },
-      actualizado: serverTimestamp(),
-    }, { merge: true });
+    // Una fila por usuario con el mapa { idTarea: true }: se lee, se cambia esta tarea y se guarda.
+    const { data, error } = await supabase.from(COL_HECHAS).select('hechas').eq('user_id', user.uid).maybeSingle();
+    if (error) throw error;
+    const mapa = { ...(data?.hechas || {}) };
+    if (hecha) mapa[id] = true; else delete mapa[id];
+    const { error: errorGuardar } = await supabase.from(COL_HECHAS)
+      .upsert({ user_id: user.uid, hechas: mapa, actualizado: new Date().toISOString() });
+    if (errorGuardar) throw errorGuardar;
   } else {
     guardarHechasLocal();
   }
@@ -428,9 +447,13 @@ function cargarHechas() {
   if (cancelarHechas) { cancelarHechas(); cancelarHechas = null; }
   if (!user) { hechas = leerHechasLocal(); return; }
   hechas = new Set();
-  cancelarHechas = onSnapshot(doc(db, COL_HECHAS, user.uid), snap => {
+  const uid = user.uid;
+  cancelarHechas = observar('calendario-hechas', COL_HECHAS, `user_id=eq.${uid}`, async () => {
+    const { data, error } = await supabase.from(COL_HECHAS).select('hechas').eq('user_id', uid).maybeSingle();
+    if (error) throw error;
+    return data?.hechas ?? null;
+  }, mapa => {
     const nuevo = new Set();
-    const mapa = snap.exists() ? snap.data().hechas : null;
     if (mapa && typeof mapa === 'object') {
       for (const [k, v] of Object.entries(mapa)) if (v === true) nuevo.add(k);
     }
@@ -474,7 +497,7 @@ function pintaExamenes() {
   if (estadoEventos === 'error') {
     const permisos = errorEventos?.code === 'permission-denied';
     examenesListEl.innerHTML = `<p class="vacio vacio-error">${permisos
-      ? 'No se pudieron leer los exámenes: Firestore ha denegado el acceso (revisa que las reglas estén publicadas).'
+      ? 'No se pudieron leer los exámenes: el servidor ha denegado el acceso (¿has iniciado sesión?).'
       : 'No se pudieron cargar los exámenes. Comprueba tu conexión y recarga la página.'}</p>`;
     return;
   }
@@ -542,13 +565,26 @@ const fuenteEventos = { global: new Map(), personal: new Map() };
 let cancelarGlobal = null;
 let cancelarPersonal = null;
 
-function mapaDesdeSnapshot(snap) {
+function mapaDesdeFilas(filas) {
   const m = new Map();
-  snap.forEach(d => {
-    const ev = normalizarEvento(d.id, d.data());
-    if (ev) m.set(d.id, ev);
-  });
+  for (const fila of filas) {
+    // En la base de datos el dueño se llama usuario_id; aquí se sigue llamando usuario_uid.
+    const ev = normalizarEvento(fila.id, { ...fila, usuario_uid: fila.usuario_id });
+    if (ev) m.set(fila.id, ev);
+  }
   return m;
+}
+
+async function cargarEventos(filtrar) {
+  const { data, error } = await filtrar(supabase.from(COL_EVENTOS).select('*'));
+  if (error) throw error;
+  return data;
+}
+
+// Tras crear, editar o borrar se vuelve a leer sin esperar al aviso de Realtime (que no siempre llega).
+function refrescarEventos() {
+  cancelarGlobal?.refrescar?.();
+  cancelarPersonal?.refrescar?.();
 }
 
 function reconstruirEventos() {
@@ -567,8 +603,8 @@ function iniciarEscuchaGlobal() {
   estadoEventos = 'cargando';
   errorEventos = null;
   pintaExamenes();
-  cancelarGlobal = onSnapshot(query(collection(db, COL_EVENTOS), where('ambito', '==', 'global')), snap => {
-    fuenteEventos.global = mapaDesdeSnapshot(snap);
+  cancelarGlobal = observar('calendario-global', COL_EVENTOS, null, () => cargarEventos(q => q.eq('ambito', 'global')), filas => {
+    fuenteEventos.global = mapaDesdeFilas(filas);
     estadoEventos = 'ok';
     errorEventos = null;
     reconstruirEventos();
@@ -586,8 +622,9 @@ function iniciarEscuchaPersonal() {
   if (cancelarPersonal) { cancelarPersonal(); cancelarPersonal = null; }
   fuenteEventos.personal = new Map();
   if (!user) { reconstruirEventos(); return; }
-  cancelarPersonal = onSnapshot(query(collection(db, COL_EVENTOS), where('usuario_uid', '==', user.uid)), snap => {
-    fuenteEventos.personal = mapaDesdeSnapshot(snap);
+  const uid = user.uid;
+  cancelarPersonal = observar('calendario-personal', COL_EVENTOS, null, () => cargarEventos(q => q.eq('usuario_id', uid)), filas => {
+    fuenteEventos.personal = mapaDesdeFilas(filas);
     reconstruirEventos();
   }, err => {
     console.error('Error al leer tus eventos personales:', err);
@@ -722,7 +759,7 @@ function leerFormulario() {
     // Sin descripción no se guarda el campo (así las tareas siguen valiendo con las reglas antiguas);
     // al editar, si se vacía una descripción que existía, se borra.
     if (descripcion) datos.descripcion = descripcion;
-    else if (editando?.descripcion) datos.descripcion = deleteField();
+    else if (editando?.descripcion) datos.descripcion = null;
   }
   return { datos };
 }
@@ -743,16 +780,19 @@ form.addEventListener('submit', async e => {
     if (editando) {
       // El tipo, el ámbito, el dueño y la fecha de creación no cambian nunca (lo exigen las reglas).
       const { tipo, ...editables } = datos;
-      await updateDoc(doc(db, COL_EVENTOS, editando.id), editables);
+      const { data, error } = await supabase.from(COL_EVENTOS).update(editables).eq('id', editando.id).select('id');
+      if (error) throw error;
+      if (!data?.length) throw Object.assign(new Error('Sin permiso'), { code: 'permission-denied' });
     } else {
       // ambito + usuario_uid deciden quién lo ve (ver firestore.rules). Nunca se cambian al editar.
-      await addDoc(collection(db, COL_EVENTOS), {
+      const { error } = await supabase.from(COL_EVENTOS).insert({
         ...datos,
         ambito: ambitoNuevo(),
-        usuario_uid: user.uid,
-        creado: serverTimestamp(),
+        usuario_id: user.uid,
       });
+      if (error) throw error;
     }
+    refrescarEventos();
     // Se lleva el calendario al día guardado para que se vea lo que se acaba de anotar.
     const f = fechaDesdeClave(datos.fecha);
     const i = mesesCurso.findIndex(m => m.year === f.getFullYear() && m.month === f.getMonth());
@@ -800,7 +840,10 @@ btnConfirmarEliminar.addEventListener('click', async () => {
   btnConfirmarEliminar.textContent = 'Eliminando…';
   errorEliminar.hidden = true;
   try {
-    await deleteDoc(doc(db, COL_EVENTOS, ev.id));
+    const { data, error } = await supabase.from(COL_EVENTOS).delete().eq('id', ev.id).select('id');
+    if (error) throw error;
+    if (!data?.length) throw Object.assign(new Error('Sin permiso'), { code: 'permission-denied' });
+    refrescarEventos();
     modalEliminar.close();
     mostrarMsg(ev.tipo === 'examen' ? 'Examen eliminado.' : 'Tarea eliminada.');
     // Quita también su marca de «hecha» para no acumular ids huérfanos (mejor esfuerzo).

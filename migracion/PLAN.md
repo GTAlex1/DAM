@@ -18,6 +18,11 @@ Decisiones:
   usuario» tienen un correo ficticio que no recibe mensajes). YA DESACTIVADO.
 - Los `?v=` de los imports los recalcula la Action al fusionar; en la rama pueden quedar
   desactualizados (no afecta a las pruebas). El service worker está en la versión `v3`.
+- Patrón para datos en vivo: función `observar()` (carga + Realtime que vuelve a cargar). Las
+  tablas que se observan deben estar en la publicación `supabase_realtime`: ya están
+  `chat_mensajes`, `calendario_eventos` y `calendario_hechas`.
+- Los tests (`npm test`): 44 de 45 pasan; `tests/reorden.test.mjs` ya fallaba antes de la migración
+  (falta exportar `planReordenPropio` en `js/utils.js`). Es un fallo ajeno a la migración.
 
 ## Fases (marcar al terminar cada una)
 
@@ -27,13 +32,13 @@ Decisiones:
       borrar). PENDIENTE: que el usuario pruebe inicio de sesión, registro de una cuenta nueva y
       «Mi cuenta». Plan B si el registro rechaza el dominio ficticio `.local`: crear las cuentas
       nuevas con una función de servidor.
-- [~] **B. Calendario y horario.**
-      HECHO: `js/horario-cuenta.js` (convalidaciones en Supabase; antes rompió la página del
-      horario porque usaba `auth.app` de Firebase).
-      PENDIENTE: `js/calendario.js` (902 líneas: eventos globales/personales, tareas hechas) y
-      comprobar `DAM/1-DAM/Calendario.html`. Recordar: `calendario_hechas` guarda ids de evento
-      NUEVOS (uuid); los eventos tienen `firebase_id` con el id antiguo.
-- [ ] **C. Chat.** `js/chat-core.js`, `js/chat-ui.js` con Realtime.
+- [~] **B. Calendario y horario.** HECHO y subido: `js/horario-cuenta.js` (convalidaciones) y
+      `js/calendario.js` (eventos globales/personales, tareas hechas, Realtime). PENDIENTE:
+      que el usuario lo pruebe (crear, editar y borrar un examen y una tarea; marcar una tarea
+      como hecha; abrir el horario y marcar una convalidada) y revisar si `DAM/1-DAM/Calendario.html`
+      y `Horario.html` necesitan algo más. Las tareas hechas ya usan los ids NUEVOS de los eventos.
+- [ ] **C. Chat.** `js/chat-core.js`, `js/chat-ui.js` con Realtime. Tabla `chats` (id texto; el
+      grupo `general` ya existe), `chat_mensajes` y `directorio`.
 - [ ] **D. Apuntes y subida de archivos.** `js/apuntes.js`, subida a Storage, visor de HTML con
       `srcdoc`, progreso de las apps de apuntes.
 - [ ] **E. Móvil, pruebas y cierre.** `js/mobile-*.js`, `js/app.js`, `npm test` y `npm run lint`,
