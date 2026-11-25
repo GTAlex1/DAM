@@ -15,11 +15,10 @@ jobs:
     steps:
       - name: Query damm
         env:
-          SUPABASE_KEY: ${{ secrets.DAMM_SUPABASE_KEY }}
+          SUPABASE_KEY: sb_publishable_vkMJHKoUCiaTGnSpycU7Bg_0-qlhKJc
           SUPABASE_URL: https://ywiprpasiafezfaajnfl.supabase.co
         run: |
-          test -n "$SUPABASE_KEY" || { echo "Missing DAMM_SUPABASE_KEY"; exit 1; }
           curl --fail --silent --show-error --max-time 30 \
             --retry 2 --output /dev/null \
             -H "apikey: $SUPABASE_KEY" \
-            "$SUPABASE_URL/rest/v1/"
+            "$SUPABASE_URL/rest/v1/roles?select=*&limit=1"
